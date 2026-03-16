@@ -40,10 +40,6 @@ import {
   readGlobalPublicSkillsCount,
 } from './lib/globalStats'
 import {
-  TRENDING_LEADERBOARD_KIND,
-  TRENDING_NON_SUSPICIOUS_LEADERBOARD_KIND,
-} from './lib/leaderboards'
-import {
   applyManualOverrideToSkillPatch,
   isManualOverrideReason,
   type ManualModerationOverride,
@@ -2673,16 +2669,16 @@ export const listPublicPageV3 = query({
 })
 
 function encodeIndexKey(key: IndexKey): string {
-  return JSON.stringify(key.map((v) => (v === undefined ? { __undef: 1 } : v)))
+  return JSON.stringify(key.map((val) => (val === undefined ? { __undef: 1 } : val)))
 }
 function decodeIndexKey(cursor: string): IndexKey | null {
   try {
     const arr = JSON.parse(cursor) as unknown[]
     if (!Array.isArray(arr)) return null
-    return arr.map((v) =>
-      v !== null && typeof v === 'object' && '__undef' in (v as Record<string, unknown>)
+    return arr.map((val) =>
+      val !== null && typeof val === 'object' && '__undef' in (val as Record<string, unknown>)
         ? undefined
-        : (v as Value),
+        : (val as Value),
     )
   } catch {
     return null
@@ -2879,51 +2875,6 @@ export const countPublicSkills = query({
     return countPublicSkillsForGlobalStats(ctx)
   },
 })
-
-function sortToIndex(
-  sort: 'downloads' | 'stars' | 'installsCurrent' | 'installsAllTime',
-):
-  | 'by_stats_downloads'
-  | 'by_stats_stars'
-  | 'by_stats_installs_current'
-  | 'by_stats_installs_all_time' {
-  switch (sort) {
-    case 'downloads':
-      return 'by_stats_downloads'
-    case 'stars':
-      return 'by_stats_stars'
-    case 'installsCurrent':
-      return 'by_stats_installs_current'
-    case 'installsAllTime':
-      return 'by_stats_installs_all_time'
-  }
-}
-
-async function getTrendingEntries(
-  ctx: QueryCtx,
-  limit: number,
-  args?: { nonSuspiciousOnly?: boolean },
-) {
-  const kind = args?.nonSuspiciousOnly
-    ? TRENDING_NON_SUSPICIOUS_LEADERBOARD_KIND
-    : TRENDING_LEADERBOARD_KIND
-  // Use the pre-computed leaderboard from the hourly cron job.
-  // Avoid Date.now() here to keep the query deterministic and cacheable.
-  const latest = await ctx.db
-    .query('skillLeaderboards')
-    .withIndex('by_kind', (q) => q.eq('kind', kind))
-    .order('desc')
-    .take(1)
-
-  if (latest[0]) {
-    return latest[0].items.slice(0, limit)
-  }
-
-  // Trending leaderboard generation has to happen through the action/query/mutation
-  // pipeline so each day is read in its own transaction. Returning an empty list on
-  // cold start is safer than rebuilding inside this query and tripping the 32K read cap.
-  return []
-}
 
 export const listVersions = query({
   args: { skillId: v.id('skills'), limit: v.optional(v.number()) },
