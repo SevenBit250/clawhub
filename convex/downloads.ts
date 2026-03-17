@@ -13,7 +13,10 @@ const DEDUPE_RETENTION_MS = 7 * 24 * HOUR_MS
 const PRUNE_BATCH_SIZE = 200
 const PRUNE_MAX_BATCHES = 50
 
-export const downloadZip = httpAction(async (ctx, request) => {
+export async function downloadZipHandler(
+  ctx: Parameters<Parameters<typeof httpAction>[0]>[0],
+  request: Request,
+) {
   const url = new URL(request.url)
   const slug = url.searchParams.get('slug')?.trim().toLowerCase()
   const versionParam = url.searchParams.get('version')?.trim()
@@ -143,7 +146,9 @@ export const downloadZip = httpAction(async (ctx, request) => {
       corsHeaders(),
     ),
   })
-})
+}
+
+export const downloadZip = httpAction(downloadZipHandler)
 
 export const recordDownloadInternal = internalMutation({
   args: {
