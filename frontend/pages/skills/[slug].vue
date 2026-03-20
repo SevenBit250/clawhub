@@ -44,6 +44,54 @@
               </ul>
             </div>
           </div>
+
+          <div class="border rounded-lg p-6 mt-6">
+            <h2 class="text-xl font-semibold mb-4">Comments</h2>
+
+            <div v-if="isAuthenticated" class="mb-6">
+              <textarea
+                v-model="newComment"
+                placeholder="Write a comment..."
+                class="w-full border rounded-lg p-3 mb-2"
+                rows="3"
+              />
+              <button
+                @click="submitComment"
+                :disabled="submitting || !newComment.trim()"
+                class="btn btn-primary"
+              >
+                {{ submitting ? 'Posting...' : 'Post Comment' }}
+              </button>
+            </div>
+            <div v-else class="mb-6 text-gray-500">
+              Please login to leave a comment.
+            </div>
+
+            <div v-if="commentsLoading" class="text-center py-4">Loading comments...</div>
+            <div v-else-if="comments.length === 0" class="text-gray-500 text-center py-4">
+              No comments yet. Be the first to comment!
+            </div>
+            <div v-else class="space-y-4">
+              <div v-for="comment in comments" :key="comment.id" class="border-b pb-4">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="font-medium">{{ comment.user?.displayName || comment.user?.handle || 'Anonymous' }}</span>
+                      <span class="text-gray-400 text-sm">{{ formatDate(comment.createdAt) }}</span>
+                    </div>
+                    <p class="text-gray-700">{{ comment.body }}</p>
+                  </div>
+                  <button
+                    v-if="user?.id === comment.userId"
+                    @click="deleteComment(comment.id)"
+                    class="text-red-500 hover:text-red-700 text-sm"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div>
@@ -71,8 +119,22 @@
 </template>
 
 <script setup lang="ts">
+interface CommentUser {
+  id: string
+  handle: string | null
+  displayName: string | null
+}
+
+interface Comment {
+  id: string
+  userId: string
+  body: string
+  createdAt: string
+  user: CommentUser | null
+}
+
 const api = useApi()
-const { isAuthenticated } = useAuth()
+const { isAuthenticated, token, user } = useAuth()
 const route = useRoute()
 const slug = route.params.slug as string
 
@@ -103,6 +165,10 @@ const skill = computed(() => data.value?.skill)
 const version = computed(() => data.value?.version)
 const isStarred = ref(false)
 const starCount = ref(0)
+const comments = ref<Comment[]>([])
+const commentsLoading = ref(true)
+const newComment = ref('')
+const submitting = ref(false)
 
 const { data: starData } = await useAsyncData(
   `skill-${slug}-star`,
@@ -115,6 +181,19 @@ if (starData.value) {
   isStarred.value = starData.value.starred
   starCount.value = starData.value.starCount
 }
+
+const { data: commentsData, refresh: refreshComments } = await useAsyncData(
+  `skill-${slug}-comments`,
+  async () => {
+    if (!skill.value?.id) return { comments: [] }
+    return api.get<{ comments: Comment[] }>(`/skills/${skill.value.id}/comments`)
+  }
+)
+
+if (commentsData.value) {
+  comments.value = commentsData.value.comments
+}
+commentsLoading.value = false
 
 async function toggleStar() {
   if (!isAuthenticated.value) {
@@ -136,9 +215,47 @@ async function toggleStar() {
   }
 }
 
+async function submitComment() {
+  if (!isAuthenticated.value || !skill.value?.id || !newComment.value.trim()) return
+
+  submitting.value = true
+  try {
+    const result = await api.post<{ comment: Comment }>(
+      `/skills/${skill.value.id}/comments`,
+      { body: newComment.value.trim() },
+      { token: token.value }
+    )
+    comments.value = [result.comment, ...comments.value]
+    newComment.value = ''
+  } catch (err) {
+    console.error('Failed to post comment:', err)
+  } finally {
+    submitting.value = false
+  }
+}
+
+async function deleteComment(commentId: string) {
+  if (!confirm('Delete this comment?')) return
+
+  try {
+    await api.delete(`/comments/${commentId}`, { token: token.value })
+    comments.value = comments.value.filter(c => c.id !== commentId)
+  } catch (err) {
+    console.error('Failed to delete comment:', err)
+  }
+}
+
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
 }
 </script>
