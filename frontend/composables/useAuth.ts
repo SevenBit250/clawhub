@@ -26,19 +26,22 @@ const authState = reactive<AuthState>({
 export function useAuth() {
   const api = useApi()
 
+  function setAuth(user: User, token: string) {
+    authState.token = token
+    authState.user = user
+    authState.isAuthenticated = true
+    if (import.meta.client) {
+      localStorage.setItem('auth_token', token)
+    }
+  }
+
   async function login(code: string) {
     const result = await api.get<{
       token: string
       user: User
     }>(`/auth/callback?code=${code}`)
 
-    authState.token = result.token
-    authState.user = result.user
-    authState.isAuthenticated = true
-
-    if (import.meta.client) {
-      localStorage.setItem('auth_token', result.token)
-    }
+    setAuth(result.user, result.token)
 
     return result
   }

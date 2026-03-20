@@ -19,6 +19,51 @@ fastify.get("/auth/url", async () => {
   return { url: wecomAuth.getAuthUrl(state) };
 });
 
+fastify.get("/auth/mock", async (request) => {
+  const { state, callback } = request.query as { state?: string; callback?: string };
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mock Login - ClawHub</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; }
+    .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 320px; }
+    h1 { margin: 0 0 1.5rem; font-size: 1.5rem; text-align: center; }
+    .btn { display: block; width: 100%; padding: 0.75rem; margin: 0.5rem 0; border: 1px solid #ddd; border-radius: 4px; background: #fafafa; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
+    .btn:hover { background: #f0f0f0; }
+    .btn.primary { background: #3b82f6; color: white; border-color: #3b82f6; }
+    .btn.primary:hover { background: #2563eb; }
+    .note { margin-top: 1rem; font-size: 0.875rem; color: #666; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Mock Login</h1>
+    <p>Select a mock user to login:</p>
+    <button class="btn primary" onclick="login('mock_admin')">Login as Admin</button>
+    <button class="btn" onclick="login('mock_user')">Login as Test User</button>
+    <button class="btn" onclick="login('mock_new')">Login as New User</button>
+    <p class="note">This is a mock login for development only</p>
+  </div>
+  <script>
+    function login(code) {
+      const callback = '${callback || ''}';
+      if (callback) {
+        window.location.href = callback + '?code=' + code + '&state=${state || ''}';
+      } else {
+        window.location.href = '/auth/callback?code=' + code;
+      }
+    }
+  </script>
+</body>
+</html>
+  `;
+
+  return { html };
+});
+
 fastify.get("/auth/callback", async (request) => {
   const { code } = request.query as { code?: string };
   if (!code) return { error: "Missing code" };

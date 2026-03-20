@@ -50,13 +50,13 @@
 </template>
 
 <script setup lang="ts">
-const { isAuthenticated, logout, getAuthUrl } = useAuth()
+const { isAuthenticated, logout } = useAuth()
 const router = useRouter()
+const route = useRoute()
 const searchQuery = ref('')
 
-async function handleLogin() {
-  const url = await getAuthUrl()
-  window.location.href = url
+function handleLogin() {
+  router.push(`/login?redirect=${encodeURIComponent(route.fullPath)}`)
 }
 
 async function handleLogout() {
