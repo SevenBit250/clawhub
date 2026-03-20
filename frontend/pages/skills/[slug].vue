@@ -12,7 +12,7 @@
         </div>
         <div class="flex gap-4">
           <button @click="toggleStar" class="btn btn-secondary">
-            {{ isStarred ? '⭐ Starred' : '☆ Star' }}
+            {{ isStarred ? '⭐ Starred' : '☆ Star' }} {{ starCount > 0 ? `(${starCount})` : '' }}
           </button>
           <button class="btn btn-primary">Install</button>
         </div>
@@ -102,13 +102,38 @@ const { data, pending, error } = await useAsyncData(
 const skill = computed(() => data.value?.skill)
 const version = computed(() => data.value?.version)
 const isStarred = ref(false)
+const starCount = ref(0)
 
-function toggleStar() {
+const { data: starData } = await useAsyncData(
+  `skill-${slug}-star`,
+  () => api.get<{ starred: boolean; starCount: number }>(`/skills/${skill.value?.id}/star`, {
+    token: token.value,
+  })
+)
+
+if (starData.value) {
+  isStarred.value = starData.value.starred
+  starCount.value = starData.value.starCount
+}
+
+async function toggleStar() {
   if (!isAuthenticated.value) {
     alert('Please login first')
     return
   }
-  isStarred.value = !isStarred.value
+  if (!skill.value?.id) return
+
+  try {
+    const result = await api.post<{ starred: boolean; starCount: number }>(
+      `/skills/${skill.value.id}/star`,
+      {},
+      { token: token.value }
+    )
+    isStarred.value = result.starred
+    starCount.value = result.starCount
+  } catch (err) {
+    console.error('Failed to toggle star:', err)
+  }
 }
 
 function formatSize(bytes: number): string {

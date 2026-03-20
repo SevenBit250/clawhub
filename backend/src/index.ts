@@ -235,6 +235,75 @@ fastify.get("/users/me/skills", { preHandler: [async (req) => requireAuth(req)] 
   return { skills };
 });
 
+// Stars
+fastify.post("/skills/:id/star", { preHandler: [async (req) => requireAuth(req)] }, async (request) => {
+  const session = await requireAuth(request);
+  const { id } = request.params as { id: string };
+  const { toggleStar, getSkillStarCount } = await import("./lib/stars.js");
+
+  const result = await toggleStar(session.userId, id);
+  const starCount = await getSkillStarCount(id);
+
+  return { ...result, starCount };
+});
+
+fastify.get("/skills/:id/star", async (request) => {
+  const { id } = request.params as { id: string };
+  const auth = request.headers.authorization;
+  const { isStarred, getSkillStarCount } = await import("./lib/stars.js");
+
+  let starred = false;
+  if (auth?.startsWith("Bearer ")) {
+    const { validateSession } = await import("./auth/session.js");
+    const session = await validateSession(auth.slice(7));
+    if (session) {
+      starred = await isStarred(session.userId, id);
+    }
+  }
+
+  const starCount = await getSkillStarCount(id);
+
+  return { starred, starCount };
+});
+
+fastify.get("/users/me/stars", { preHandler: [async (req) => requireAuth(req)] }, async (request) => {
+  const session = await requireAuth(request);
+  const { getUserStars } = await import("./lib/stars.js");
+
+  const stars = await getUserStars(session.userId);
+  return { stars };
+});
+
+// Comments
+fastify.get("/skills/:id/comments", async (request) => {
+  const { id } = request.params as { id: string };
+  const { getSkillComments } = await import("./lib/comments.js");
+
+  const comments = await getSkillComments(id);
+  return { comments };
+});
+
+fastify.post("/skills/:id/comments", { preHandler: [async (req) => requireAuth(req)] }, async (request) => {
+  const session = await requireAuth(request);
+  const { id } = request.params as { id: string };
+  const body = request.body as { body: string };
+  const { createComment } = await import("./lib/comments.js");
+
+  const comment = await createComment(session.userId, id, body.body);
+  return { comment };
+});
+
+fastify.delete("/comments/:id", { preHandler: [async (req) => requireAuth(req)] }, async (request) => {
+  const session = await requireAuth(request);
+  const { id } = request.params as { id: string };
+  const { deleteComment } = await import("./lib/comments.js");
+
+  const result = await deleteComment(id, session.userId);
+  if (!result) return { error: "Comment not found or not authorized" };
+
+  return { success: true };
+});
+
 fastify.get("/souls", async (request) => {
   const { limit, offset, sort } = request.query as {
     limit?: number;
@@ -310,7 +379,6 @@ fastify.post("/souls/:id/versions", { preHandler: [async (req) => requireAuth(re
   const { createSoulVersion } = await import("./lib/souls.js");
 
   const version = await createSoulVersion(session.userId, id, {
-    soulId: id,
     version: body.version,
     changelog: body.changelog,
     files: body.files,
