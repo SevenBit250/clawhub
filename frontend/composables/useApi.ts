@@ -1,10 +1,11 @@
-const API_BASE = '/api'
-
 interface FetchOptions extends RequestInit {
   token?: string | null
 }
 
 export function useApi() {
+  const config = useRuntimeConfig()
+  const API_BASE = config.public.apiBase as string || 'http://localhost:3001'
+
   async function request<T>(path: string, options: FetchOptions = {}): Promise<T> {
     const { token, ...fetchOptions } = options
 
