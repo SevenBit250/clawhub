@@ -14,14 +14,14 @@
     }
   },
   "footer": {
-    "brand": "ClawHub - 技能市场"
+    "brand": "Skills Hub {'@'} Keylights 2026"
   },
   "messages": {
     "logged_out": "已成功退出登录"
   },
   "home": {
     "hero": {
-      "title": "欢迎来到 SkillsHub",
+      "title": "欢迎来到 Skills Hub",
       "subtitle": "发现并分享精彩的技能",
       "browse": "浏览技能"
     },
