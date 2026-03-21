@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ClawHub 是一个 AI Agent 技能市场的私有化部署版本，包含：
 - **Backend**: Fastify API 服务端，使用 Drizzle ORM + PostgreSQL + pgvector
-- **Frontend**: Nuxt 3 + Vue 3 应用，使用 Ant Design Vue
+- **Frontend**: Vite + Vue 3 SPA 应用，使用 Ant Design Vue
 - **packages/schema**: 使用 ArkType 的共享 API 类型定义
 - **packages/clawdhub**: 用于发布和管理技能的 CLI 工具
 
@@ -26,7 +26,7 @@ bun run test:ui          # UI 模式
 bun run test:coverage    # 覆盖率报告
 ```
 
-### 前端 (Nuxt 3)
+### 前端 (Vite + Vue 3)
 ```bash
 cd frontend
 bun install && bun run dev   # 启动开发服务器 http://localhost:3000
@@ -58,10 +58,16 @@ curl "http://localhost:3001/auth/callback?code=mock_admin"
 ### 前端结构
 ```
 frontend/
-├── pages/           # index.vue, search.vue, dashboard.vue, login.vue, skills/, souls/
-├── composables/     # useApi.ts, useAuth.ts, useSearch.ts
-├── layouts/         # default.vue
-└── assets/css/      # main.css
+├── src/
+│   ├── pages/           # index.vue, search.vue, dashboard.vue, login.vue, skills/, souls/
+│   ├── composables/     # useApi.ts, useAuth.ts, useSearch.ts, useTheme.ts
+│   ├── plugins/         # antdv.ts, i18n.ts
+│   ├── router/          # Vue Router 配置
+│   ├── layouts/         # default.vue
+│   ├── assets/css/      # main.css
+│   └── main.ts          # Vite 入口
+├── vite.config.ts
+└── index.html
 ```
 
 ### 数据库 Schema
@@ -76,7 +82,7 @@ frontend/
 
 | 层级 | 技术 |
 |------|------|
-| 前端 | Nuxt 3 + Vue 3 + Ant Design Vue 4 |
+| 前端 | Vite + Vue 3 + Ant Design Vue 4 |
 | 后端 | Fastify |
 | 数据库 | PostgreSQL + pgvector |
 | ORM | Drizzle |

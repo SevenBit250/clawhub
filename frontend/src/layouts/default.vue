@@ -7,8 +7,12 @@
             <router-link to="/" class="text-xl font-bold">{{ $t("nav.clawhub") }}</router-link>
           </div>
           <div class="flex items-center gap-4">
-            <router-link to="/skills" class="nav-link">{{ $t("nav.skills") }}</router-link>
-            <router-link to="/souls" class="nav-link">{{ $t("nav.souls") }}</router-link>
+            <a-button type="text" class="nav-btn">
+              <router-link to="/skills">{{ $t("nav.skills") }}</router-link>
+            </a-button>
+            <a-button type="text" class="nav-btn">
+              <router-link to="/souls">{{ $t("nav.souls") }}</router-link>
+            </a-button>
 
             <!-- Language Switcher -->
             <a-dropdown :trigger="['click']">
@@ -22,7 +26,7 @@
                   </a-menu-item>
                 </a-menu>
               </template>
-              <a-button type="text" class="lang-toggle">
+              <a-button type="text" class="nav-btn lang-toggle">
                 <template #icon>
                   <GlobalOutlined />
                 </template>
@@ -34,31 +38,33 @@
               <template #overlay>
                 <a-menu>
                   <a-menu-item key="light" @click="setTheme('light')">
-                    <BulbFilled /> {{ $t("nav.theme.light") }}
+                    <BulbOutlined /> {{ $t("nav.theme.light") }}
                   </a-menu-item>
                   <a-menu-item key="dark" @click="setTheme('dark')">
-                    <BulbOutlined /> {{ $t("nav.theme.dark") }}
+                    <BulbFilled /> {{ $t("nav.theme.dark") }}
                   </a-menu-item>
                   <a-menu-item key="system" @click="setTheme('system')">
                     <DesktopOutlined /> {{ $t("nav.theme.system") }}
                   </a-menu-item>
                 </a-menu>
               </template>
-              <a-button type="text" class="theme-toggle">
+              <a-button type="text" class="nav-btn theme-toggle">
                 <template #icon>
-                  <BulbFilled v-if="effectiveTheme === 'light'" />
-                  <BulbOutlined v-else-if="effectiveTheme === 'dark'" />
+                  <BulbOutlined v-if="effectiveTheme === 'light'" />
+                  <BulbFilled v-else-if="effectiveTheme === 'dark'" />
                   <DesktopOutlined v-else />
                 </template>
               </a-button>
             </a-dropdown>
 
             <template v-if="isAuthenticated">
-              <router-link to="/dashboard" class="nav-link">{{ $t("nav.dashboard") }}</router-link>
-              <a-button @click="handleLogout">{{ $t("nav.logout") }}</a-button>
+              <a-button type="text" class="nav-btn">
+                <router-link to="/dashboard">{{ $t("nav.dashboard") }}</router-link>
+              </a-button>
+              <a-button type="text" class="nav-btn" @click="handleLogout">{{ $t("nav.logout") }}</a-button>
             </template>
             <template v-else>
-              <a-button type="primary" @click="handleLogin">{{ $t("nav.login") }}</a-button>
+              <a-button type="text" class="nav-btn" @click="handleLogin">{{ $t("nav.login") }}</a-button>
             </template>
           </div>
         </nav>
