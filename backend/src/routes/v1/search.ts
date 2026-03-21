@@ -5,7 +5,7 @@ import { searchSkills } from "../../lib/search.js";
 import { eq, and, isNull } from "drizzle-orm";
 
 export async function registerSearchV1(fastify: FastifyInstance) {
-  fastify.get("/api/v1/search", async (request) => {
+  fastify.get("/search", async (request) => {
     const { q, limit, offset } = request.query as {
       q?: string;
       limit?: number;

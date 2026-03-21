@@ -200,55 +200,19 @@ export const skillVersions = pgTable("skill_versions", {
   fingerprint: varchar("fingerprint", { length: 64 }),
   changelog: text("changelog").notNull(),
   changelogSource: varchar("changelog_source", { length: 10 }).$type<"auto" | "user">(),
-  files: text("files").$type<Array<{
-    path: string;
-    size: number;
-    storageId: string;
-    sha256: string;
-    contentType?: string;
-  }>>().notNull(),
-  frontmatter: text("frontmatter").$type<Record<string, unknown>>(),
-  metadata: text("metadata").$type<unknown>(),
-  clawdis: text("clawdis").$type<unknown>(),
-  moltbot: text("moltbot").$type<unknown>(),
+  files: text("files").notNull(),
+  frontmatter: text("frontmatter"),
+  metadata: text("metadata"),
+  clawdis: text("clawdis"),
+  moltbot: text("moltbot"),
   license: varchar("license", { length: 20 }),
   createdBy: uuid("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   softDeletedAt: timestamp("soft_deleted_at"),
   sha256hash: varchar("sha256hash", { length: 64 }),
-  vtAnalysis: text("vt_analysis").$type<{
-    status: string;
-    verdict?: string;
-    analysis?: string;
-    source?: string;
-    checkedAt: number;
-  }>(),
-  llmAnalysis: text("llm_analysis").$type<{
-    status: string;
-    verdict?: string;
-    confidence?: string;
-    summary?: string;
-    dimensions?: Array<{ name: string; label: string; rating: string; detail: string }>;
-    guidance?: string;
-    findings?: string;
-    model?: string;
-    checkedAt: number;
-  }>(),
-  staticScan: text("static_scan").$type<{
-    status: "clean" | "suspicious" | "malicious";
-    reasonCodes: string[];
-    findings: Array<{
-      code: string;
-      severity: "info" | "warn" | "critical";
-      file: string;
-      line: number;
-      message: string;
-      evidence: string;
-    }>;
-    summary: string;
-    engineVersion: string;
-    checkedAt: number;
-  }>(),
+  vtAnalysis: text("vt_analysis"),
+  llmAnalysis: text("llm_analysis"),
+  staticScan: text("static_scan"),
 }, (table) => [
   index("skill_versions_by_skill_idx").on(table.skillId),
   index("skill_versions_by_skill_version_idx").on(table.skillId, table.version),
@@ -263,17 +227,11 @@ export const soulVersions = pgTable("soul_versions", {
   fingerprint: varchar("fingerprint", { length: 64 }),
   changelog: text("changelog").notNull(),
   changelogSource: varchar("changelog_source", { length: 10 }).$type<"auto" | "user">(),
-  files: text("files").$type<Array<{
-    path: string;
-    size: number;
-    storageId: string;
-    sha256: string;
-    contentType?: string;
-  }>>().notNull(),
-  frontmatter: text("frontmatter").$type<Record<string, unknown>>(),
-  metadata: text("metadata").$type<unknown>(),
-  clawdis: text("clawdis").$type<unknown>(),
-  moltbot: text("moltbot").$type<unknown>(),
+  files: text("files").notNull(),
+  frontmatter: text("frontmatter"),
+  metadata: text("metadata"),
+  clawdis: text("clawdis"),
+  moltbot: text("moltbot"),
   createdBy: uuid("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   softDeletedAt: timestamp("soft_deleted_at"),

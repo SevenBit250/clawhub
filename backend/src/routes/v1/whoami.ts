@@ -5,7 +5,7 @@ import { validateSession } from "../../auth/session.js";
 import { eq } from "drizzle-orm";
 
 export async function registerWhoamiV1(fastify: FastifyInstance) {
-  fastify.get("/api/v1/whoami", async (request) => {
+  fastify.get("/whoami", async (request) => {
     const auth = request.headers.authorization;
     if (!auth?.startsWith("Bearer ")) {
       return { user: null };

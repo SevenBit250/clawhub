@@ -24,3 +24,5 @@ coverage
 playwright-report
 test-results
 .playwright
+*.zip
+storage/

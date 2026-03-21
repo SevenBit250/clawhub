@@ -38,6 +38,9 @@ export async function storeFile(
   const sha256 = createHash("sha256").update(data).digest("hex");
   const stats = await stat(filePath);
 
+  const metaPath = join(dir, `${id}.meta`);
+  await writeFile(metaPath, JSON.stringify({ contentType }));
+
   return {
     id,
     path: filePath,
@@ -51,12 +54,22 @@ export async function storeFile(
 export async function getFile(id: string): Promise<{ data: Buffer; file: StorageFile } | null> {
   const dir = join(STORAGE_DIR, id.slice(0, 2));
   const filePath = join(dir, id);
+  const metaPath = join(dir, `${id}.meta`);
 
   try {
     const data = await readFile(filePath);
     const stats = await stat(filePath);
-    const contentType = getContentType(filePath);
     const sha256 = createHash("sha256").update(data).digest("hex");
+
+    let contentType = getContentType(filePath);
+    try {
+      const metaData = JSON.parse(await readFile(metaPath, "utf-8"));
+      if (metaData.contentType) {
+        contentType = metaData.contentType;
+      }
+    } catch {
+      // meta file doesn't exist or is invalid, use extension-based detection
+    }
 
     return {
       data,

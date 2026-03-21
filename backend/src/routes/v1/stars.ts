@@ -2,11 +2,10 @@ import { FastifyInstance } from "fastify";
 import { db } from "../../db/index.js";
 import { stars, skills } from "../../db/schema.js";
 import { validateSession } from "../../auth/session.js";
-import { eq, and } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 
 export async function registerStarsV1(fastify: FastifyInstance) {
-  // POST /api/v1/stars - Star a skill
-  fastify.post("/api/v1/stars", async (request) => {
+  fastify.post("/stars/:slug", async (request) => {
     const auth = request.headers.authorization;
     if (!auth?.startsWith("Bearer ")) {
       throw { statusCode: 401, message: "Unauthorized" };
@@ -18,16 +17,24 @@ export async function registerStarsV1(fastify: FastifyInstance) {
       throw { statusCode: 401, message: "Unauthorized" };
     }
 
-    const { skillId } = request.query as { skillId?: string };
-    if (!skillId) {
-      throw { statusCode: 400, message: "skillId required" };
+    const { slug } = request.params as { slug: string };
+
+    // Find skill by slug
+    const [skill] = await db
+      .select({ id: skills.id })
+      .from(skills)
+      .where(and(eq(skills.slug, slug), isNull(skills.softDeletedAt)))
+      .limit(1);
+
+    if (!skill) {
+      throw { statusCode: 404, message: "Skill not found" };
     }
 
     // Check if already starred
     const [existing] = await db
       .select()
       .from(stars)
-      .where(and(eq(stars.skillId, skillId), eq(stars.userId, session.userId)))
+      .where(and(eq(stars.skillId, skill.id), eq(stars.userId, session.userId)))
       .limit(1);
 
     if (existing) {
@@ -40,7 +47,7 @@ export async function registerStarsV1(fastify: FastifyInstance) {
 
     // Create star
     await db.insert(stars).values({
-      skillId,
+      skillId: skill.id,
       userId: session.userId,
     });
 
@@ -48,7 +55,7 @@ export async function registerStarsV1(fastify: FastifyInstance) {
     await db
       .update(skills)
       .set({ statsStars: skills.statsStars })
-      .where(eq(skills.id, skillId));
+      .where(eq(skills.id, skill.id));
 
     return {
       ok: true as const,
@@ -57,8 +64,7 @@ export async function registerStarsV1(fastify: FastifyInstance) {
     };
   });
 
-  // DELETE /api/v1/stars - Unstar a skill
-  fastify.delete("/api/v1/stars", async (request) => {
+  fastify.delete("/stars/:slug", async (request) => {
     const auth = request.headers.authorization;
     if (!auth?.startsWith("Bearer ")) {
       throw { statusCode: 401, message: "Unauthorized" };
@@ -70,16 +76,24 @@ export async function registerStarsV1(fastify: FastifyInstance) {
       throw { statusCode: 401, message: "Unauthorized" };
     }
 
-    const { skillId } = request.query as { skillId?: string };
-    if (!skillId) {
-      throw { statusCode: 400, message: "skillId required" };
+    const { slug } = request.params as { slug: string };
+
+    // Find skill by slug
+    const [skill] = await db
+      .select({ id: skills.id })
+      .from(skills)
+      .where(and(eq(skills.slug, slug), isNull(skills.softDeletedAt)))
+      .limit(1);
+
+    if (!skill) {
+      throw { statusCode: 404, message: "Skill not found" };
     }
 
     // Check if starred
     const [existing] = await db
       .select()
       .from(stars)
-      .where(and(eq(stars.skillId, skillId), eq(stars.userId, session.userId)))
+      .where(and(eq(stars.skillId, skill.id), eq(stars.userId, session.userId)))
       .limit(1);
 
     if (!existing) {

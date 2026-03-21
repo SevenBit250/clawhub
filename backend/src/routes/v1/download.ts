@@ -8,7 +8,7 @@ import { zip, ZipPassThrough } from "fflate";
 type ZipCallback = (err: Error | null, data: Uint8Array) => void;
 
 export async function registerDownloadV1(fastify: FastifyInstance) {
-  fastify.get("/api/v1/download", async (request, reply) => {
+  fastify.get("/download", async (request, reply) => {
     const { slug, version } = request.query as {
       slug?: string;
       version?: string;
@@ -57,10 +57,23 @@ export async function registerDownloadV1(fastify: FastifyInstance) {
       throw { statusCode: 404, message: "Version not found" };
     }
 
-    const files = (versionRow.files as Array<{ path: string; storageId: string }>) || [];
+    let parsedFiles: Array<{ path: string; storageId: string }> = [];
+    if (versionRow.files) {
+      if (typeof versionRow.files === "string") {
+        try {
+          parsedFiles = JSON.parse(versionRow.files);
+        } catch {
+          throw { statusCode: 500, message: "Invalid files data" };
+        }
+      } else if (Array.isArray(versionRow.files)) {
+        parsedFiles = versionRow.files as Array<{ path: string; storageId: string }>;
+      }
+    }
+
     const fileBuffers: Record<string, Uint8Array> = {};
 
-    for (const file of files) {
+    for (const file of parsedFiles) {
+      if (!file.storageId) continue;
       const stored = await getFile(file.storageId);
       if (stored) {
         fileBuffers[file.path] = new Uint8Array(stored.data);

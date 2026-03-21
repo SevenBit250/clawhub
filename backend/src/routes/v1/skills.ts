@@ -281,13 +281,13 @@ const getSkillBySlug: FastifyPluginAsync = async (fastify) => {
       moderation: {
         isSuspicious: skillRow.isSuspicious ?? false,
         isMalwareBlocked: skillRow.moderationVerdict === "malicious",
-        verdict: skillRow.moderationVerdict,
-        reasonCodes: parseReasonCodes(skillRow.moderationReasonCodes),
+        verdict: skillRow.moderationVerdict ?? undefined,
+        reasonCodes: parseReasonCodes(skillRow.moderationReasonCodes) ?? undefined,
         updatedAt: skillRow.moderationEvaluatedAt
           ? toUnixMs(skillRow.moderationEvaluatedAt)
           : null,
-        engineVersion: skillRow.moderationEngineVersion,
-        summary: skillRow.moderationSummary,
+        engineVersion: skillRow.moderationEngineVersion ?? undefined,
+        summary: skillRow.moderationSummary ?? undefined,
       },
     };
   });
@@ -296,56 +296,100 @@ const getSkillBySlug: FastifyPluginAsync = async (fastify) => {
 const registerPublishSkillV1: FastifyPluginAsync = async (fastify) => {
   fastify.post("/skills", async (request) => {
     const session = await requireAuth(request);
-    const body = request.body as {
+    
+    let payload: {
       slug: string;
       displayName: string;
       version: string;
       changelog: string;
       tags?: string[];
-      source?: {
-        kind: "github";
-        url: string;
-        repo: string;
-        ref: string;
-        commit: string;
-        path: string;
-        importedAt: number;
-      };
       forkOf?: { slug: string; version?: string };
-      files: Array<{
-        path: string;
-        size: number;
-        storageId: string;
-        sha256: string;
-        contentType?: string;
-      }>;
-    };
+    } | null = null;
 
-    const existing = await db.query.skills.findFirst({
-      where: eq(skills.slug, body.slug),
+    const files: Array<{ path: string; size: number; storageId: string; sha256: string; contentType?: string }> = [];
+    const { generateUploadId, storeFile } = await import("../../lib/storage.js");
+
+    return new Promise((resolve, reject) => {
+      const busboy = import("busboy").then(({ default: BB }) => {
+        const bb = BB({ headers: request.headers as Record<string, string> });
+        
+        bb.on("field", (name: string, value: string) => {
+          if (name === "payload") {
+            try {
+              payload = JSON.parse(value);
+            } catch {
+              reject({ statusCode: 400, message: "Invalid payload JSON" });
+            }
+          }
+        });
+
+        bb.on("file", async (name: string, stream: any, info: any) => {
+          const { filename, mimeType } = info;
+          const chunks: Buffer[] = [];
+          
+          stream.on("data", (chunk: Buffer) => {
+            chunks.push(chunk);
+          });
+          
+          stream.on("end", async () => {
+            try {
+              const buffer = Buffer.concat(chunks);
+              const id = await generateUploadId();
+              const file = await storeFile(id, buffer, mimeType || "application/octet-stream");
+              files.push({
+                path: filename,
+                size: buffer.length,
+                storageId: id,
+                sha256: file.sha256,
+                contentType: mimeType,
+              });
+            } catch (err) {
+              reject(err);
+            }
+          });
+          
+          stream.on("error", reject);
+        });
+
+        bb.on("close", async () => {
+          if (!payload) {
+            reject({ statusCode: 400, message: "Missing payload" });
+            return;
+          }
+
+          const existing = await db.query.skills.findFirst({
+            where: eq(skills.slug, payload.slug),
+          });
+
+          if (existing) {
+            reject({ statusCode: 409, message: "Slug already exists" });
+            return;
+          }
+
+          const skill = await createSkill(session.userId, {
+            slug: payload.slug,
+            displayName: payload.displayName,
+          });
+
+          const version = await createSkillVersion(session.userId, skill.id, {
+            skillId: skill.id,
+            version: payload.version,
+            changelog: payload.changelog,
+            files,
+          });
+
+          resolve({
+            ok: true as const,
+            skillId: skill.id,
+            versionId: version.id,
+          });
+        });
+
+        bb.on("error", reject);
+
+        (request.raw as any).pipe(bb);
+      });
     });
-
-    if (existing) {
-      throw { statusCode: 409, message: "Slug already exists" };
-    }
-
-    const skill = await createSkill(session.userId, {
-      slug: body.slug,
-      displayName: body.displayName,
-    });
-
-    const version = await createSkillVersion(session.userId, skill.id, {
-      skillId: skill.id,
-      version: body.version,
-      changelog: body.changelog,
-      files: body.files,
-    });
-
-    return {
-      ok: true as const,
-      skillId: skill.id,
-      versionId: version.id,
-    };
   });
 };
 
@@ -432,6 +476,19 @@ const registerSkillVersionsV1: FastifyPluginAsync = async (fastify) => {
       return { version: null, skill: null };
     }
 
+    let parsedFiles = null;
+    if (versionRow.files) {
+      if (typeof versionRow.files === "string") {
+        try {
+          parsedFiles = JSON.parse(versionRow.files);
+        } catch {
+          parsedFiles = null;
+        }
+      } else {
+        parsedFiles = versionRow.files;
+      }
+    }
+
     return {
       version: {
         version: versionRow.version,
@@ -439,7 +496,7 @@ const registerSkillVersionsV1: FastifyPluginAsync = async (fastify) => {
         changelog: versionRow.changelog,
         changelogSource: versionRow.changelogSource,
         license: versionRow.license,
-        files: versionRow.files,
+        files: parsedFiles,
       },
       skill: {
         slug: skill.slug,
@@ -568,6 +625,31 @@ const registerSkillManageV1: FastifyPluginAsync = async (fastify) => {
   });
 
   fastify.post("/skills/:slug/restore", async (request) => {
+    const session = await requireAuth(request);
+    const { slug } = request.params as { slug: string };
+
+    const [skill] = await db
+      .select()
+      .from(skills)
+      .where(eq(skills.slug, slug))
+      .limit(1);
+
+    if (!skill) {
+      throw { statusCode: 404, message: "Skill not found" };
+    }
+
+    if (skill.ownerUserId !== session.userId) {
+      throw { statusCode: 403, message: "Not skill owner" };
+    }
+
+    await db.update(skills)
+      .set({ softDeletedAt: null, updatedAt: new Date() })
+      .where(eq(skills.id, skill.id));
+
+    return { ok: true as const };
+  });
+
+  fastify.post("/skills/:slug/undelete", async (request) => {
     const session = await requireAuth(request);
     const { slug } = request.params as { slug: string };
 

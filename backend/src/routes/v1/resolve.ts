@@ -4,7 +4,7 @@ import { skills, skillVersions } from "../../db/schema.js";
 import { eq, and, isNull } from "drizzle-orm";
 
 export async function registerResolveV1(fastify: FastifyInstance) {
-  fastify.get("/api/v1/resolve", async (request) => {
+  fastify.get("/resolve", async (request) => {
     const { slug, version } = request.query as {
       slug?: string;
       version?: string;

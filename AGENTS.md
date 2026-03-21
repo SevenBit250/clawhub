@@ -146,6 +146,75 @@ frontend/
 - PRs: focused changes, include test commands, screenshots for UI changes
 - **Never commit** `.env` or credentials
 
+## 测试规范
+
+### 测试框架
+- 后端使用 **Vitest** 作为测试框架
+- 配置文件: `backend/vitest.config.ts`
+- 测试文件位置: `backend/tests/`
+
+### 测试命令
+```bash
+cd backend
+bun run test        # 监视模式
+bun run test:run    # 单次运行
+bun run test:ui      # UI 模式
+bun run test:coverage # 覆盖率报告
+```
+
+### 测试类型
+
+#### 单元测试 (Unit Tests)
+- 位置: `tests/*.test.ts`
+- 范围: 纯函数、工具函数、存储逻辑
+- 示例: `tests/storage.test.ts`, `tests/serialization.test.ts`
+
+#### 回归测试 (Regression Tests)
+- 位置: `tests/api.test.ts`
+- 范围: API 端点、CLI 兼容性
+- 要求: 所有 CLI 命令必须能正常工作
+
+### 强制要求 ⚠️
+
+**修改或添加功能后必须执行测试：**
+
+1. **修改 `src/lib/*.ts`** → 必须运行单元测试
+   ```bash
+   bun run test:run
+   ```
+
+2. **修改 API 路由 (`src/routes/`)** → 必须运行 API 回归测试
+   ```bash
+   # 确保后端正在运行
+   bun run dev
+   # 运行测试
+   bun run test:run
+   ```
+
+3. **修改数据库 Schema** → 必须运行相关测试并验证构建
+   ```bash
+   bun run build && bun run test:run
+   ```
+
+4. **所有提交前** → 必须确保测试通过
+   ```bash
+   bun run build && bun run test:run
+   ```
+
+### 测试通过标准
+- 所有测试必须通过 (`bun run test:run` exit code 0)
+- TypeScript 编译必须通过 (`bun run build`)
+- 覆盖率建议: 核心业务逻辑 > 70%
+
+### 常见测试场景
+
+| 场景 | 测试命令 | 预期结果 |
+|------|---------|---------|
+| 修改 storage.ts | `bun run test:run` | storage.test.ts 全部通过 |
+| 修改 API 路由 | `bun run test:run` | api.test.ts 全部通过 |
+| 修改数据库 Schema | `bun run build && bun run test:run` | 编译成功 + 测试通过 |
+| 发布新功能 | `bun run build && bun run test:run` | 全部通过才能提交 |
+
 ## Environment Variables
 - Backend: `backend/.env`
 - Frontend: `.env.local` (Nuxt)

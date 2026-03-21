@@ -4,7 +4,7 @@ import { users } from "../../db/schema.js";
 import { and, isNull, like, or, sql } from "drizzle-orm";
 
 export async function registerUsersV1(fastify: FastifyInstance) {
-  fastify.get("/api/v1/users", async (request) => {
+  fastify.get("/users", async (request) => {
     const { q, limit: limitStr, offset: offsetStr } = request.query as {
       q?: string;
       limit?: string;

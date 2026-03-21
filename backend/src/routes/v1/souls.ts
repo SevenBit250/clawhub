@@ -8,7 +8,7 @@ function toUnixMs(timestamp: Date): number {
 }
 
 export async function registerSoulsV1(fastify: FastifyInstance) {
-  fastify.get("/api/v1/souls", async (request) => {
+  fastify.get("/souls", async (request) => {
     const { limit: limitStr, offset: offsetStr } = request.query as {
       limit?: string;
       offset?: string;
@@ -52,7 +52,7 @@ export async function registerSoulsV1(fastify: FastifyInstance) {
     };
   });
 
-  fastify.get("/api/v1/souls/:slug", async (request) => {
+  fastify.get("/souls/:slug", async (request) => {
     const { slug } = request.params as { slug: string };
 
     const [soul] = await db

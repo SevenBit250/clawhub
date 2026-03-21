@@ -45,10 +45,10 @@ export async function createSoulVersion(
     version: input.version,
     changelog: input.changelog,
     changelogSource: "user",
-    files: input.files,
-    frontmatter: input.frontmatter,
-    metadata: input.metadata,
-    clawdis: input.clawdis,
+    files: JSON.stringify(input.files),
+    frontmatter: input.frontmatter ? JSON.stringify(input.frontmatter) : null,
+    metadata: input.metadata ? JSON.stringify(input.metadata) : null,
+    clawdis: input.clawdis ? JSON.stringify(input.clawdis) : null,
     createdBy: userId,
   }).returning();
 

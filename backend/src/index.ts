@@ -7,13 +7,11 @@ import { db } from "./db/index.js";
 import { users } from "./db/schema.js";
 import { eq } from "drizzle-orm";
 import { registerV1Routes } from "./routes/v1/index.js";
-import { registerDownloadV1 } from "./routes/v1/download.js";
 import { registerLegacyRoutes } from "./routes/legacy/index.js";
 
 const fastify = Fastify({ logger: true });
 await fastify.register(multipart);
 await registerV1Routes(fastify);
-await fastify.register(registerDownloadV1);
 await fastify.register(registerLegacyRoutes);
 
 const wecomAuth = new MockWeComAuth();
@@ -155,6 +153,30 @@ fastify.patch("/users/me", { preHandler: [async (req) => requireAuth(req)] }, as
   return { success: true, user };
 });
 
+fastify.get("/users/me/skills", { preHandler: [async (req) => requireAuth(req)] }, async (request) => {
+  const session = await requireAuth(request);
+  const { getUserSkills } = await import("./lib/skills.js");
+
+  const skills = await getUserSkills(session.userId);
+  return { skills };
+});
+
+fastify.get("/users/me/stars", { preHandler: [async (req) => requireAuth(req)] }, async (request) => {
+  const session = await requireAuth(request);
+  const { getUserStars } = await import("./lib/stars.js");
+
+  const stars = await getUserStars(session.userId);
+  return { stars };
+});
+
+fastify.get("/users/me/souls", { preHandler: [async (req) => requireAuth(req)] }, async (request) => {
+  const session = await requireAuth(request);
+  const { getUserSouls } = await import("./lib/souls.js");
+
+  const souls = await getUserSouls(session.userId);
+  return { souls };
+});
+
 fastify.post("/storage/upload", { preHandler: [async (req) => requireAuth(req)] }, async (request) => {
   await requireAuth(request);
   const { generateUploadId, storeFile } = await import("./lib/storage.js");
@@ -187,145 +209,6 @@ fastify.get("/storage/:id", async (request, reply) => {
   return result.data;
 });
 
-fastify.get("/skills", async (request) => {
-  const { limit, offset, sort } = request.query as {
-    limit?: number;
-    offset?: number;
-    sort?: "updated" | "downloads" | "stars" | "installs";
-  };
-  const { listSkills } = await import("./lib/skills.js");
-  return listSkills({ limit, offset, sortBy: sort });
-});
-
-fastify.get("/skills/:slug", async (request) => {
-  const { slug } = request.params as { slug: string };
-  const { getSkillBySlug, getLatestSkillVersion } = await import("./lib/skills.js");
-
-  const skill = await getSkillBySlug(slug);
-  if (!skill) return { error: "Skill not found" };
-
-  const latestVersion = await getLatestSkillVersion(skill.id);
-
-  return { skill, version: latestVersion };
-});
-
-fastify.post("/skills", { preHandler: [async (req) => requireAuth(req)] }, async (request) => {
-  const session = await requireAuth(request);
-  const body = request.body as { slug: string; displayName: string; summary?: string };
-  const { createSkill } = await import("./lib/skills.js");
-
-  const skill = await createSkill(session.userId, {
-    slug: body.slug,
-    displayName: body.displayName,
-    summary: body.summary,
-  });
-
-  return { skill };
-});
-
-fastify.patch("/skills/:id", { preHandler: [async (req) => requireAuth(req)] }, async (request) => {
-  const session = await requireAuth(request);
-  const { id } = request.params as { id: string };
-  const body = request.body as { displayName?: string; summary?: string };
-  const { updateSkill } = await import("./lib/skills.js");
-
-  const skill = await updateSkill(id, session.userId, body);
-  return { skill };
-});
-
-fastify.delete("/skills/:id", { preHandler: [async (req) => requireAuth(req)] }, async (request) => {
-  const session = await requireAuth(request);
-  const { id } = request.params as { id: string };
-  const { deleteSkill } = await import("./lib/skills.js");
-
-  await deleteSkill(id, session.userId);
-  return { success: true };
-});
-
-fastify.get("/skills/:id/versions", async (request) => {
-  const { id } = request.params as { id: string };
-  const { getSkillVersions } = await import("./lib/skills.js");
-
-  const versions = await getSkillVersions(id);
-  return { versions };
-});
-
-fastify.post("/skills/:id/versions", { preHandler: [async (req) => requireAuth(req)] }, async (request) => {
-  const session = await requireAuth(request);
-  const { id } = request.params as { id: string };
-  const body = request.body as {
-    version: string;
-    changelog: string;
-    files: Array<{ path: string; size: number; storageId: string; sha256: string; contentType?: string }>;
-    frontmatter?: Record<string, unknown>;
-    metadata?: unknown;
-    clawdis?: unknown;
-    license?: string;
-  };
-  const { createSkillVersion } = await import("./lib/skills.js");
-
-  const version = await createSkillVersion(session.userId, id, {
-    skillId: id,
-    version: body.version,
-    changelog: body.changelog,
-    files: body.files,
-    frontmatter: body.frontmatter,
-    metadata: body.metadata,
-    clawdis: body.clawdis,
-    license: body.license,
-  });
-
-  return { version };
-});
-
-fastify.get("/users/me/skills", { preHandler: [async (req) => requireAuth(req)] }, async (request) => {
-  const session = await requireAuth(request);
-  const { getUserSkills } = await import("./lib/skills.js");
-
-  const skills = await getUserSkills(session.userId);
-  return { skills };
-});
-
-// Stars
-fastify.post("/skills/:id/star", { preHandler: [async (req) => requireAuth(req)] }, async (request) => {
-  const session = await requireAuth(request);
-  const { id } = request.params as { id: string };
-  const { toggleStar, getSkillStarCount } = await import("./lib/stars.js");
-
-  const result = await toggleStar(session.userId, id);
-  const starCount = await getSkillStarCount(id);
-
-  return { ...result, starCount };
-});
-
-fastify.get("/skills/:id/star", async (request) => {
-  const { id } = request.params as { id: string };
-  const auth = request.headers.authorization;
-  const { isStarred, getSkillStarCount } = await import("./lib/stars.js");
-
-  let starred = false;
-  if (auth?.startsWith("Bearer ")) {
-    const { validateSession } = await import("./auth/session.js");
-    const session = await validateSession(auth.slice(7));
-    if (session) {
-      starred = await isStarred(session.userId, id);
-    }
-  }
-
-  const starCount = await getSkillStarCount(id);
-
-  return { starred, starCount };
-});
-
-fastify.get("/users/me/stars", { preHandler: [async (req) => requireAuth(req)] }, async (request) => {
-  const session = await requireAuth(request);
-  const { getUserStars } = await import("./lib/stars.js");
-
-  const stars = await getUserStars(session.userId);
-  return { stars };
-});
-
-// Comments
 fastify.get("/skills/:id/comments", async (request) => {
   const { id } = request.params as { id: string };
   const { getSkillComments } = await import("./lib/comments.js");
@@ -353,147 +236,6 @@ fastify.delete("/comments/:id", { preHandler: [async (req) => requireAuth(req)] 
   if (!result) return { error: "Comment not found or not authorized" };
 
   return { success: true };
-});
-
-fastify.get("/souls", async (request) => {
-  const { limit, offset, sort } = request.query as {
-    limit?: number;
-    offset?: number;
-    sort?: "updated" | "stars";
-  };
-  const { listSouls } = await import("./lib/souls.js");
-  return listSouls({ limit, offset, sortBy: sort });
-});
-
-fastify.get("/souls/:slug", async (request) => {
-  const { slug } = request.params as { slug: string };
-  const { getSoulBySlug } = await import("./lib/souls.js");
-
-  const soul = await getSoulBySlug(slug);
-  if (!soul) return { error: "Soul not found" };
-
-  return { soul };
-});
-
-fastify.post("/souls", { preHandler: [async (req) => requireAuth(req)] }, async (request) => {
-  const session = await requireAuth(request);
-  const body = request.body as { slug: string; displayName: string; summary?: string };
-  const { createSoul } = await import("./lib/souls.js");
-
-  const soul = await createSoul(session.userId, {
-    slug: body.slug,
-    displayName: body.displayName,
-    summary: body.summary,
-  });
-
-  return { soul };
-});
-
-fastify.patch("/souls/:id", { preHandler: [async (req) => requireAuth(req)] }, async (request) => {
-  const session = await requireAuth(request);
-  const { id } = request.params as { id: string };
-  const body = request.body as { displayName?: string; summary?: string };
-  const { updateSoul } = await import("./lib/souls.js");
-
-  const soul = await updateSoul(id, session.userId, body);
-  return { soul };
-});
-
-fastify.delete("/souls/:id", { preHandler: [async (req) => requireAuth(req)] }, async (request) => {
-  const session = await requireAuth(request);
-  const { id } = request.params as { id: string };
-  const { deleteSoul } = await import("./lib/souls.js");
-
-  await deleteSoul(id, session.userId);
-  return { success: true };
-});
-
-fastify.get("/souls/:id/versions", async (request) => {
-  const { id } = request.params as { id: string };
-  const { getSoulVersions } = await import("./lib/souls.js");
-
-  const versions = await getSoulVersions(id);
-  return { versions };
-});
-
-fastify.post("/souls/:id/versions", { preHandler: [async (req) => requireAuth(req)] }, async (request) => {
-  const session = await requireAuth(request);
-  const { id } = request.params as { id: string };
-  const body = request.body as {
-    version: string;
-    changelog: string;
-    files: Array<{ path: string; size: number; storageId: string; sha256: string; contentType?: string }>;
-    frontmatter?: Record<string, unknown>;
-    metadata?: unknown;
-    clawdis?: unknown;
-  };
-  const { createSoulVersion } = await import("./lib/souls.js");
-
-  const version = await createSoulVersion(session.userId, id, {
-    version: body.version,
-    changelog: body.changelog,
-    files: body.files,
-    frontmatter: body.frontmatter,
-    metadata: body.metadata,
-    clawdis: body.clawdis,
-  });
-
-  return { version };
-});
-
-fastify.get("/users/me/souls", { preHandler: [async (req) => requireAuth(req)] }, async (request) => {
-  const session = await requireAuth(request);
-  const { getUserSouls } = await import("./lib/souls.js");
-
-  const souls = await getUserSouls(session.userId);
-  return { souls };
-});
-
-fastify.get("/search", async (request) => {
-  const { q, limit, offset, highlighted, nonSuspicious } = request.query as {
-    q?: string;
-    limit?: number;
-    offset?: number;
-    highlighted?: string;
-    nonSuspicious?: string;
-  };
-
-  if (!q || q.trim().length === 0) {
-    return { results: [], query: q };
-  }
-
-  const { searchSkills } = await import("./lib/search.js");
-
-  const results = await searchSkills(q, {
-    limit: limit || 20,
-    offset: offset || 0,
-    highlightedOnly: highlighted === "true",
-    nonSuspiciousOnly: nonSuspicious !== "false",
-  });
-
-  return { results, query: q };
-});
-
-fastify.get("/search/skills", async (request) => {
-  const { q, limit, offset } = request.query as {
-    q?: string;
-    limit?: number;
-    offset?: number;
-  };
-
-  if (!q || q.trim().length === 0) {
-    return { results: [] };
-  }
-
-  const { searchSkills } = await import("./lib/search.js");
-
-  const results = await searchSkills(q, {
-    limit: limit || 20,
-    offset: offset || 0,
-    nonSuspiciousOnly: true,
-  });
-
-  return { results };
 });
 
 const start = async () => {

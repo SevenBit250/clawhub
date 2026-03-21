@@ -5,8 +5,7 @@ import { validateSession } from "../../auth/session.js";
 import { eq, and, or } from "drizzle-orm";
 
 export async function registerTransfersV1(fastify: FastifyInstance) {
-  // GET /api/v1/transfers - List transfers for current user
-  fastify.get("/api/v1/transfers", async (request) => {
+  fastify.get("/transfers", async (request) => {
     const auth = request.headers.authorization;
     if (!auth?.startsWith("Bearer ")) {
       throw { statusCode: 401, message: "Unauthorized" };
@@ -69,7 +68,7 @@ export async function registerTransfersV1(fastify: FastifyInstance) {
   });
 
   // POST /api/v1/transfers - Request transfer
-  fastify.post("/api/v1/transfers", async (request) => {
+  fastify.post("/transfers", async (request) => {
     const auth = request.headers.authorization;
     if (!auth?.startsWith("Bearer ")) {
       throw { statusCode: 401, message: "Unauthorized" };
@@ -134,7 +133,7 @@ export async function registerTransfersV1(fastify: FastifyInstance) {
   });
 
   // POST /api/v1/transfers/:id/accept
-  fastify.post("/api/v1/transfers/:id/accept", async (request) => {
+  fastify.post("/transfers/:id/accept", async (request) => {
     const auth = request.headers.authorization;
     if (!auth?.startsWith("Bearer ")) {
       throw { statusCode: 401, message: "Unauthorized" };
@@ -189,7 +188,7 @@ export async function registerTransfersV1(fastify: FastifyInstance) {
   });
 
   // POST /api/v1/transfers/:id/reject
-  fastify.post("/api/v1/transfers/:id/reject", async (request) => {
+  fastify.post("/transfers/:id/reject", async (request) => {
     const auth = request.headers.authorization;
     if (!auth?.startsWith("Bearer ")) {
       throw { statusCode: 401, message: "Unauthorized" };
