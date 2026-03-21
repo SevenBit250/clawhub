@@ -6,9 +6,15 @@ import { MockWeComAuth, findOrCreateUser } from "./auth/wecom.js";
 import { db } from "./db/index.js";
 import { users } from "./db/schema.js";
 import { eq } from "drizzle-orm";
+import { registerV1Routes } from "./routes/v1/index.js";
+import { registerDownloadV1 } from "./routes/v1/download.js";
+import { registerLegacyRoutes } from "./routes/legacy/index.js";
 
 const fastify = Fastify({ logger: true });
 await fastify.register(multipart);
+await registerV1Routes(fastify);
+await fastify.register(registerDownloadV1);
+await fastify.register(registerLegacyRoutes);
 
 const wecomAuth = new MockWeComAuth();
 
