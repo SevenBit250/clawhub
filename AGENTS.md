@@ -143,6 +143,7 @@ frontend/
 
 ## Git Conventions
 - Commit messages: Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`)
+- **Commit message language: 中文** — 所有提交信息使用中文撰写
 - PRs: focused changes, include test commands, screenshots for UI changes
 - **Never commit** `.env` or credentials
 
