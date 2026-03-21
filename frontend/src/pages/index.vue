@@ -35,7 +35,7 @@
     </section>
 
     <!-- Featured Section -->
-    <section class="featured">
+    <!-- <section class="featured">
       <div class="container">
         <div class="section-header">
           <h2 class="section-title">{{ $t('home.featured.title') }}</h2>
@@ -81,7 +81,7 @@
           </router-link>
         </div>
       </div>
-    </section>
+    </section> -->
   </div>
 </template>
 
@@ -126,7 +126,7 @@ function handleSearch(value: string) {
 
 <style scoped>
 .home-page {
-  min-height: 100vh;
+  height: 100%;
 }
 
 /* Hero Section */

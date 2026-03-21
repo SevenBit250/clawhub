@@ -74,7 +74,7 @@
         <slot />
       </main>
 
-      <footer class="footer py-8 mt-16">
+      <footer class="footer py-1.5">
         <div class="container text-center text-gray-500">
           {{ $t("footer.brand") }}
         </div>
