@@ -1,71 +1,114 @@
 <template>
-  <div class="min-h-screen flex flex-col">
-    <header class="border-b">
-      <nav class="container py-4 flex items-center justify-between">
-        <div class="flex items-center gap-6">
-          <NuxtLink to="/" class="text-xl font-bold">ClawHub</NuxtLink>
-          <div class="relative">
-            <input
-              v-model="searchQuery"
-              type="text"
+  <a-config-provider :theme="antdTheme">
+    <div class="min-h-screen flex flex-col" :data-theme="effectiveTheme">
+      <header class="header-nav">
+        <nav class="container py-4 flex items-center justify-between">
+          <div class="flex items-center gap-6">
+            <NuxtLink to="/" class="text-xl font-bold">ClawHub</NuxtLink>
+            <a-input-search
+              v-model:value="searchQuery"
               placeholder="Search..."
-              class="w-64 border rounded-full px-4 py-1.5 pl-9 text-sm"
-              @keyup.enter="handleSearch"
-            />
-            <svg
-              class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              @click="handleSearch"
+              class="w-64"
+              @search="handleSearch"
             >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+              <template #prefix>
+                <SearchOutlined />
+              </template>
+            </a-input-search>
           </div>
-        </div>
-        <div class="flex items-center gap-4">
-          <NuxtLink to="/skills" class="hover:text-blue-500">Skills</NuxtLink>
-          <NuxtLink to="/souls" class="hover:text-blue-500">Souls</NuxtLink>
-          <template v-if="isAuthenticated">
-            <NuxtLink to="/dashboard" class="hover:text-blue-500">Dashboard</NuxtLink>
-            <button @click="handleLogout" class="btn btn-secondary">Logout</button>
-          </template>
-          <template v-else>
-            <button @click="handleLogin" class="btn btn-primary">Login</button>
-          </template>
-        </div>
-      </nav>
-    </header>
+          <div class="flex items-center gap-4">
+            <NuxtLink to="/skills" class="nav-link">Skills</NuxtLink>
+            <NuxtLink to="/souls" class="nav-link">Souls</NuxtLink>
+            <a-dropdown :trigger="['click']">
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item key="light" @click="setTheme('light')">
+                    <BulbFilled /> Light
+                  </a-menu-item>
+                  <a-menu-item key="dark" @click="setTheme('dark')">
+                    <BulbOutlined /> Dark
+                  </a-menu-item>
+                  <a-menu-item key="system" @click="setTheme('system')">
+                    <DesktopOutlined /> System
+                  </a-menu-item>
+                </a-menu>
+              </template>
+              <a-button type="text" class="theme-toggle">
+                <template #icon>
+                  <BulbFilled v-if="effectiveTheme === 'light'" />
+                  <BulbOutlined v-else-if="effectiveTheme === 'dark'" />
+                  <DesktopOutlined v-else />
+                </template>
+              </a-button>
+            </a-dropdown>
+            <template v-if="isAuthenticated">
+              <NuxtLink to="/dashboard" class="nav-link">Dashboard</NuxtLink>
+              <a-button @click="handleLogout">Logout</a-button>
+            </template>
+            <template v-else>
+              <a-button type="primary" @click="handleLogin">Login</a-button>
+            </template>
+          </div>
+        </nav>
+      </header>
 
-    <main class="flex-1">
-      <slot />
-    </main>
+      <main class="flex-1">
+        <slot />
+      </main>
 
-    <footer class="border-t py-8 mt-16">
-      <div class="container text-center text-gray-500">
-        ClawHub - Skill Marketplace
-      </div>
-    </footer>
-  </div>
+      <footer class="footer py-8 mt-16">
+        <div class="container text-center text-gray-500">
+          ClawHub - Skill Marketplace
+        </div>
+      </footer>
+    </div>
+  </a-config-provider>
 </template>
 
 <script setup lang="ts">
-const { isAuthenticated, logout } = useAuth()
-const router = useRouter()
-const route = useRoute()
-const searchQuery = ref('')
+import { SearchOutlined, BulbFilled, BulbOutlined, DesktopOutlined } from "@ant-design/icons-vue";
+import { message } from "ant-design-vue";
+
+const { isAuthenticated, logout } = useAuth();
+const { effectiveTheme, antdTheme, setTheme, initTheme } = useTheme();
+const router = useRouter();
+const route = useRoute();
+const searchQuery = ref("");
+
+onMounted(() => {
+  initTheme();
+});
 
 function handleLogin() {
-  router.push(`/login?redirect=${encodeURIComponent(route.fullPath)}`)
+  router.push(`/login?redirect=${encodeURIComponent(route.fullPath)}`);
 }
 
 async function handleLogout() {
-  await logout()
+  await logout();
+  message.success("Logged out successfully");
 }
 
-function handleSearch() {
-  if (searchQuery.value.trim()) {
-    router.push(`/search?q=${encodeURIComponent(searchQuery.value.trim())}`)
+function handleSearch(value: string) {
+  if (value.trim()) {
+    router.push(`/search?q=${encodeURIComponent(value.trim())}`);
   }
 }
 </script>
+
+<style scoped>
+.nav-link {
+  color: var(--color-foreground);
+  transition: color 0.2s;
+}
+
+.nav-link:hover {
+  color: var(--color-primary);
+}
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+</style>

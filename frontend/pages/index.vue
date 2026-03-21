@@ -1,50 +1,90 @@
 <template>
   <div>
-    <section class="bg-blue-500 text-white py-20">
+    <section class="hero-section">
       <div class="container text-center">
         <h1 class="text-5xl font-bold mb-4">Welcome to ClawHub</h1>
         <p class="text-xl mb-8">Discover and share amazing skills</p>
-        <NuxtLink to="/skills" class="btn bg-white text-blue-600">Browse Skills</NuxtLink>
+        <NuxtLink to="/skills">
+          <a-button type="primary" size="large">Browse Skills</a-button>
+        </NuxtLink>
       </div>
     </section>
 
     <section class="container py-16">
       <h2 class="text-3xl font-bold mb-8 text-center">Featured Skills</h2>
-      <div v-if="pending" class="text-center py-20">Loading...</div>
-      <div v-else-if="error" class="text-center text-red-500 py-20">Failed to load skills</div>
+      <a-spin v-if="pending" class="flex justify-center py-20" />
+      <a-result
+        v-else-if="error"
+        status="error"
+        title="Failed to load skills"
+        class="py-20"
+      />
       <div v-else class="grid grid-cols-3 gap-6">
-        <div
+        <a-card
           v-for="skill in skills"
           :key="skill.id"
-          class="border rounded-lg p-6 hover:shadow-lg transition-shadow"
+          hoverable
+          class="skill-card"
         >
           <NuxtLink :to="`/skills/${skill.slug}`">
             <h3 class="text-xl font-semibold mb-2">{{ skill.displayName }}</h3>
-            <p class="text-gray-600 mb-4">{{ skill.summary || 'No description' }}</p>
+            <p class="text-gray-600 mb-4 line-clamp-2">
+              {{ skill.summary || "No description" }}
+            </p>
             <div class="flex items-center gap-4 text-sm text-gray-500">
-              <span>⭐ {{ skill.statsStars || 0 }}</span>
-              <span>⬇️ {{ skill.statsDownloads || 0 }}</span>
+              <span><StarFilled style="color: #faad14" /> {{ skill.statsStars || 0 }}</span>
+              <span><DownloadOutlined /> {{ skill.statsDownloads || 0 }}</span>
             </div>
           </NuxtLink>
-        </div>
+        </a-card>
       </div>
     </section>
   </div>
 </template>
 
 <script setup lang="ts">
-const api = useApi()
+import { StarFilled, DownloadOutlined } from "@ant-design/icons-vue";
 
-const { data, pending, error } = await useAsyncData('featured-skills', () =>
-  api.get<Array<{
-    id: string
-    slug: string
-    displayName: string
-    summary: string | null
-    statsStars: number
-    statsDownloads: number
-  }>>('/skills?limit=6&sort=downloads')
-)
+const api = useApi();
 
-const skills = computed(() => data.value || [])
+const { data, pending, error } = await useAsyncData(
+  "featured-skills",
+  () =>
+    api.get<
+      Array<{
+        id: string;
+        slug: string;
+        displayName: string;
+        summary: string | null;
+        statsStars: number;
+        statsDownloads: number;
+      }>
+    >("/skills?limit=6&sort=downloads")
+);
+
+const skills = computed(() => data.value || []);
 </script>
+
+<style scoped>
+.hero-section {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-secondary) 100%
+  );
+  color: white;
+  padding: 5rem 0;
+}
+
+.skill-card {
+  height: 100%;
+}
+
+.skill-card :deep(.ant-card-body) {
+  padding: 1.5rem;
+}
+
+.text-gray-600 {
+  color: var(--color-text-secondary);
+}
+</style>

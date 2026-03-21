@@ -5,9 +5,31 @@
 </template>
 
 <script setup lang="ts">
-const { fetchSession } = useAuth()
+const { fetchSession } = useAuth();
 
 onMounted(async () => {
-  await fetchSession()
-})
+  await fetchSession();
+});
+
+useHead({
+  script: [
+    {
+      innerHTML: `
+        (function() {
+          try {
+            var saved = localStorage.getItem('theme-preference');
+            var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            var isDark = saved === 'dark' || (saved === 'system' && prefersDark) || (!saved && prefersDark);
+            if (isDark) {
+              document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+              document.documentElement.setAttribute('data-theme', 'light');
+            }
+          } catch (e) {}
+        })()
+      `,
+      type: "text/javascript",
+    },
+  ],
+});
 </script>
