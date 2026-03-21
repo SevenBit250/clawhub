@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ClawHub</title>
+    <meta name="description" content="Skill marketplace" />
+    <script>
+      (function() {
+        try {
+          // Theme
+          var saved = localStorage.getItem('theme-preference');
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var isDark = saved === 'dark' || (saved === 'system' && prefersDark) || (!saved && prefersDark);
+          if (isDark) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+          } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+          }
+          // Locale - pass to server via cookie
+          var locale = localStorage.getItem('locale-preference');
+          if (locale === 'zh') {
+            document.cookie = 'locale=zh;path=/';
+          }
+        } catch (e) {}
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,6 +1,6 @@
 {
   "nav": {
-    "clawhub": "ClawHub",
+    "clawhub": "科来思技能平台",
     "search_placeholder": "搜索...",
     "skills": "技能",
     "souls": "灵魂",
@@ -26,7 +26,8 @@
       "browse": "浏览技能"
     },
     "featured": {
-      "title": "精选技能"
+      "title": "精选技能",
+      "view_all": "查看全部"
     },
     "skills": {
       "failed": "加载技能失败",

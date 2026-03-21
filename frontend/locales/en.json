@@ -1,6 +1,6 @@
 {
   "nav": {
-    "clawhub": "ClawHub",
+    "clawhub": "Keylights Skills Platform",
     "search_placeholder": "Search...",
     "skills": "Skills",
     "souls": "Souls",
@@ -26,7 +26,8 @@
       "browse": "Browse Skills"
     },
     "featured": {
-      "title": "Featured Skills"
+      "title": "Featured Skills",
+      "view_all": "View all"
     },
     "skills": {
       "failed": "Failed to load skills",
