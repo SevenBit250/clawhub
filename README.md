@@ -2,171 +2,259 @@
   <img src="public/clawd-logo.png" alt="ClawHub" width="120">
 </p>
 
-<h1 align="center">ClawHub</h1>
+<h1 align="center">ClawHub (私有部署版)</h1>
 
 <p align="center">
-  <a href="https://github.com/openclaw/clawhub/actions/workflows/ci.yml?branch=main"><img src="https://img.shields.io/github/actions/workflow/status/openclaw/clawhub/ci.yml?branch=main&style=for-the-badge" alt="CI status"></a>
-  <a href="https://discord.gg/clawd"><img src="https://img.shields.io/discord/1456350064065904867?label=Discord&logo=discord&logoColor=white&color=5865F2&style=for-the-badge" alt="Discord"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT License"></a>
 </p>
 
-ClawHub is the **public skill registry for Clawdbot**: publish, version, and search text-based agent skills (a `SKILL.md` plus supporting files).
+## 项目说明
 
-<p align="center">
-  <a href="https://clawhub.ai">ClawHub</a> ·
-  <a href="https://onlycrabs.ai">onlycrabs.ai</a> ·
-  <a href="VISION.md">Vision</a> ·
-  <a href="docs/README.md">Docs</a> ·
-  <a href="CONTRIBUTING.md">Contributing</a> ·
-  <a href="https://discord.gg/clawd">Discord</a>
-</p>
+本项目基于 [ClawHub](https://github.com/openclaw/clawhub) 改造而来，旨在方便企业和个人私有部署 ClawHub。
 
-## Tech Stack
+**主要改动：**
+- 将 Convex 替换为自托管的 Fastify 后端
+- 使用 PostgreSQL + pgvector 替代 Convex 数据库
+- 使用 Redis (BullMQ) 替代 Convex 函数队列
+- 保留 Nuxt 3 前端，无需 Convex 部署
+- 支持完整的 CLI API 兼容
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | Nuxt 3 + Vue 3 |
-| Backend | Fastify |
-| Database | PostgreSQL + pgvector |
+## 功能特性
+
+- 浏览、搜索、发布技能包 (SKILL.md)
+- 技能版本管理与更新
+- 技能重命名、合并（不破坏已有链接）
+- 浏览和管理灵魂包 (SOUL.md)
+- 收藏、评论功能
+- 向量搜索（pgvector）
+- 完整的 CLI 支持
+- 支持 WeCom OAuth（可配置为其他 OAuth 提供商）
+
+## 技术栈
+
+| 层级 | 技术 |
+|------|------|
+| 前端 | Nuxt 3 + Vue 3 |
+| 后端 | Fastify |
+| 数据库 | PostgreSQL + pgvector |
 | ORM | Drizzle |
-| Task Queue | BullMQ (Redis) |
-| Auth | JWT Session |
+| 任务队列 | BullMQ (Redis) |
+| 认证 | JWT Session |
 
-## Features
+## 快速开始
 
-- Browse skills + render their `SKILL.md`
-- Publish new skill versions with changelogs + tags
-- Rename owned skills without breaking old links
-- Merge duplicate owned skills into one canonical slug
-- Browse souls + render their `SOUL.md`
-- Star + comment; admins/mods can curate skills
-- Vector search powered by pgvector
+### 前置要求
 
-## CLI
+- [Bun](https://bun.sh/)
+- Docker 和 Docker Compose
+
+### 1. 启动基础设施
 
 ```bash
-clawhub login                    # Authenticate
-clawhub whoami                  # Check current user
-clawhub search <query>          # Search skills
-clawhub inspect <slug>         # View skill details
-clawhub publish <path>          # Publish a skill
-clawhub delete <slug>           # Soft-delete a skill
-clawhub skill rename <slug> <new-slug>   # Rename skill
-clawhub skill merge <source> <target>    # Merge skills
+docker compose -f docker-compose.dev.yml up -d
 ```
 
-## API
+这将启动：
+- PostgreSQL (端口 5432)
+- Redis (端口 6379)
 
-Full v1 API for CLI and integrations:
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/v1/whoami` | GET | Current user |
-| `/api/v1/users` | GET | User search |
-| `/api/v1/skills` | GET | List skills |
-| `/api/v1/skills/:slug` | GET | Skill detail |
-| `/api/v1/skills` | POST | Publish skill |
-| `/api/v1/search` | GET | Search skills |
-| `/api/v1/resolve` | GET | Resolve version |
-| `/api/v1/download` | GET | Download bundle |
-| `/api/v1/stars` | POST/DELETE | Star operations |
-| `/api/v1/transfers` | GET/POST | Ownership transfer |
-
-## Local Dev
-
-Prereqs: [Bun](https://bun.sh/), Docker
+### 2. 后端设置
 
 ```bash
-# Start PostgreSQL + Redis
-docker compose -f docker-compose.dev.yml up -d
+cd backend
 
-# Backend (port 3001)
-cd backend && bun install && bun run dev
+# 安装依赖
+bun install
 
-# Frontend (port 3000)
-cd frontend && bun install && bun run dev
+# 配置环境变量
+cp .env.example .env
+# 编辑 .env 文件，配置数据库连接等
 
-# Mock OAuth login
+# 生成数据库迁移
+bun run db:generate
+
+# 运行迁移
+bun run db:migrate
+
+# 启动开发服务器 (http://localhost:3001)
+bun run dev
+```
+
+### 3. 前端设置
+
+```bash
+cd frontend
+
+# 安装依赖
+bun install
+
+# 配置环境变量
+cp .env.example .env.local
+# 编辑 .env.local 文件
+
+# 启动开发服务器 (http://localhost:3000)
+bun run dev
+```
+
+### 4. 模拟登录
+
+```bash
+# 获取 OAuth URL
 curl http://localhost:3001/auth/url
+
+# 使用模拟账号登录
 curl "http://localhost:3001/auth/callback?code=mock_admin"
 ```
 
-### Commands
+## API 接口
+
+### v1 API (CLI 兼容)
+
+| 接口 | 方法 | 说明 |
+|------|------|------|
+| `/api/v1/whoami` | GET | 获取当前用户 |
+| `/api/v1/users` | GET | 用户搜索 |
+| `/api/v1/skills` | GET | 技能列表 |
+| `/api/v1/skills/:slug` | GET | 技能详情 |
+| `/api/v1/skills` | POST | 发布技能 |
+| `/api/v1/search` | GET | 搜索技能 |
+| `/api/v1/resolve` | GET | 解析版本 |
+| `/api/v1/download` | GET | 下载技能包 |
+| `/api/v1/stars` | POST/DELETE | 收藏操作 |
+| `/api/v1/transfers` | GET/POST | 所有权转移 |
+| `/api/v1/souls` | GET | 灵魂列表 |
+
+### 遗留兼容接口
 
 ```bash
-# Backend
-cd backend
-bun run dev              # Start dev server
-bun run build            # TypeScript build
-bun run db:generate      # Generate Drizzle migrations
-bun run db:migrate       # Run migrations
-bun run db:studio        # Database browser
-
-# Frontend
-cd frontend
-bun run dev              # Start Nuxt dev server
-bun run build            # Production build
-
-# TypeScript checking
-bunx tsc --noEmit
-bunx tsc -p packages/schema --noEmit
-bunx tsc -p packages/clawdhub --noEmit
+/api/cli/whoami
+/api/cli/publish
+/api/cli/skill/delete
+/api/skill
+/api/search
 ```
 
-## Project Structure
+## CLI 使用
+
+```bash
+# 登录
+clawhub login
+
+# 查看当前用户
+clawhub whoami
+
+# 搜索技能
+clawhub search <关键词>
+
+# 查看技能详情
+clawhub inspect <slug>
+
+# 发布技能
+clawhub publish <路径>
+
+# 删除技能（软删除）
+clawhub delete <slug>
+
+# 重命名技能
+clawhub skill rename <slug> <新slug>
+
+# 合并技能
+clawhub skill merge <源slug> <目标slug>
+```
+
+## 项目结构
 
 ```
 clawhub/
-├── backend/              # Fastify API server
+├── backend/              # Fastify 后端服务
 │   └── src/
-│       ├── auth/        # Authentication (JWT, WeCom OAuth)
-│       ├── db/          # Drizzle schema
-│       ├── lib/         # Business logic
-│       └── routes/      # API routes
-│           ├── v1/      # v1 API endpoints
-│           └── legacy/  # CLI compatibility
-├── frontend/            # Nuxt 3 app
-│   ├── pages/           # Route pages
-│   ├── composables/     # Vue composables
-│   └── layouts/         # App layouts
+│       ├── auth/        # 认证模块 (JWT, OAuth)
+│       ├── db/          # Drizzle 数据库 schema
+│       ├── lib/         # 业务逻辑
+│       └── routes/      # API 路由
+│           ├── v1/      # v1 API 端点
+│           └── legacy/  # CLI 兼容接口
+├── frontend/            # Nuxt 3 前端应用
+│   ├── pages/           # 页面路由
+│   ├── composables/     # Vue 组合式函数
+│   └── layouts/         # 布局组件
 ├── packages/
-│   ├── schema/          # Shared API types (ArkType)
-│   └── clawdhub/        # CLI tool
-└── docs/               # Documentation
+│   ├── schema/          # 共享 API 类型定义
+│   └── clawdhub/        # CLI 工具
+├── docs/               # 项目文档
+└── docker-compose.dev.yml  # 开发环境配置
 ```
 
-## Environment Variables
+## 环境变量
 
-### Backend (`backend/.env`)
+### 后端 (`backend/.env`)
 
 ```env
-DATABASE_URL=postgresql://user:pass@localhost:5432/clawhub
+# 数据库
+DATABASE_URL=postgresql://user:password@localhost:5432/clawhub
+
+# Redis
 REDIS_URL=redis://localhost:6379
-JWT_SECRET=your-secret-key
+
+# JWT 认证
+JWT_SECRET=your-secret-key-min-32-chars
+
+# 服务器
 PORT=3001
+
+# 文件存储
+STORAGE_DIR=./storage
 ```
 
-### Frontend (`.env.local`)
+### 前端 (`.env.local`)
 
 ```env
 NUXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
-## Skill Format
+## 常用命令
 
-Skills contain a `SKILL.md` with metadata in frontmatter:
+```bash
+# 后端
+cd backend
+bun run dev              # 启动开发服务器
+bun run build            # TypeScript 构建
+bun run db:generate      # 生成数据库迁移
+bun run db:migrate       # 执行数据库迁移
+bun run db:studio        # 数据库管理工具
 
-```yaml
----
-name: my-skill
-description: Does a useful thing
-metadata:
-  clawdbot:
-    requires:
-      env:
-        - API_KEY
-      bins:
-        - curl
----
-# Skill content here
+# 前端
+cd frontend
+bun run dev              # 启动开发服务器
+bun run build            # 生产构建
+
+# 类型检查
+bunx tsc --noEmit
 ```
+
+## 数据库
+
+使用 Drizzle ORM，支持 PostgreSQL + pgvector（向量搜索）。
+
+主要数据表：
+- `users` - 用户
+- `skills` / `skill_versions` - 技能和版本
+- `souls` / `soul_versions` - 灵魂和版本
+- `stars` - 收藏
+- `comments` - 评论
+- `skill_embeddings` - 向量索引
+
+## 与原版 ClawHub 的差异
+
+| 功能 | 原版 ClawHub | 私有部署版 |
+|------|-------------|-----------|
+| 部署方式 | 需要 Convex 托管 | 完全自托管 |
+| 数据库 | Convex (云) | PostgreSQL (本地) | 
+| 文件存储 | Convex Storage | 本地文件系统 |
+| 任务队列 | Convex Functions | BullMQ (Redis) |
+| 前端部署 | 需要 Convex | 任意静态托管 |
+| OAuth | 仅 GitHub | 可配置任意 OAuth |
+
+## 许可证
+
+MIT License
