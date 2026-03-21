@@ -5,16 +5,6 @@
         <nav class="container py-4 flex items-center justify-between">
           <div class="flex items-center gap-6">
             <router-link to="/" class="text-xl font-bold">{{ $t("nav.clawhub") }}</router-link>
-            <a-input-search
-              v-model:value="searchQuery"
-              :placeholder="$t('nav.search_placeholder')"
-              class="w-64"
-              @search="handleSearch"
-            >
-              <template #prefix>
-                <SearchOutlined />
-              </template>
-            </a-input-search>
           </div>
           <div class="flex items-center gap-4">
             <router-link to="/skills" class="nav-link">{{ $t("nav.skills") }}</router-link>
@@ -88,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { SearchOutlined, BulbFilled, BulbOutlined, DesktopOutlined, GlobalOutlined } from "@ant-design/icons-vue";
+import { BulbFilled, BulbOutlined, DesktopOutlined, GlobalOutlined } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 import { useI18n } from "vue-i18n";
 import { i18n } from "@/plugins/i18n";
@@ -98,7 +88,6 @@ const { effectiveTheme, antdTheme, setTheme, initTheme } = useTheme();
 const { t } = useI18n();
 const router = useRouter();
 const route = useRoute();
-const searchQuery = ref("");
 
 const LOCALE_KEY = "locale-preference";
 
@@ -111,7 +100,7 @@ function loadLocale() {
   }
 }
 
-function switchLocale(lang: string) {
+function switchLocale(lang: 'zh' | 'en') {
   i18n.global.locale.value = lang;
   localStorage.setItem(LOCALE_KEY, lang);
 }
@@ -129,29 +118,4 @@ async function handleLogout() {
   await logout();
   message.success(t("messages.logged_out"));
 }
-
-function handleSearch(value: string) {
-  if (value.trim()) {
-    router.push(`/search?q=${encodeURIComponent(value.trim())}`);
-  }
-}
 </script>
-
-<style scoped>
-.nav-link {
-  color: var(--color-foreground);
-  transition: color 0.2s;
-}
-
-.nav-link:hover {
-  color: var(--color-primary);
-}
-
-.theme-toggle,
-.lang-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
-}
-</style>

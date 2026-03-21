@@ -5,10 +5,25 @@
       <div class="hero-content">
         <h1 class="hero-title">{{ $t('home.hero.title') }}</h1>
         <p class="hero-subtitle">{{ $t('home.hero.subtitle') }}</p>
+
+        <!-- Search Box - Centered -->
+        <div class="search-wrapper">
+          <a-input
+            v-model:value="searchQuery"
+            :placeholder="$t('nav.search_placeholder')"
+            class="hero-search"
+            size="large"
+            @keyup.enter="handleSearch(searchQuery)"
+          >
+            <template #prefix>
+              <SearchOutlined class="search-icon" />
+            </template>
+          </a-input>
+        </div>
+
         <div class="hero-actions">
-          <router-link to="/skills" class="btn-primary">
+          <router-link to="/skills" class="btn-secondary">
             {{ $t('home.hero.browse') }}
-            <span class="btn-arrow">→</span>
           </router-link>
         </div>
       </div>
@@ -72,9 +87,12 @@
 
 <script setup lang="ts">
 import { onMounted, ref, computed } from "vue";
-import { StarFilled, DownloadOutlined, FileTextOutlined } from "@ant-design/icons-vue";
+import { useRouter } from "vue-router";
+import { SearchOutlined, StarFilled, DownloadOutlined, FileTextOutlined } from "@ant-design/icons-vue";
 
 const api = useApi();
+const router = useRouter();
+const searchQuery = ref("");
 
 const data = ref<Array<{
   id: string;
@@ -98,6 +116,12 @@ onMounted(async () => {
 });
 
 const skills = computed(() => data.value || []);
+
+function handleSearch(value: string) {
+  if (value.trim()) {
+    router.push(`/search?q=${encodeURIComponent(value.trim())}`);
+  }
+}
 </script>
 
 <style scoped>
@@ -111,8 +135,8 @@ const skills = computed(() => data.value || []);
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 60vh;
-  padding: 6rem 2rem;
+  min-height: 70vh;
+  padding: 4rem 2rem;
   overflow: hidden;
 }
 
@@ -121,22 +145,70 @@ const skills = computed(() => data.value || []);
   z-index: 2;
   text-align: center;
   max-width: 640px;
+  width: 100%;
 }
 
 .hero-title {
-  font-size: 3.5rem;
+  font-size: 3rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--color-foreground);
-  margin: 0 0 1rem;
+  margin: 0 0 0.75rem;
   line-height: 1.1;
 }
 
 .hero-subtitle {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   color: var(--color-text-secondary);
-  margin: 0 0 2.5rem;
+  margin: 0 0 2rem;
   line-height: 1.6;
+}
+
+/* Search Box */
+.search-wrapper {
+  max-width: 560px;
+  margin: 0 auto 2rem;
+}
+
+.hero-search {
+  width: 100%;
+}
+
+.hero-search :deep(.ant-input-affix-wrapper) {
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: 2px solid var(--color-border);
+  font-size: 1rem;
+  background: var(--color-surface);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.hero-search :deep(.ant-input-affix-wrapper:hover),
+.hero-search :deep(.ant-input-affix-wrapper:focus),
+.hero-search :deep(.ant-input-affix-wrapper-focused) {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.hero-search :deep(.ant-input) {
+  font-size: 1rem;
+  background: transparent;
+  border: none;
+  outline: none;
+  flex: 1;
+}
+
+.hero-search :deep(.ant-input-prefix) {
+  margin-right: 0.75rem;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  font-size: 1.125rem;
 }
 
 .hero-actions {
@@ -145,31 +217,23 @@ const skills = computed(() => data.value || []);
   justify-content: center;
 }
 
-.btn-primary {
+.btn-secondary {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.875rem 2rem;
-  background: var(--color-foreground);
-  color: var(--color-background);
+  padding: 0.625rem 1.5rem;
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
   font-weight: 500;
-  font-size: 1rem;
-  transition: all 0.2s;
+  font-size: 0.9375rem;
+  color: var(--color-foreground);
   text-decoration: none;
+  transition: all 0.2s;
+  background: var(--color-surface);
 }
 
-.btn-primary:hover {
-  opacity: 0.85;
-  transform: translateY(-1px);
-}
-
-.btn-arrow {
-  transition: transform 0.2s;
-}
-
-.btn-primary:hover .btn-arrow {
-  transform: translateX(4px);
+.btn-secondary:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 /* Hero Decoration */
@@ -331,19 +395,18 @@ const skills = computed(() => data.value || []);
 
 .line-clamp-2 {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
 @media (max-width: 640px) {
   .hero-title {
-    font-size: 2.5rem;
+    font-size: 2rem;
   }
 
   .hero {
     min-height: 50vh;
-    padding: 4rem 1.5rem;
+    padding: 3rem 1.5rem;
   }
 }
 </style>
