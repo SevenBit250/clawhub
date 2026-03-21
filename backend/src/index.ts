@@ -1,5 +1,6 @@
 import "dotenv/config";
 import Fastify from "fastify";
+import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
 import { createSession, invalidateSession, requireAuth } from "./auth/session.js";
 import { MockWeComAuth, findOrCreateUser } from "./auth/wecom.js";
@@ -10,6 +11,7 @@ import { registerV1Routes } from "./routes/v1/index.js";
 import { registerLegacyRoutes } from "./routes/legacy/index.js";
 
 const fastify = Fastify({ logger: true });
+await fastify.register(cors, { origin: true });
 await fastify.register(multipart);
 await registerV1Routes(fastify);
 await fastify.register(registerLegacyRoutes);
