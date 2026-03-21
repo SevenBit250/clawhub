@@ -1,0 +1,143 @@
+{
+  "nav": {
+    "clawhub": "ClawHub",
+    "search_placeholder": "Search...",
+    "skills": "Skills",
+    "souls": "Souls",
+    "dashboard": "Dashboard",
+    "logout": "Logout",
+    "login": "Login",
+    "theme": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    }
+  },
+  "footer": {
+    "brand": "ClawHub - Skill Marketplace"
+  },
+  "messages": {
+    "logged_out": "Logged out successfully"
+  },
+  "home": {
+    "hero": {
+      "title": "Welcome to ClawHub",
+      "subtitle": "Discover and share amazing skills",
+      "browse": "Browse Skills"
+    },
+    "featured": {
+      "title": "Featured Skills"
+    },
+    "skills": {
+      "failed": "Failed to load skills",
+      "no_description": "No description"
+    }
+  },
+  "login": {
+    "title": "Login to ClawHub",
+    "mock_notice": "Mock login for development",
+    "logging_in": "Logging in...",
+    "go_back": "Go Back",
+    "admin": {
+      "label": "Admin User",
+      "access": "Full access"
+    },
+    "test": {
+      "label": "Test User",
+      "access": "Standard access"
+    },
+    "new": {
+      "label": "New User",
+      "access": "Creates a new account"
+    },
+    "mock_footer": "This is a mock login for development only"
+  },
+  "search": {
+    "title": "Search",
+    "input_placeholder": "Search skills...",
+    "loading": "Searching...",
+    "no_results": "No results found for \"{query}\"",
+    "score_label": "score:",
+    "by_author": "by {owner}",
+    "no_description": "No description",
+    "empty": "Enter a search query to find skills"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "login_required": "Please login to view your dashboard",
+    "login": "Login",
+    "loading": "Loading...",
+    "my_skills": "My Skills",
+    "my_souls": "My Souls",
+    "stars_received": "Stars Received",
+    "create_skill": "Create Skill",
+    "no_skills": "You haven't created any skills yet",
+    "edit": "Edit"
+  },
+  "skills": {
+    "title": "Skills",
+    "sort": {
+      "updated": "Recently Updated",
+      "downloads": "Most Downloads",
+      "stars": "Most Stars",
+      "installs": "Most Installs"
+    },
+    "failed": "Failed to load skills",
+    "no_description": "No description",
+    "unknown_author": "Unknown",
+    "badge": {
+      "highlighted": "Highlighted"
+    },
+    "no_skills": "No skills found"
+  },
+  "skill": {
+    "loading": "Loading...",
+    "not_found": "Skill not found",
+    "by_author": "by {author}",
+    "starred": "⭐ Starred",
+    "star": "☆ Star",
+    "install": "Install",
+    "description": {
+      "title": "Description",
+      "none": "No description available"
+    },
+    "version": {
+      "title": "Version {version}",
+      "files": "Files"
+    },
+    "comments": {
+      "title": "Comments",
+      "placeholder": "Write a comment...",
+      "post": "Post Comment",
+      "posting": "Posting...",
+      "login_required": "Please login to leave a comment.",
+      "loading": "Loading comments...",
+      "empty": "No comments yet. Be the first to comment!",
+      "anonymous": "Anonymous",
+      "delete": "Delete"
+    },
+    "stats": {
+      "downloads": "Downloads",
+      "stars": "Stars",
+      "installs": "Instals"
+    },
+    "alerts": {
+      "please_login": "Please login first"
+    },
+    "confirm": {
+      "delete_comment": "Delete this comment?"
+    }
+  },
+  "souls": {
+    "title": "Souls",
+    "loading": "Loading...",
+    "failed": "Failed to load souls",
+    "no_description": "No description",
+    "unknown_author": "Unknown",
+    "no_souls": "No souls found"
+  },
+  "errors": {
+    "login_failed": "Login failed",
+    "search_failed": "Search failed"
+  }
+}

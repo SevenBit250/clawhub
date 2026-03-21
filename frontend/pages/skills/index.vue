@@ -1,6 +1,6 @@
 <template>
   <div class="container py-8">
-    <h1 class="text-3xl font-bold mb-8">Skills</h1>
+    <h1 class="text-3xl font-bold mb-8">{{ t('skills.title') }}</h1>
 
     <div class="flex gap-4 mb-8">
       <a-select
@@ -8,10 +8,10 @@
         style="width: 200px"
         @change="handleSortChange"
       >
-        <a-select-option value="updated">Recently Updated</a-select-option>
-        <a-select-option value="downloads">Most Downloads</a-select-option>
-        <a-select-option value="stars">Most Stars</a-select-option>
-        <a-select-option value="installs">Most Installs</a-select-option>
+        <a-select-option value="updated">{{ t('skills.sort.updated') }}</a-select-option>
+        <a-select-option value="downloads">{{ t('skills.sort.downloads') }}</a-select-option>
+        <a-select-option value="stars">{{ t('skills.sort.stars') }}</a-select-option>
+        <a-select-option value="installs">{{ t('skills.sort.installs') }}</a-select-option>
       </a-select>
     </div>
 
@@ -19,7 +19,7 @@
     <a-result
       v-else-if="error"
       status="error"
-      title="Failed to load skills"
+      :title="t('skills.failed')"
       class="py-20"
     />
     <div v-else class="grid grid-cols-3 gap-6">
@@ -33,14 +33,14 @@
           <div class="flex items-start justify-between mb-2">
             <h3 class="text-xl font-semibold">{{ skill.displayName }}</h3>
             <a-tag v-if="skill.badges?.highlighted" color="gold">
-              <StarFilled /> Highlighted
+              <StarFilled /> {{ t('skills.badge.highlighted') }}
             </a-tag>
           </div>
           <p class="text-gray-600 mb-4 line-clamp-2">
-            {{ skill.summary || "No description" }}
+            {{ skill.summary || t('skills.no_description') }}
           </p>
           <div class="flex items-center justify-between text-sm text-gray-500">
-            <span>by {{ skill.owner?.handle || skill.owner?.displayName || "Unknown" }}</span>
+            <span>{{ skill.owner?.handle || skill.owner?.displayName || t('skills.unknown_author') }}</span>
             <div class="flex gap-3">
               <span><StarFilled style="color: #faad14" /> {{ skill.statsStars || 0 }}</span>
               <span><DownloadOutlined /> {{ skill.statsDownloads || 0 }}</span>
@@ -54,13 +54,15 @@
       v-if="!skills.length && !pending"
       class="text-center py-20 text-gray-500"
     >
-      No skills found
+      {{ t('skills.no_skills') }}
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { StarFilled, DownloadOutlined } from "@ant-design/icons-vue";
+
+const { t } = useI18n();
 
 const api = useApi();
 const route = useRoute();

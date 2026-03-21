@@ -4,10 +4,10 @@
       <header class="header-nav">
         <nav class="container py-4 flex items-center justify-between">
           <div class="flex items-center gap-6">
-            <NuxtLink to="/" class="text-xl font-bold">ClawHub</NuxtLink>
+            <NuxtLink to="/" class="text-xl font-bold">{{ $t('nav.clawhub') }}</NuxtLink>
             <a-input-search
               v-model:value="searchQuery"
-              placeholder="Search..."
+              :placeholder="$t('nav.search_placeholder')"
               class="w-64"
               @search="handleSearch"
             >
@@ -17,19 +17,40 @@
             </a-input-search>
           </div>
           <div class="flex items-center gap-4">
-            <NuxtLink to="/skills" class="nav-link">Skills</NuxtLink>
-            <NuxtLink to="/souls" class="nav-link">Souls</NuxtLink>
+            <NuxtLink to="/skills" class="nav-link">{{ $t('nav.skills') }}</NuxtLink>
+            <NuxtLink to="/souls" class="nav-link">{{ $t('nav.souls') }}</NuxtLink>
+
+            <!-- Language Switcher -->
+            <a-dropdown :trigger="['click']">
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item key="en" @click="switchLocale('en')">
+                    <GlobalOutlined /> English
+                  </a-menu-item>
+                  <a-menu-item key="zh" @click="switchLocale('zh')">
+                    <GlobalOutlined /> 中文
+                  </a-menu-item>
+                </a-menu>
+              </template>
+              <a-button type="text" class="lang-toggle">
+                <template #icon>
+                  <GlobalOutlined />
+                </template>
+              </a-button>
+            </a-dropdown>
+
+            <!-- Theme Toggle -->
             <a-dropdown :trigger="['click']">
               <template #overlay>
                 <a-menu>
                   <a-menu-item key="light" @click="setTheme('light')">
-                    <BulbFilled /> Light
+                    <BulbFilled /> {{ $t('nav.theme.light') }}
                   </a-menu-item>
                   <a-menu-item key="dark" @click="setTheme('dark')">
-                    <BulbOutlined /> Dark
+                    <BulbOutlined /> {{ $t('nav.theme.dark') }}
                   </a-menu-item>
                   <a-menu-item key="system" @click="setTheme('system')">
-                    <DesktopOutlined /> System
+                    <DesktopOutlined /> {{ $t('nav.theme.system') }}
                   </a-menu-item>
                 </a-menu>
               </template>
@@ -41,12 +62,13 @@
                 </template>
               </a-button>
             </a-dropdown>
+
             <template v-if="isAuthenticated">
-              <NuxtLink to="/dashboard" class="nav-link">Dashboard</NuxtLink>
-              <a-button @click="handleLogout">Logout</a-button>
+              <NuxtLink to="/dashboard" class="nav-link">{{ $t('nav.dashboard') }}</NuxtLink>
+              <a-button @click="handleLogout">{{ $t('nav.logout') }}</a-button>
             </template>
             <template v-else>
-              <a-button type="primary" @click="handleLogin">Login</a-button>
+              <a-button type="primary" @click="handleLogin">{{ $t('nav.login') }}</a-button>
             </template>
           </div>
         </nav>
@@ -58,7 +80,7 @@
 
       <footer class="footer py-8 mt-16">
         <div class="container text-center text-gray-500">
-          ClawHub - Skill Marketplace
+          {{ $t('footer.brand') }}
         </div>
       </footer>
     </div>
@@ -66,17 +88,36 @@
 </template>
 
 <script setup lang="ts">
-import { SearchOutlined, BulbFilled, BulbOutlined, DesktopOutlined } from "@ant-design/icons-vue";
+import { SearchOutlined, BulbFilled, BulbOutlined, DesktopOutlined, GlobalOutlined } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
+import { i18n } from "~/plugins/i18n";
 
 const { isAuthenticated, logout } = useAuth();
 const { effectiveTheme, antdTheme, setTheme, initTheme } = useTheme();
+const { t } = useI18n();
 const router = useRouter();
 const route = useRoute();
 const searchQuery = ref("");
 
+const LOCALE_KEY = "locale-preference";
+
+function loadLocale() {
+  if (typeof window !== "undefined") {
+    const saved = localStorage.getItem(LOCALE_KEY);
+    if (saved === "en" || saved === "zh") {
+      i18n.global.locale.value = saved;
+    }
+  }
+}
+
+function switchLocale(lang: string) {
+  i18n.global.locale.value = lang;
+  localStorage.setItem(LOCALE_KEY, lang);
+}
+
 onMounted(() => {
   initTheme();
+  loadLocale();
 });
 
 function handleLogin() {
@@ -85,7 +126,7 @@ function handleLogin() {
 
 async function handleLogout() {
   await logout();
-  message.success("Logged out successfully");
+  message.success(t("messages.logged_out"));
 }
 
 function handleSearch(value: string) {
@@ -105,7 +146,8 @@ function handleSearch(value: string) {
   color: var(--color-primary);
 }
 
-.theme-toggle {
+.theme-toggle,
+.lang-toggle {
   display: flex;
   align-items: center;
   justify-content: center;

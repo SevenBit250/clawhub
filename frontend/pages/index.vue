@@ -2,21 +2,21 @@
   <div>
     <section class="hero-section">
       <div class="container text-center">
-        <h1 class="text-5xl font-bold mb-4">Welcome to ClawHub</h1>
-        <p class="text-xl mb-8">Discover and share amazing skills</p>
+        <h1 class="text-5xl font-bold mb-4">{{ $t('home.hero.title') }}</h1>
+        <p class="text-xl mb-8">{{ $t('home.hero.subtitle') }}</p>
         <NuxtLink to="/skills">
-          <a-button type="primary" size="large">Browse Skills</a-button>
+          <a-button type="primary" size="large">{{ $t('home.hero.browse') }}</a-button>
         </NuxtLink>
       </div>
     </section>
 
     <section class="container py-16">
-      <h2 class="text-3xl font-bold mb-8 text-center">Featured Skills</h2>
+      <h2 class="text-3xl font-bold mb-8 text-center">{{ $t('home.featured.title') }}</h2>
       <a-spin v-if="pending" class="flex justify-center py-20" />
       <a-result
         v-else-if="error"
         status="error"
-        title="Failed to load skills"
+        :title="$t('home.skills.failed')"
         class="py-20"
       />
       <div v-else class="grid grid-cols-3 gap-6">
@@ -29,7 +29,7 @@
           <NuxtLink :to="`/skills/${skill.slug}`">
             <h3 class="text-xl font-semibold mb-2">{{ skill.displayName }}</h3>
             <p class="text-gray-600 mb-4 line-clamp-2">
-              {{ skill.summary || "No description" }}
+              {{ skill.summary || $t('home.skills.no_description') }}
             </p>
             <div class="flex items-center gap-4 text-sm text-gray-500">
               <span><StarFilled style="color: #faad14" /> {{ skill.statsStars || 0 }}</span>

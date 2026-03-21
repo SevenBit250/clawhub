@@ -1,13 +1,13 @@
 <template>
   <div class="container py-8">
-    <h1 class="text-3xl font-bold mb-8">Search</h1>
+    <h1 class="text-3xl font-bold mb-8">{{ t('search.title') }}</h1>
 
     <div class="mb-8">
       <div class="relative">
         <input
           v-model="searchInput"
           type="text"
-          placeholder="Search skills..."
+          :placeholder="t('search.input_placeholder')"
           class="w-full border rounded-lg px-4 py-3 text-lg pl-12"
           @keyup.enter="doSearch"
         />
@@ -23,7 +23,7 @@
     </div>
 
     <div v-if="pending" class="text-center py-20">
-      Searching...
+      {{ t('search.loading') }}
     </div>
 
     <div v-else-if="error" class="text-center text-red-500 py-20">
@@ -31,7 +31,7 @@
     </div>
 
     <div v-else-if="results.length === 0 && searchInput.trim().length > 0" class="text-center py-20 text-gray-500">
-      No results found for "{{ searchInput }}"
+      {{ t('search.no_results', { query: searchInput }) }}
     </div>
 
     <div v-else-if="results.length > 0" class="space-y-4">
@@ -43,11 +43,11 @@
         <NuxtLink :to="`/skills/${result.slug}`" class="block">
           <div class="flex items-start justify-between mb-2">
             <h3 class="text-xl font-semibold">{{ result.displayName }}</h3>
-            <span class="text-sm text-gray-500">score: {{ result.score.toFixed(2) }}</span>
+            <span class="text-sm text-gray-500">{{ t('search.score_label') }} {{ result.score.toFixed(2) }}</span>
           </div>
-          <p class="text-gray-600 mb-4">{{ result.summary || 'No description' }}</p>
+          <p class="text-gray-600 mb-4">{{ result.summary || t('search.no_description') }}</p>
           <div class="flex items-center justify-between text-sm text-gray-500">
-            <span>by {{ result.ownerHandle || result.ownerName || 'Unknown' }}</span>
+            <span>{{ t('search.by_author', { owner: result.ownerHandle || result.ownerName || t('souls.unknown_author') }) }}</span>
             <div class="flex gap-4">
               <span>⭐ {{ result.statsStars || 0 }}</span>
               <span>⬇️ {{ result.statsDownloads || 0 }}</span>
@@ -58,12 +58,13 @@
     </div>
 
     <div v-else class="text-center py-20 text-gray-500">
-      Enter a search query to find skills
+      {{ t('search.empty') }}
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const api = useApi()
@@ -100,7 +101,7 @@ async function doSearch() {
     }>(`/search?q=${encodeURIComponent(q)}`)
     results.value = response.results
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Search failed'
+    error.value = e instanceof Error ? e.message : t('errors.search_failed')
     results.value = []
   } finally {
     pending.value = false
