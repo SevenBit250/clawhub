@@ -156,7 +156,11 @@ const listSkills: FastifyPluginAsync = async (fastify) => {
         orderByColumn = skills.updatedAt;
     }
 
-    const conditions: ReturnType<typeof eq>[] = [isNull(skills.softDeletedAt), ne(skills.moderationStatus, "pending")];
+    const conditions: ReturnType<typeof eq>[] = [
+      isNull(skills.softDeletedAt),
+      ne(skills.moderationStatus, "pending"),
+      ne(skills.moderationStatus, "removed"),
+    ];
 
     if (q && q.trim()) {
       const searchTerm = `%${q.trim()}%`;
@@ -366,6 +370,7 @@ const getSkillBySlug: FastifyPluginAsync = async (fastify) => {
     const conditions = [eq(skills.slug, slug), isNull(skills.softDeletedAt)];
     if (!canSeePending) {
       conditions.push(ne(skills.moderationStatus, "pending") as any);
+      conditions.push(ne(skills.moderationStatus, "removed") as any);
     }
 
     const skillRows = await db
