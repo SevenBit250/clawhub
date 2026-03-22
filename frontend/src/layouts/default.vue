@@ -6,13 +6,16 @@
           <div class="flex items-center gap-6">
             <router-link to="/" class="text-xl font-bold">{{ $t("nav.clawhub") }}</router-link>
           </div>
-          <div class="flex items-center gap-4">
-            <a-button type="text" class="nav-btn">
-              <router-link to="/skills">{{ $t("nav.skills") }}</router-link>
-            </a-button>
-            <a-button type="text" class="nav-btn">
-              <router-link to="/souls">{{ $t("nav.souls") }}</router-link>
-            </a-button>
+          <div class="flex items-center gap-2">
+            <router-link to="/" class="nav-btn" active-class="nav-btn-active">
+              {{ $t("nav.home") }}
+            </router-link>
+            <router-link to="/skills" class="nav-btn" active-class="nav-btn-active">
+              {{ $t("nav.skills") }}
+            </router-link>
+            <router-link to="/souls" class="nav-btn" active-class="nav-btn-active">
+              {{ $t("nav.souls") }}
+            </router-link>
 
             <!-- Language Switcher -->
             <a-dropdown :trigger="['click']">
@@ -125,3 +128,31 @@ async function handleLogout() {
   message.success(t("messages.logged_out"));
 }
 </script>
+
+<style scoped>
+.nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.nav-btn:hover {
+  color: var(--color-foreground);
+  background: var(--color-hover);
+}
+
+.nav-btn-active {
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.nav-btn-active:hover {
+  color: var(--color-primary);
+}
+</style>
