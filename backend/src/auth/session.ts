@@ -1,5 +1,5 @@
 import { db } from "../db/index.js";
-import { authSessions } from "../db/schema.js";
+import { authSessions, users } from "../db/schema.js";
 import { eq, and, gt } from "drizzle-orm";
 import { randomBytes, createHmac } from "crypto";
 
@@ -76,5 +76,38 @@ export async function requireAuth(request: any) {
   const session = await validateSession(token);
   if (!session) throw { statusCode: 401, message: "Invalid or expired session" };
 
+  const [user] = await db.select({
+    id: users.id,
+    role: users.role,
+  }).from(users).where(eq(users.id, session.userId)).limit(1);
+
+  return { ...session, user };
+}
+
+export async function requireRole(request: any, role: "admin" | "moderator" | "user") {
+  const session = await requireAuth(request);
+
+  if (!session.user?.role) {
+    throw { statusCode: 403, message: "Forbidden: no role assigned" };
+  }
+
+  const roleHierarchy: Record<string, number> = {
+    "admin": 3,
+    "moderator": 2,
+    "user": 1,
+  };
+
+  if (roleHierarchy[session.user.role] < roleHierarchy[role]) {
+    throw { statusCode: 403, message: `Forbidden: requires ${role} role` };
+  }
+
   return session;
+}
+
+export async function requireAdmin(request: any) {
+  return requireRole(request, "admin");
+}
+
+export async function requireModerator(request: any) {
+  return requireRole(request, "moderator");
 }

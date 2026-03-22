@@ -8,6 +8,7 @@ import { registerDownloadV1 } from "./download.js";
 import { registerStarsV1 } from "./stars.js";
 import { registerTransfersV1 } from "./transfers.js";
 import { registerSoulsV1 } from "./souls.js";
+import { registerAdminSkillsV1, registerAdminUsersV1 } from "./admin.js";
 
 export async function registerV1Routes(fastify: FastifyInstance) {
   await fastify.register(async (f) => {
@@ -24,5 +25,7 @@ export async function registerV1Routes(fastify: FastifyInstance) {
     await f.register(registerSkillVersionsV1);
     await f.register(registerSkillManageV1);
     await registerSoulsV1(f);
+    await f.register(registerAdminSkillsV1);
+    await f.register(registerAdminUsersV1);
   }, { prefix: "/api/v1" });
 }

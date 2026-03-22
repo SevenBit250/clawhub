@@ -22,6 +22,7 @@ export async function registerWhoamiV1(fastify: FastifyInstance) {
         handle: users.handle,
         displayName: users.displayName,
         image: users.image,
+        role: users.role,
       })
       .from(users)
       .where(eq(users.id, session.userId))
@@ -36,6 +37,7 @@ export async function registerWhoamiV1(fastify: FastifyInstance) {
         handle: user.handle,
         displayName: user.displayName,
         image: user.image,
+        role: user.role,
       },
     };
   });

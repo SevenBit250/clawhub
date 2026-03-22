@@ -86,7 +86,7 @@ export const skills = pgTable("skills", {
     official?: { byUserId: string; at: number };
     deprecated?: { byUserId: string; at: number };
   }>(),
-  moderationStatus: varchar("moderation_status", { length: 20 }).$type<"active" | "hidden" | "removed">(),
+  moderationStatus: varchar("moderation_status", { length: 20 }).$type<"pending" | "active" | "hidden" | "removed">(),
   moderationNotes: text("moderation_notes"),
   moderationReason: text("moderation_reason"),
   moderationVerdict: varchar("moderation_verdict", { length: 20 }).$type<"clean" | "suspicious" | "malicious">(),
@@ -357,7 +357,7 @@ export const skillSearchDigest = pgTable("skill_search_digest", {
   statsInstallsCurrent: integer("stats_installs_current").default(0),
   statsInstallsAllTime: integer("stats_installs_all_time").default(0),
   softDeletedAt: timestamp("soft_deleted_at"),
-  moderationStatus: varchar("moderation_status", { length: 20 }).$type<"active" | "hidden" | "removed">(),
+  moderationStatus: varchar("moderation_status", { length: 20 }).$type<"pending" | "active" | "hidden" | "removed">(),
   moderationFlags: text("moderation_flags").$type<string[]>(),
   moderationReason: text("moderation_reason"),
   isSuspicious: boolean("is_suspicious"),

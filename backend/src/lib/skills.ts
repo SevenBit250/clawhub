@@ -1,6 +1,6 @@
 import { db } from "../db/index.js";
 import { skills, skillVersions, skillSlugAliases, users } from "../db/schema.js";
-import { eq, and, isNull, desc } from "drizzle-orm";
+import { eq, and, isNull, desc, ne } from "drizzle-orm";
 import { randomBytes } from "crypto";
 
 export interface CreateSkillInput {
@@ -35,7 +35,7 @@ export async function createSkill(ownerUserId: string, input: CreateSkillInput) 
     resourceId: input.resourceId,
     ownerUserId,
     latestVersionId: null,
-    moderationStatus: "active",
+    moderationStatus: "pending",
     statsDownloads: 0,
     statsStars: 0,
     statsInstallsCurrent: 0,
@@ -76,18 +76,28 @@ export async function createSkillVersion(
   return version;
 }
 
-export async function getSkillBySlug(slug: string) {
+export async function getSkillBySlug(slug: string, options?: { includePending?: boolean }) {
+  const conditions = [eq(skills.slug, slug), isNull(skills.softDeletedAt)];
+  if (!options?.includePending) {
+    conditions.push(ne(skills.moderationStatus, "pending") as any);
+  }
+
   return db.query.skills.findFirst({
-    where: and(eq(skills.slug, slug), isNull(skills.softDeletedAt)),
+    where: and(...conditions),
     with: {
       owner: true,
     },
   });
 }
 
-export async function getSkillById(id: string) {
+export async function getSkillById(id: string, options?: { includePending?: boolean }) {
+  const conditions = [eq(skills.id, id), isNull(skills.softDeletedAt)];
+  if (!options?.includePending) {
+    conditions.push(ne(skills.moderationStatus, "pending") as any);
+  }
+
   return db.query.skills.findFirst({
-    where: and(eq(skills.id, id), isNull(skills.softDeletedAt)),
+    where: and(...conditions),
     with: {
       owner: true,
     },
@@ -133,7 +143,10 @@ export async function listSkills(options: {
   }
 
   return db.query.skills.findMany({
-    where: isNull(skills.softDeletedAt),
+    where: and(
+      isNull(skills.softDeletedAt),
+      ne(skills.moderationStatus, "pending")
+    ),
     with: { owner: true },
     orderBy,
     limit,

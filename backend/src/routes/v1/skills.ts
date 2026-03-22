@@ -1,6 +1,6 @@
 import { db } from "../../db/index.js";
 import { skills, skillVersions, users, skillSlugAliases } from "../../db/schema.js";
-import { eq, and, isNull, desc, lt, sql } from "drizzle-orm";
+import { eq, and, isNull, desc, lt, sql, ne } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { requireAuth } from "../../auth/session.js";
 import { createSkill, createSkillVersion } from "../../lib/skills.js";
@@ -100,7 +100,7 @@ const listSkills: FastifyPluginAsync = async (fastify) => {
         orderByColumn = skills.updatedAt;
     }
 
-    const conditions = [isNull(skills.softDeletedAt)];
+    const conditions = [isNull(skills.softDeletedAt), ne(skills.moderationStatus, "pending")];
 
     if (cursor) {
       const cursorData = decodeCursor(cursor);
@@ -194,6 +194,29 @@ const getSkillBySlug: FastifyPluginAsync = async (fastify) => {
   fastify.get("/skills/:slug", async (request) => {
     const { slug } = request.params as { slug: string };
 
+    // Check if requester can see pending skills
+    let canSeePending = false;
+    const auth = request.headers.authorization;
+    if (auth?.startsWith("Bearer ")) {
+      try {
+        const { getTokenFromRequest, validateSession } = await import("../../auth/session.js");
+        const session = await validateSession(auth.slice(7));
+        if (session) {
+          const [user] = await db.select({ id: users.id, role: users.role }).from(users).where(eq(users.id, session.userId)).limit(1);
+          if (user && (user.role === "admin" || user.role === "moderator")) {
+            canSeePending = true;
+          }
+        }
+      } catch {
+        // Ignore auth errors, treat as unauthenticated
+      }
+    }
+
+    const conditions = [eq(skills.slug, slug), isNull(skills.softDeletedAt)];
+    if (!canSeePending) {
+      conditions.push(ne(skills.moderationStatus, "pending") as any);
+    }
+
     const skillRows = await db
       .select({
         id: skills.id,
@@ -209,6 +232,7 @@ const getSkillBySlug: FastifyPluginAsync = async (fastify) => {
         updatedAt: skills.updatedAt,
         latestVersionId: skills.latestVersionId,
         ownerUserId: skills.ownerUserId,
+        moderationStatus: skills.moderationStatus,
         isSuspicious: skills.isSuspicious,
         moderationVerdict: skills.moderationVerdict,
         moderationReasonCodes: skills.moderationReasonCodes,
@@ -221,7 +245,7 @@ const getSkillBySlug: FastifyPluginAsync = async (fastify) => {
       })
       .from(skills)
       .leftJoin(users, eq(skills.ownerUserId, users.id))
-      .where(and(eq(skills.slug, slug), isNull(skills.softDeletedAt)))
+      .where(and(...conditions))
       .limit(1);
 
     const skillRow = skillRows[0];
