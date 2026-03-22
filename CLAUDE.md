@@ -66,8 +66,25 @@ frontend/
 │   ├── layouts/         # default.vue
 │   ├── assets/css/      # main.css
 │   └── main.ts          # Vite 入口
+├── auto-imports.d.ts    # unplugin-auto-import 自动生成的类型
+├── components.d.ts       # unplugin-vue-components 自动生成的类型
 ├── vite.config.ts
 └── index.html
+```
+
+### CLI 结构 — `packages/clawdhub/src/`
+```
+src/
+├── cli.ts               # CLI 入口
+├── http.ts              # HTTP 客户端
+├── config.ts            # 配置文件解析
+├── discovery.ts         # 工作区/技能发现
+├── skills.ts            # 技能安装/更新逻辑
+├── schema/              # 技能格式解析 (ArkType)
+├── cli/
+│   ├── commands/        # 命令实现 (publish, sync, auth, stars, ...)
+│   ├── registry.ts      # Registry 发现
+│   └── ui.ts            # CLI 界面样式
 ```
 
 ### 数据库 Schema
@@ -133,35 +150,50 @@ import Fastify from "fastify";
 
 ## 关键 API 端点
 
-### 根路径路由 (无前缀)
+### 根路径路由 (无前缀) — `backend/src/index.ts`
 | 端点 | 方法 | 认证 | 描述 |
 |------|------|------|------|
 | `/health` | GET | 否 | 健康检查 |
 | `/auth/url` | GET | 否 | 获取 OAuth URL |
+| `/auth/mock` | GET | 否 | 模拟登录页面（仅开发环境）|
 | `/auth/callback` | GET | 否 | OAuth 回调 |
+| `/auth/logout` | POST | 是 | 登出 |
 | `/auth/session` | GET | 可选 | 获取当前会话 |
 | `/users/me` | GET | 是 | 当前用户信息 |
 | `/users/me/skills` | GET | 是 | 当前用户的技能 |
+| `/users/me/stars` | GET | 是 | 当前用户收藏的技能 |
+| `/users/me/souls` | GET | 是 | 当前用户的灵魂 |
 | `/storage/upload` | POST | 是 | 上传文件 |
 | `/storage/:id` | GET | 否 | 下载文件 |
+| `/skills/:id/comments` | GET/POST | 否/是 | 获取/添加评论 |
 
-### v1 API (`/api/v1` 前缀)
+### v1 API (`/api/v1` 前缀) — `backend/src/routes/v1/`
 | 端点 | 方法 | 认证 | 描述 |
 |------|------|------|------|
 | `/api/v1/skills` | GET | 否 | 技能列表 |
 | `/api/v1/skills` | POST | 是 | 创建技能 |
 | `/api/v1/skills/:slug` | GET | 否 | 技能详情 |
-| `/api/v1/skills/:slug` | DELETE | 是 | 删除技能 |
+| `/api/v1/skills/:slug` | DELETE | 是 | 删除技能（软删除） |
 | `/api/v1/skills/:slug/versions` | GET | 否 | 版本列表 |
 | `/api/v1/search` | GET | 否 | 搜索 |
 | `/api/v1/souls` | GET | 否 | 灵魂列表 |
 | `/api/v1/stars` | POST/DELETE | 是 | 收藏操作 |
+| `/api/v1/resolve` | GET | 否 | CLI 指纹解析 |
+| `/api/v1/download` | GET | 否 | 下载技能 zip |
+| `/api/v1/transfers/incoming` | GET | 是 | 收到的转让请求 |
+| `/api/v1/transfers/outgoing` | GET | 是 | 发出的转让请求 |
+| `/api/v1/users` | GET | 是 | 用户列表（管理员） |
+| `/api/v1/users/ban` | POST | 是 | 封禁用户（管理员） |
+| `/api/v1/users/role` | POST | 是 | 更改用户角色（管理员） |
+| `/api/v1/admin/*` | — | 是 | 管理员接口 |
 
-### 遗留兼容路由 (`/api` 前缀)
+### 遗留兼容路由 (`/api` 前缀) — `backend/src/routes/legacy/`
 | 端点 | 方法 | 认证 | 描述 |
 |------|------|------|------|
 | `/api/skill` | GET | 否 | 技能详情 (旧) |
 | `/api/search` | GET | 否 | 搜索 (旧) |
+| `/api/skill/resolve` | GET | 否 | 解析技能 (旧) |
+| `/api/download` | GET | 否 | 下载技能 zip (旧) |
 | `/api/cli/*` | — | — | CLI 兼容接口 |
 
 ## Git 规范

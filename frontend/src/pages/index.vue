@@ -107,7 +107,8 @@ const error = ref<string | null>(null);
 
 onMounted(async () => {
   try {
-    data.value = await api.get("/skills?limit=6&sort=downloads");
+    const res = await api.get<{ items: Array<{ slug: string; displayName: string; summary: string | null; stats: { downloads: number; stars: number; installs: number } }> }>("/api/v1/skills?limit=6&sort=downloads");
+    data.value = res?.items || [];
   } catch (e) {
     error.value = e instanceof Error ? e.message : "Failed to load skills";
   } finally {

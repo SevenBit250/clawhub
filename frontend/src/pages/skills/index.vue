@@ -25,7 +25,7 @@
     <div v-else class="grid grid-cols-3 gap-6">
       <a-card
         v-for="skill in skills"
-        :key="skill.id"
+        :key="skill.slug"
         hoverable
         class="skill-card"
       >
@@ -42,8 +42,8 @@
           <div class="flex items-center justify-between text-sm text-gray-500">
             <span>{{ skill.owner?.handle || skill.owner?.displayName || t('skills.unknown_author') }}</span>
             <div class="flex gap-3">
-              <span><StarFilled style="color: #faad14" /> {{ skill.statsStars || 0 }}</span>
-              <span><DownloadOutlined /> {{ skill.statsDownloads || 0 }}</span>
+              <span><StarFilled style="color: #faad14" /> {{ skill.stats?.stars || 0 }}</span>
+              <span><DownloadOutlined /> {{ skill.stats?.downloads || 0 }}</span>
             </div>
           </div>
         </router-link>
@@ -76,16 +76,17 @@ function handleSortChange() {
   router.push({ query: { sort: sortBy.value } });
 }
 
-const data = ref<Array<{
-  id: string;
-  slug: string;
-  displayName: string;
-  summary: string | null;
-  statsStars: number;
-  statsDownloads: number;
-  badges: Record<string, unknown> | null;
-  owner: { handle: string | null; displayName: string | null } | null;
-}>>([]);
+const data = ref<{
+  items: Array<{
+    slug: string;
+    displayName: string;
+    summary: string | null;
+    stats: { downloads: number; stars: number; installs: number };
+    badges: Record<string, unknown> | null;
+    owner: { handle: string | null; displayName: string | null } | null;
+  }>;
+  nextCursor: string | null;
+} | null>(null);
 const pending = ref(true);
 const error = ref<string | null>(null);
 
@@ -93,7 +94,8 @@ async function fetchSkills() {
   pending.value = true;
   error.value = null;
   try {
-    data.value = await api.get(`/skills?limit=20&sort=${sortBy.value}`);
+    const res = await api.get<{ items: Array<{ slug: string; displayName: string; summary: string | null; stats: { downloads: number; stars: number; installs: number }; badges: Record<string, unknown> | null; owner: { handle: string | null; displayName: string | null } | null }>; nextCursor: string | null }>(`/api/v1/skills?limit=20&sort=${sortBy.value}`);
+    data.value = res;
   } catch (e) {
     error.value = e instanceof Error ? e.message : "Failed to load skills";
   } finally {
@@ -105,7 +107,7 @@ onMounted(fetchSkills);
 
 watch(sortBy, fetchSkills);
 
-const skills = computed(() => data.value || []);
+const skills = computed(() => data.value?.items || []);
 </script>
 
 <style scoped>

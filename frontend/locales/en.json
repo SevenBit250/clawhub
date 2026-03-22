@@ -73,7 +73,9 @@
     "stars_received": "Stars Received",
     "create_skill": "Create Skill",
     "no_skills": "You haven't created any skills yet",
-    "edit": "Edit"
+    "edit": "Edit",
+    "pending_review": "Pending Review",
+    "pending_hint": "This skill is under review and not yet visible to others"
   },
   "skills": {
     "title": "Skills",

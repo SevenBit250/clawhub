@@ -73,7 +73,9 @@
     "stars_received": "获得的星标",
     "create_skill": "创建技能",
     "no_skills": "您还没有创建任何技能",
-    "edit": "编辑"
+    "edit": "编辑",
+    "pending_review": "审核中",
+    "pending_hint": "此技能正在审核中，暂不对外显示"
   },
   "skills": {
     "title": "技能",

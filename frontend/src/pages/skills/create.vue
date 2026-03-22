@@ -115,7 +115,8 @@ import { FolderOpenOutlined, CheckCircleOutlined, CiCircleOutlined } from "@ant-
 
 const router = useRouter();
 const { token } = useAuth();
-const api = useApi();
+
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3001";
 
 const form = ref({
   slug: "",
@@ -203,22 +204,45 @@ async function handlePublish() {
   publishing.value = true;
 
   try {
-    // First create the skill
-    const skill = await api.post(
-      "/skills",
-      {
-        slug: form.value.slug,
-        displayName: form.value.displayName,
-        summary: "",
-        version: form.value.version,
-        tags: form.value.tags ? form.value.tags.split(",").map((t) => t.trim()) : [],
-        changelog: form.value.changelog,
+    // Build payload metadata
+    const payload = {
+      slug: form.value.slug,
+      displayName: form.value.displayName,
+      version: form.value.version,
+      changelog: form.value.changelog,
+      tags: form.value.tags ? form.value.tags.split(",").map((t) => t.trim()) : [],
+    };
+
+    // Build multipart form data
+    const formData = new FormData();
+    formData.append("payload", JSON.stringify(payload));
+
+    // Add files with their paths
+    const fileArray = Array.from(files.value);
+    for (const file of fileArray) {
+      // Use webkitRelativePath if available, otherwise just the filename
+      const path = (file as any).webkitRelativePath || file.name;
+      formData.append("files", file, path);
+    }
+
+    // Send multipart request
+    const response = await fetch(`${API_BASE}/api/v1/skills`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token.value}`,
       },
-      { token: token.value }
-    );
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: "Failed to publish skill" }));
+      throw new Error(error.message || `HTTP ${response.status}`);
+    }
+
+    const result = await response.json();
 
     message.success("Skill published successfully!");
-    router.push(`/skills/${skill.slug}`);
+    router.push(`/skills/${result.skill?.slug || form.value.slug}`);
   } catch (e) {
     message.error(e instanceof Error ? e.message : "Failed to publish skill");
   } finally {
