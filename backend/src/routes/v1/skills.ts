@@ -1,6 +1,6 @@
 import { db } from "../../db/index.js";
 import { skills, skillVersions, users, skillSlugAliases } from "../../db/schema.js";
-import { eq, and, isNull, desc, lt, sql, ne } from "drizzle-orm";
+import { eq, and, isNull, desc, lt, sql, ne, like, or } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { requireAuth } from "../../auth/session.js";
 import { createSkill, createSkillVersion } from "../../lib/skills.js";
@@ -85,6 +85,7 @@ const listSkills: FastifyPluginAsync = async (fastify) => {
           limit: { type: "string", description: "返回数量" },
           cursor: { type: "string", description: "分页游标" },
           sort: { type: "string", enum: ["updated", "downloads", "stars", "installs"], description: "排序方式" },
+          q: { type: "string", description: "搜索关键词" },
         },
       },
       response: {
@@ -130,10 +131,11 @@ const listSkills: FastifyPluginAsync = async (fastify) => {
       },
     },
     async handler(request) {
-    const { limit: limitStr, cursor, sort } = request.query as {
+    const { limit: limitStr, cursor, sort, q } = request.query as {
       limit?: string;
       cursor?: string;
       sort?: "updated" | "downloads" | "stars" | "installs";
+      q?: string;
     };
 
     const limit = Math.min(parseInt(limitStr || "20") || 20, 100);
@@ -154,7 +156,18 @@ const listSkills: FastifyPluginAsync = async (fastify) => {
         orderByColumn = skills.updatedAt;
     }
 
-    const conditions = [isNull(skills.softDeletedAt), ne(skills.moderationStatus, "pending")];
+    const conditions: ReturnType<typeof eq>[] = [isNull(skills.softDeletedAt), ne(skills.moderationStatus, "pending")];
+
+    if (q && q.trim()) {
+      const searchTerm = `%${q.trim()}%`;
+      conditions.push(
+        or(
+          like(skills.displayName, searchTerm),
+          like(skills.slug, searchTerm),
+          like(skills.summary, searchTerm)
+        )!
+      );
+    }
 
     const [{ count }] = await db
       .select({ count: sql<number>`count(*)` })

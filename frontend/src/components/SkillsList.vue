@@ -58,9 +58,9 @@
         hoverable
         class="skill-card"
       >
-        <router-link :to="`/skills/${skill.slug}`">
+        <router-link :to="`/skills/${skill.slug}`" class="skill-card-link">
           <div class="flex items-start justify-between mb-2">
-            <h3 class="text-xl font-semibold">{{ skill.displayName }}</h3>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">{{ skill.displayName }}</h3>
             <a-tag v-if="skill.badges?.highlighted" color="gold">
               <StarFilled /> {{ t('skills.badge.highlighted') }}
             </a-tag>
@@ -135,20 +135,23 @@ function formatCount(num: number): string {
   height: 100%;
 }
 
+.skill-card-link {
+  text-decoration: none;
+  color: inherit;
+}
+
 .skill-card :deep(.ant-card-body) {
   padding: 1.5rem;
 }
 
 .line-clamp-1 {
   display: -webkit-box;
-  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
 .line-clamp-2 {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
