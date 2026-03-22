@@ -109,6 +109,12 @@ src/
 
 ## 代码风格
 
+### 开发原则
+- **不要重复造轮子** — 实现某个功能前，优先考虑框架/生态中是否已有相应实现或组件
+  - 例如：使用 Ant Design Vue 的 `a-modal` 而非自己实现 dialog
+  - 例如：使用 `vue-i18n` 而非自己实现国际化
+  - 例如：使用 `zod`/`arktype` 而非自己实现 schema 验证
+
 ### TypeScript
 - strict mode — 禁止 `any`，禁止隐式 any
 - ESM 模块（`"type": "module"`），Target ES2022

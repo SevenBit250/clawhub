@@ -123,6 +123,7 @@ const listSkills: FastifyPluginAsync = async (fastify) => {
                 },
               },
             },
+            total: { type: "number" },
             nextCursor: { type: "string", nullable: true },
           },
         },
@@ -154,6 +155,11 @@ const listSkills: FastifyPluginAsync = async (fastify) => {
     }
 
     const conditions = [isNull(skills.softDeletedAt), ne(skills.moderationStatus, "pending")];
+
+    const [{ count }] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(skills)
+      .where(and(...conditions));
 
     if (cursor) {
       const cursorData = decodeCursor(cursor);
@@ -238,6 +244,7 @@ const listSkills: FastifyPluginAsync = async (fastify) => {
 
     return {
       items: responseItems,
+      total: count,
       nextCursor,
     };
     },

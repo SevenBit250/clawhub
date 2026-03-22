@@ -79,11 +79,21 @@
   },
   "skills": {
     "title": "Skills",
+    "subtitle": "Browse the skill library",
+    "search_placeholder": "Filter by name, slug, or summary...",
     "sort": {
       "updated": "Recently Updated",
       "downloads": "Most Downloads",
       "stars": "Most Stars",
       "installs": "Most Installs"
+    },
+    "filter": {
+      "highlighted": "Highlighted"
+    },
+    "stats": {
+      "downloads": "Downloads",
+      "stars": "Stars",
+      "installs": "Installs"
     },
     "failed": "Failed to load skills",
     "no_description": "No description",
@@ -132,6 +142,10 @@
       "title": "Version {version}",
       "files": "Files"
     },
+    "changelog": {
+      "title": "Changelog",
+      "view": "View changelog"
+    },
     "comments": {
       "title": "Comments",
       "placeholder": "Write a comment...",
@@ -153,7 +167,25 @@
     },
     "confirm": {
       "delete_comment": "Delete this comment?"
-    }
+    },
+    "cli": {
+      "title": "CLI",
+      "install_command": "Install Command",
+      "copy": "Copy",
+      "download_zip": "Download ZIP",
+      "download": "Download"
+    },
+    "install_dialog": {
+      "title": "Install Skill",
+      "method1": "Method 1",
+      "method2": "Method 2",
+      "install_command": "Install via CLI",
+      "download_zip": "Download ZIP",
+      "download_url": "Download URL",
+      "copy": "Copy",
+      "download": "Download"
+    },
+    "download_zip": "Download ZIP"
   },
   "souls": {
     "title": "Souls",

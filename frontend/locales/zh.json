@@ -79,11 +79,21 @@
   },
   "skills": {
     "title": "技能",
+    "subtitle": "浏览技能库",
+    "search_placeholder": "按名称、slug 或描述筛选...",
     "sort": {
       "updated": "最近更新",
       "downloads": "最多下载",
       "stars": "最多星标",
       "installs": "最多安装"
+    },
+    "filter": {
+      "highlighted": "精选"
+    },
+    "stats": {
+      "downloads": "下载",
+      "stars": "星标",
+      "installs": "安装"
     },
     "failed": "加载技能失败",
     "no_description": "暂无描述",
@@ -132,6 +142,10 @@
       "title": "版本 {version}",
       "files": "文件"
     },
+    "changelog": {
+      "title": "更新日志",
+      "view": "查看更新日志"
+    },
     "comments": {
       "title": "评论",
       "placeholder": "写下评论...",
@@ -153,7 +167,25 @@
     },
     "confirm": {
       "delete_comment": "确定删除此评论？"
-    }
+    },
+    "cli": {
+      "title": "命令行工具",
+      "install_command": "安装命令",
+      "copy": "复制",
+      "download_zip": "下载 ZIP",
+      "download": "下载"
+    },
+    "install_dialog": {
+      "title": "安装技能",
+      "method1": "方式一",
+      "method2": "方式二",
+      "install_command": "命令行安装",
+      "download_zip": "下载 ZIP",
+      "download_url": "下载链接",
+      "copy": "复制",
+      "download": "下载"
+    },
+    "download_zip": "下载 ZIP"
   },
   "souls": {
     "title": "灵魂",
