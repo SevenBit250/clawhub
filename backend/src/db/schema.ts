@@ -726,3 +726,25 @@ export const skillVersionsRelations = relations(skillVersions, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export const commentsRelations = relations(comments, ({ one }) => ({
+  user: one(users, {
+    fields: [comments.userId],
+    references: [users.id],
+  }),
+  skill: one(skills, {
+    fields: [comments.skillId],
+    references: [skills.id],
+  }),
+}));
+
+export const starsRelations = relations(stars, ({ one }) => ({
+  user: one(users, {
+    fields: [stars.userId],
+    references: [users.id],
+  }),
+  skill: one(skills, {
+    fields: [stars.skillId],
+    references: [skills.id],
+  }),
+}));
