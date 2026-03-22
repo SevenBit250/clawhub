@@ -86,7 +86,7 @@ frontend/
 | 后端 | Fastify |
 | 数据库 | PostgreSQL + pgvector |
 | ORM | Drizzle |
-| 任务队列 | BullMQ (Redis) |
+| 任务队列 | Redis (可选，用于 BullMQ 队列) |
 | 认证 | JWT Session |
 | 共享类型 | ArkType |
 
@@ -133,18 +133,36 @@ import Fastify from "fastify";
 
 ## 关键 API 端点
 
+### 根路径路由 (无前缀)
 | 端点 | 方法 | 认证 | 描述 |
 |------|------|------|------|
 | `/health` | GET | 否 | 健康检查 |
 | `/auth/url` | GET | 否 | 获取 OAuth URL |
 | `/auth/callback` | GET | 否 | OAuth 回调 |
 | `/auth/session` | GET | 可选 | 获取当前会话 |
-| `/skills` | GET | 否 | 技能列表 |
-| `/skills` | POST | 是 | 创建技能 |
-| `/skills/:slug` | GET | 否 | 技能详情 |
-| `/skills/:id` | PATCH/DELETE | 是 | 更新/删除 |
-| `/search` | GET | 否 | 搜索 |
+| `/users/me` | GET | 是 | 当前用户信息 |
+| `/users/me/skills` | GET | 是 | 当前用户的技能 |
 | `/storage/upload` | POST | 是 | 上传文件 |
+| `/storage/:id` | GET | 否 | 下载文件 |
+
+### v1 API (`/api/v1` 前缀)
+| 端点 | 方法 | 认证 | 描述 |
+|------|------|------|------|
+| `/api/v1/skills` | GET | 否 | 技能列表 |
+| `/api/v1/skills` | POST | 是 | 创建技能 |
+| `/api/v1/skills/:slug` | GET | 否 | 技能详情 |
+| `/api/v1/skills/:slug` | DELETE | 是 | 删除技能 |
+| `/api/v1/skills/:slug/versions` | GET | 否 | 版本列表 |
+| `/api/v1/search` | GET | 否 | 搜索 |
+| `/api/v1/souls` | GET | 否 | 灵魂列表 |
+| `/api/v1/stars` | POST/DELETE | 是 | 收藏操作 |
+
+### 遗留兼容路由 (`/api` 前缀)
+| 端点 | 方法 | 认证 | 描述 |
+|------|------|------|------|
+| `/api/skill` | GET | 否 | 技能详情 (旧) |
+| `/api/search` | GET | 否 | 搜索 (旧) |
+| `/api/cli/*` | — | — | CLI 兼容接口 |
 
 ## Git 规范
 
@@ -162,7 +180,15 @@ import Fastify from "fastify";
 
 ### 测试类型
 - **单元测试**: `tests/*.test.ts` — 纯函数、工具函数、存储逻辑
-- **回归测试**: `tests/api.test.ts` — API 端点、CLI 兼容性
+- **回归测试**: `tests/api.test.ts` — API 端点、CLI 兼容性（**90 个测试全部通过**）
+
+### CLI 兼容性测试 ⚠️
+`api.test.ts` 中的测试是**必须通过**的，用于保证 ClawHub CLI 的完全兼容：
+- Legacy CLI 路由：`/api/cli/*`（whoami, publish, telemetry/sync, skill/delete, skill/undelete 等）
+- 遗留兼容路由：`/api/skill`, `/api/skill/resolve`, `/api/download`, `/api/search`
+- v1 API 路由：`/api/v1/*`
+
+**任何 API 变更都必须同步更新对应测试，确保 CLI 兼容性不被破坏。**
 
 ### 强制要求 ⚠️
 
@@ -170,9 +196,9 @@ import Fastify from "fastify";
 |---------|---------------|
 | `src/lib/*.ts` | `bun run test:run` |
 | `src/routes/` | `bun run dev` + `bun run test:run` |
-| 数据库 Schema | `bun run build && bun run test:run` |
+| 数据库 Schema | `bun run build && `bun run test:run`` |
 | **所有提交前** | `bun run build && bun run test:run` |
 
 ### 测试通过标准
-- `bun run test:run` exit code 0
+- `bun run test:run` exit code 0（**90 个测试全部通过**）
 - TypeScript 编译通过（`bun run build`）
