@@ -38,17 +38,6 @@
               <div class="text-sm text-gray-500">{{ t('login.test.access') }}</div>
             </div>
           </button>
-
-          <button
-            @click="loginAs('mock_new')"
-            class="w-full py-3 px-4 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center gap-3 transition-colors"
-          >
-            <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold">N</div>
-            <div class="text-left">
-              <div class="font-medium">{{ t('login.new.label') }}</div>
-              <div class="text-sm text-gray-500">{{ t('login.new.access') }}</div>
-            </div>
-          </button>
         </div>
 
         <p class="text-center text-gray-400 text-sm mt-6">

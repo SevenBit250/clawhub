@@ -23,6 +23,13 @@ const authState = reactive<AuthState>({
   loaded: false,
 });
 
+// Restore token synchronously on module load (before first render)
+const savedToken = localStorage.getItem("auth_token");
+if (savedToken) {
+  authState.token = savedToken;
+  authState.isAuthenticated = true;
+}
+
 export function useAuth() {
   const api = useApi();
 
@@ -30,9 +37,7 @@ export function useAuth() {
     authState.token = token;
     authState.user = user;
     authState.isAuthenticated = true;
-    if (import.meta.client) {
-      localStorage.setItem("auth_token", token);
-    }
+    localStorage.setItem("auth_token", token);
   }
 
   async function login(code: string) {
@@ -53,18 +58,10 @@ export function useAuth() {
     authState.token = null;
     authState.user = null;
     authState.isAuthenticated = false;
-
-    if (import.meta.client) {
-      localStorage.removeItem("auth_token");
-    }
+    localStorage.removeItem("auth_token");
   }
 
   async function fetchSession() {
-    if (!import.meta.client) {
-      authState.loaded = true;
-      return null;
-    }
-
     const token = localStorage.getItem("auth_token");
 
     if (!token) {
