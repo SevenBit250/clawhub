@@ -4,7 +4,41 @@ import { users } from "../../db/schema.js";
 import { and, isNull, like, or, sql } from "drizzle-orm";
 
 export async function registerUsersV1(fastify: FastifyInstance) {
-  fastify.get("/users", async (request) => {
+  fastify.get("/users", {
+    schema: {
+      description: "搜索用户",
+      tags: ["users"],
+      querystring: {
+        type: "object",
+        properties: {
+          q: { type: "string", description: "搜索关键词" },
+          limit: { type: "string", description: "返回数量" },
+          offset: { type: "string", description: "偏移量" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            items: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  userId: { type: "string" },
+                  handle: { type: "string", nullable: true },
+                  displayName: { type: "string", nullable: true },
+                  name: { type: "string", nullable: true },
+                  role: { type: "string", nullable: true },
+                },
+              },
+            },
+            total: { type: "number" },
+          },
+        },
+      },
+    },
+    async handler(request) {
     const { q, limit: limitStr, offset: offsetStr } = request.query as {
       q?: string;
       limit?: string;
@@ -49,5 +83,6 @@ export async function registerUsersV1(fastify: FastifyInstance) {
       .offset(offset);
 
     return { items, total };
+    },
   });
 }

@@ -75,7 +75,60 @@ interface SkillVersionRow {
 }
 
 const listSkills: FastifyPluginAsync = async (fastify) => {
-  fastify.get("/skills", async (request) => {
+  fastify.get("/skills", {
+    schema: {
+      description: "获取技能列表",
+      tags: ["skills"],
+      querystring: {
+        type: "object",
+        properties: {
+          limit: { type: "string", description: "返回数量" },
+          cursor: { type: "string", description: "分页游标" },
+          sort: { type: "string", enum: ["updated", "downloads", "stars", "installs"], description: "排序方式" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            items: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  slug: { type: "string" },
+                  displayName: { type: "string" },
+                  summary: { type: "string", nullable: true },
+                  tags: { type: "object" },
+                  stats: {
+                    type: "object",
+                    properties: {
+                      downloads: { type: "number" },
+                      stars: { type: "number" },
+                      installs: { type: "number" },
+                    },
+                  },
+                  createdAt: { type: "number" },
+                  updatedAt: { type: "number" },
+                  latestVersion: {
+                    type: "object",
+                    nullable: true,
+                    properties: {
+                      version: { type: "string" },
+                      createdAt: { type: "number" },
+                      changelog: { type: "string", nullable: true },
+                      license: { type: "string", nullable: true },
+                    },
+                  },
+                },
+              },
+            },
+            nextCursor: { type: "string", nullable: true },
+          },
+        },
+      },
+    },
+    async handler(request) {
     const { limit: limitStr, cursor, sort } = request.query as {
       limit?: string;
       cursor?: string;
@@ -187,11 +240,89 @@ const listSkills: FastifyPluginAsync = async (fastify) => {
       items: responseItems,
       nextCursor,
     };
+    },
   });
 };
 
 const getSkillBySlug: FastifyPluginAsync = async (fastify) => {
-  fastify.get("/skills/:slug", async (request) => {
+  fastify.get("/skills/:slug", {
+    schema: {
+      description: "获取技能详情",
+      tags: ["skills"],
+      params: {
+        type: "object",
+        required: ["slug"],
+        properties: {
+          slug: { type: "string" },
+        },
+      },
+      headers: {
+        type: "object",
+        properties: {
+          authorization: { type: "string" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            skill: {
+              type: "object",
+              nullable: true,
+              properties: {
+                slug: { type: "string" },
+                displayName: { type: "string" },
+                summary: { type: "string", nullable: true },
+                tags: { type: "object" },
+                stats: {
+                  type: "object",
+                  properties: {
+                    downloads: { type: "number" },
+                    stars: { type: "number" },
+                    installs: { type: "number" },
+                  },
+                },
+                createdAt: { type: "number" },
+                updatedAt: { type: "number" },
+              },
+            },
+            latestVersion: {
+              type: "object",
+              nullable: true,
+              properties: {
+                version: { type: "string" },
+                createdAt: { type: "number" },
+                changelog: { type: "string", nullable: true },
+                license: { type: "string", nullable: true },
+              },
+            },
+            owner: {
+              type: "object",
+              nullable: true,
+              properties: {
+                handle: { type: "string", nullable: true },
+                displayName: { type: "string", nullable: true },
+                image: { type: "string", nullable: true },
+              },
+            },
+            moderation: {
+              type: "object",
+              nullable: true,
+              properties: {
+                isSuspicious: { type: "boolean" },
+                isMalwareBlocked: { type: "boolean" },
+                verdict: { type: "string", nullable: true },
+                reasonCodes: { type: "array", items: { type: "string" }, nullable: true },
+                updatedAt: { type: "number", nullable: true },
+                engineVersion: { type: "string", nullable: true },
+                summary: { type: "string", nullable: true },
+              },
+            },
+          },
+        },
+      },
+    },
+    async handler(request) {
     const { slug } = request.params as { slug: string };
 
     // Check if requester can see pending skills
@@ -314,11 +445,34 @@ const getSkillBySlug: FastifyPluginAsync = async (fastify) => {
         summary: skillRow.moderationSummary ?? undefined,
       },
     };
+    },
   });
 };
 
 const registerPublishSkillV1: FastifyPluginAsync = async (fastify) => {
-  fastify.post("/skills", async (request) => {
+  fastify.post("/skills", {
+    schema: {
+      description: "发布新技能",
+      tags: ["skills"],
+      headers: {
+        type: "object",
+        required: ["authorization"],
+        properties: {
+          authorization: { type: "string" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            ok: { type: "boolean" },
+            skillId: { type: "string" },
+            versionId: { type: "string" },
+          },
+        },
+      },
+    },
+    async handler(request) {
     const session = await requireAuth(request);
     
     let payload: {
@@ -414,11 +568,51 @@ const registerPublishSkillV1: FastifyPluginAsync = async (fastify) => {
         (request.raw as any).pipe(bb);
       });
     });
+    },
   });
 };
 
 const registerSkillVersionsV1: FastifyPluginAsync = async (fastify) => {
-  fastify.get("/skills/:slug/versions", async (request) => {
+  fastify.get("/skills/:slug/versions", {
+    schema: {
+      description: "获取技能版本列表",
+      tags: ["skills"],
+      params: {
+        type: "object",
+        required: ["slug"],
+        properties: {
+          slug: { type: "string" },
+        },
+      },
+      querystring: {
+        type: "object",
+        properties: {
+          limit: { type: "string" },
+          cursor: { type: "string" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            items: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  version: { type: "string" },
+                  createdAt: { type: "number" },
+                  changelog: { type: "string", nullable: true },
+                  changelogSource: { type: "string", nullable: true },
+                },
+              },
+            },
+            nextCursor: { type: "string", nullable: true },
+          },
+        },
+      },
+    },
+    async handler(request) {
     const { slug } = request.params as { slug: string };
     const { limit: limitStr, cursor } = request.query as {
       limit?: string;
@@ -464,9 +658,50 @@ const registerSkillVersionsV1: FastifyPluginAsync = async (fastify) => {
       })),
       nextCursor: hasNextPage ? items[items.length - 1].version : null,
     };
+    },
   });
 
-  fastify.get("/skills/:slug/versions/:version", async (request) => {
+  fastify.get("/skills/:slug/versions/:version", {
+    schema: {
+      description: "获取技能指定版本详情",
+      tags: ["skills"],
+      params: {
+        type: "object",
+        required: ["slug", "version"],
+        properties: {
+          slug: { type: "string" },
+          version: { type: "string" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            version: {
+              type: "object",
+              nullable: true,
+              properties: {
+                version: { type: "string" },
+                createdAt: { type: "number" },
+                changelog: { type: "string", nullable: true },
+                changelogSource: { type: "string", nullable: true },
+                license: { type: "string", nullable: true },
+                files: { type: "object", nullable: true },
+              },
+            },
+            skill: {
+              type: "object",
+              nullable: true,
+              properties: {
+                slug: { type: "string" },
+                displayName: { type: "string" },
+              },
+            },
+          },
+        },
+      },
+    },
+    async handler(request) {
     const { slug, version } = request.params as { slug: string; version: string };
 
     const [skill] = await db
@@ -527,11 +762,48 @@ const registerSkillVersionsV1: FastifyPluginAsync = async (fastify) => {
         displayName: skill.displayName,
       },
     };
+    },
   });
 };
 
 const registerSkillManageV1: FastifyPluginAsync = async (fastify) => {
-  fastify.patch("/skills/:slug/rename", async (request) => {
+  fastify.patch("/skills/:slug/rename", {
+    schema: {
+      description: "重命名技能",
+      tags: ["skills"],
+      params: {
+        type: "object",
+        required: ["slug"],
+        properties: {
+          slug: { type: "string" },
+        },
+      },
+      headers: {
+        type: "object",
+        required: ["authorization"],
+        properties: {
+          authorization: { type: "string" },
+        },
+      },
+      body: {
+        type: "object",
+        required: ["slug"],
+        properties: {
+          slug: { type: "string" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            ok: { type: "boolean" },
+            slug: { type: "string" },
+            previousSlug: { type: "string" },
+          },
+        },
+      },
+    },
+    async handler(request) {
     const session = await requireAuth(request);
     const { slug } = request.params as { slug: string };
     const body = request.body as { slug: string };
@@ -571,9 +843,46 @@ const registerSkillManageV1: FastifyPluginAsync = async (fastify) => {
     });
 
     return { ok: true as const, slug: body.slug, previousSlug };
+    },
   });
 
-  fastify.patch("/skills/:slug/merge", async (request) => {
+  fastify.patch("/skills/:slug/merge", {
+    schema: {
+      description: "合并技能",
+      tags: ["skills"],
+      params: {
+        type: "object",
+        required: ["slug"],
+        properties: {
+          slug: { type: "string" },
+        },
+      },
+      headers: {
+        type: "object",
+        required: ["authorization"],
+        properties: {
+          authorization: { type: "string" },
+        },
+      },
+      body: {
+        type: "object",
+        required: ["targetSlug"],
+        properties: {
+          targetSlug: { type: "string" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            ok: { type: "boolean" },
+            sourceSlug: { type: "string" },
+            targetSlug: { type: "string" },
+          },
+        },
+      },
+    },
+    async handler(request) {
     const session = await requireAuth(request);
     const { slug } = request.params as { slug: string };
     const body = request.body as { targetSlug: string };
@@ -621,9 +930,37 @@ const registerSkillManageV1: FastifyPluginAsync = async (fastify) => {
     });
 
     return { ok: true as const, sourceSlug: slug, targetSlug: body.targetSlug };
+    },
   });
 
-  fastify.delete("/skills/:slug", async (request) => {
+  fastify.delete("/skills/:slug", {
+    schema: {
+      description: "删除技能",
+      tags: ["skills"],
+      params: {
+        type: "object",
+        required: ["slug"],
+        properties: {
+          slug: { type: "string" },
+        },
+      },
+      headers: {
+        type: "object",
+        required: ["authorization"],
+        properties: {
+          authorization: { type: "string" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            ok: { type: "boolean" },
+          },
+        },
+      },
+    },
+    async handler(request) {
     const session = await requireAuth(request);
     const { slug } = request.params as { slug: string };
 
@@ -646,9 +983,37 @@ const registerSkillManageV1: FastifyPluginAsync = async (fastify) => {
       .where(eq(skills.id, skill.id));
 
     return { ok: true as const };
+    },
   });
 
-  fastify.post("/skills/:slug/restore", async (request) => {
+  fastify.post("/skills/:slug/restore", {
+    schema: {
+      description: "恢复已删除的技能",
+      tags: ["skills"],
+      params: {
+        type: "object",
+        required: ["slug"],
+        properties: {
+          slug: { type: "string" },
+        },
+      },
+      headers: {
+        type: "object",
+        required: ["authorization"],
+        properties: {
+          authorization: { type: "string" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            ok: { type: "boolean" },
+          },
+        },
+      },
+    },
+    async handler(request) {
     const session = await requireAuth(request);
     const { slug } = request.params as { slug: string };
 
@@ -671,9 +1036,37 @@ const registerSkillManageV1: FastifyPluginAsync = async (fastify) => {
       .where(eq(skills.id, skill.id));
 
     return { ok: true as const };
+    },
   });
 
-  fastify.post("/skills/:slug/undelete", async (request) => {
+  fastify.post("/skills/:slug/undelete", {
+    schema: {
+      description: "彻底恢复已删除的技能",
+      tags: ["skills"],
+      params: {
+        type: "object",
+        required: ["slug"],
+        properties: {
+          slug: { type: "string" },
+        },
+      },
+      headers: {
+        type: "object",
+        required: ["authorization"],
+        properties: {
+          authorization: { type: "string" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            ok: { type: "boolean" },
+          },
+        },
+      },
+    },
+    async handler(request) {
     const session = await requireAuth(request);
     const { slug } = request.params as { slug: string };
 
@@ -696,6 +1089,7 @@ const registerSkillManageV1: FastifyPluginAsync = async (fastify) => {
       .where(eq(skills.id, skill.id));
 
     return { ok: true as const };
+    },
   });
 };
 

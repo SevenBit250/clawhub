@@ -6,7 +6,45 @@ import { requireAdmin, requireModerator } from "../../auth/session.js";
 
 const registerAdminSkillsV1: FastifyPluginAsync = async (fastify) => {
   // Get pending skills for moderation
-  fastify.get("/admin/skills/pending", async (request) => {
+  fastify.get("/admin/skills/pending", {
+    schema: {
+      description: "获取待审核的技能列表",
+      tags: ["admin"],
+      headers: {
+        type: "object",
+        required: ["authorization"],
+        properties: {
+          authorization: { type: "string" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            items: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "string" },
+                  slug: { type: "string" },
+                  displayName: { type: "string" },
+                  summary: { type: "string", nullable: true },
+                  moderationStatus: { type: "string" },
+                  createdAt: { type: "string" },
+                  updatedAt: { type: "string" },
+                  ownerUserId: { type: "string" },
+                  ownerHandle: { type: "string", nullable: true },
+                  ownerDisplayName: { type: "string", nullable: true },
+                  ownerImage: { type: "string", nullable: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    async handler(request) {
     const session = await requireModerator(request);
 
     const pendingSkills = await db
@@ -32,10 +70,38 @@ const registerAdminSkillsV1: FastifyPluginAsync = async (fastify) => {
       .orderBy(desc(skills.createdAt));
 
     return { items: pendingSkills };
+    },
   });
 
   // Approve a skill
-  fastify.post("/admin/skills/:id/approve", async (request) => {
+  fastify.post("/admin/skills/:id/approve", {
+    schema: {
+      description: "批准技能",
+      tags: ["admin"],
+      params: {
+        type: "object",
+        required: ["id"],
+        properties: {
+          id: { type: "string" },
+        },
+      },
+      headers: {
+        type: "object",
+        required: ["authorization"],
+        properties: {
+          authorization: { type: "string" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            ok: { type: "boolean" },
+          },
+        },
+      },
+    },
+    async handler(request) {
     const session = await requireModerator(request);
     const { id } = request.params as { id: string };
 
@@ -67,10 +133,44 @@ const registerAdminSkillsV1: FastifyPluginAsync = async (fastify) => {
     });
 
     return { ok: true as const };
+    },
   });
 
   // Reject a skill
-  fastify.post("/admin/skills/:id/reject", async (request) => {
+  fastify.post("/admin/skills/:id/reject", {
+    schema: {
+      description: "驳回技能",
+      tags: ["admin"],
+      params: {
+        type: "object",
+        required: ["id"],
+        properties: {
+          id: { type: "string" },
+        },
+      },
+      headers: {
+        type: "object",
+        required: ["authorization"],
+        properties: {
+          authorization: { type: "string" },
+        },
+      },
+      body: {
+        type: "object",
+        properties: {
+          reason: { type: "string" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            ok: { type: "boolean" },
+          },
+        },
+      },
+    },
+    async handler(request) {
     const session = await requireModerator(request);
     const { id } = request.params as { id: string };
     const body = request.body as { reason?: string };
@@ -104,10 +204,44 @@ const registerAdminSkillsV1: FastifyPluginAsync = async (fastify) => {
     });
 
     return { ok: true as const };
+    },
   });
 
   // Hide a skill (can be used on active skills too)
-  fastify.post("/admin/skills/:id/hide", async (request) => {
+  fastify.post("/admin/skills/:id/hide", {
+    schema: {
+      description: "隐藏技能",
+      tags: ["admin"],
+      params: {
+        type: "object",
+        required: ["id"],
+        properties: {
+          id: { type: "string" },
+        },
+      },
+      headers: {
+        type: "object",
+        required: ["authorization"],
+        properties: {
+          authorization: { type: "string" },
+        },
+      },
+      body: {
+        type: "object",
+        properties: {
+          reason: { type: "string" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            ok: { type: "boolean" },
+          },
+        },
+      },
+    },
+    async handler(request) {
     const session = await requireModerator(request);
     const { id } = request.params as { id: string };
     const body = request.body as { reason?: string };
@@ -141,10 +275,38 @@ const registerAdminSkillsV1: FastifyPluginAsync = async (fastify) => {
     });
 
     return { ok: true as const };
+    },
   });
 
   // Unhide a skill (restore to active)
-  fastify.post("/admin/skills/:id/unhide", async (request) => {
+  fastify.post("/admin/skills/:id/unhide", {
+    schema: {
+      description: "取消隐藏技能",
+      tags: ["admin"],
+      params: {
+        type: "object",
+        required: ["id"],
+        properties: {
+          id: { type: "string" },
+        },
+      },
+      headers: {
+        type: "object",
+        required: ["authorization"],
+        properties: {
+          authorization: { type: "string" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            ok: { type: "boolean" },
+          },
+        },
+      },
+    },
+    async handler(request) {
     const session = await requireModerator(request);
     const { id } = request.params as { id: string };
 
@@ -176,12 +338,47 @@ const registerAdminSkillsV1: FastifyPluginAsync = async (fastify) => {
     });
 
     return { ok: true as const };
+    },
   });
 };
 
 const registerAdminUsersV1: FastifyPluginAsync = async (fastify) => {
   // List all users
-  fastify.get("/admin/users", async (request) => {
+  fastify.get("/admin/users", {
+    schema: {
+      description: "获取所有用户列表",
+      tags: ["admin"],
+      headers: {
+        type: "object",
+        required: ["authorization"],
+        properties: {
+          authorization: { type: "string" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            items: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "string" },
+                  handle: { type: "string", nullable: true },
+                  displayName: { type: "string", nullable: true },
+                  email: { type: "string", nullable: true },
+                  image: { type: "string", nullable: true },
+                  role: { type: "string", nullable: true },
+                  createdAt: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    async handler(request) {
     const session = await requireAdmin(request);
 
     const allUsers = await db
@@ -198,10 +395,45 @@ const registerAdminUsersV1: FastifyPluginAsync = async (fastify) => {
       .orderBy(desc(users.createdAt));
 
     return { items: allUsers };
+    },
   });
 
   // Update user role
-  fastify.patch("/admin/users/:id/role", async (request) => {
+  fastify.patch("/admin/users/:id/role", {
+    schema: {
+      description: "更新用户角色",
+      tags: ["admin"],
+      params: {
+        type: "object",
+        required: ["id"],
+        properties: {
+          id: { type: "string" },
+        },
+      },
+      headers: {
+        type: "object",
+        required: ["authorization"],
+        properties: {
+          authorization: { type: "string" },
+        },
+      },
+      body: {
+        type: "object",
+        required: ["role"],
+        properties: {
+          role: { type: "string", enum: ["admin", "moderator", "user"] },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            ok: { type: "boolean" },
+          },
+        },
+      },
+    },
+    async handler(request) {
     const session = await requireAdmin(request);
     const { id } = request.params as { id: string };
     const body = request.body as { role: "admin" | "moderator" | "user" };
@@ -240,6 +472,7 @@ const registerAdminUsersV1: FastifyPluginAsync = async (fastify) => {
     });
 
     return { ok: true as const };
+    },
   });
 };
 

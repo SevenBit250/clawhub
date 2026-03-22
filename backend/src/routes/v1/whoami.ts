@@ -5,7 +5,35 @@ import { validateSession } from "../../auth/session.js";
 import { eq } from "drizzle-orm";
 
 export async function registerWhoamiV1(fastify: FastifyInstance) {
-  fastify.get("/whoami", async (request) => {
+  fastify.get("/whoami", {
+    schema: {
+      description: "获取当前用户信息",
+      tags: ["users"],
+      headers: {
+        type: "object",
+        properties: {
+          authorization: { type: "string" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            user: {
+              type: "object",
+              nullable: true,
+              properties: {
+                handle: { type: "string", nullable: true },
+                displayName: { type: "string", nullable: true },
+                image: { type: "string", nullable: true },
+                role: { type: "string", nullable: true },
+              },
+            },
+          },
+        },
+      },
+    },
+    async handler(request) {
     const auth = request.headers.authorization;
     if (!auth?.startsWith("Bearer ")) {
       return { user: null };
@@ -40,5 +68,6 @@ export async function registerWhoamiV1(fastify: FastifyInstance) {
         role: user.role,
       },
     };
+    },
   });
 }

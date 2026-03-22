@@ -5,7 +5,36 @@ import { validateSession } from "../../auth/session.js";
 import { eq, and, isNull } from "drizzle-orm";
 
 export async function registerStarsV1(fastify: FastifyInstance) {
-  fastify.post("/stars/:slug", async (request) => {
+  fastify.post("/stars/:slug", {
+    schema: {
+      description: "收藏技能",
+      tags: ["skills"],
+      params: {
+        type: "object",
+        required: ["slug"],
+        properties: {
+          slug: { type: "string" },
+        },
+      },
+      headers: {
+        type: "object",
+        required: ["authorization"],
+        properties: {
+          authorization: { type: "string" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            ok: { type: "boolean" },
+            starred: { type: "boolean" },
+            alreadyStarred: { type: "boolean" },
+          },
+        },
+      },
+    },
+    async handler(request) {
     const auth = request.headers.authorization;
     if (!auth?.startsWith("Bearer ")) {
       throw { statusCode: 401, message: "Unauthorized" };
@@ -62,9 +91,39 @@ export async function registerStarsV1(fastify: FastifyInstance) {
       starred: true,
       alreadyStarred: false,
     };
+    },
   });
 
-  fastify.delete("/stars/:slug", async (request) => {
+  fastify.delete("/stars/:slug", {
+    schema: {
+      description: "取消收藏技能",
+      tags: ["skills"],
+      params: {
+        type: "object",
+        required: ["slug"],
+        properties: {
+          slug: { type: "string" },
+        },
+      },
+      headers: {
+        type: "object",
+        required: ["authorization"],
+        properties: {
+          authorization: { type: "string" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            ok: { type: "boolean" },
+            unstarred: { type: "boolean" },
+            alreadyUnstarred: { type: "boolean" },
+          },
+        },
+      },
+    },
+    async handler(request) {
     const auth = request.headers.authorization;
     if (!auth?.startsWith("Bearer ")) {
       throw { statusCode: 401, message: "Unauthorized" };
@@ -112,5 +171,6 @@ export async function registerStarsV1(fastify: FastifyInstance) {
       unstarred: true,
       alreadyUnstarred: false,
     };
+    },
   });
 }
