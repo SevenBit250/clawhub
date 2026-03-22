@@ -109,8 +109,10 @@
       "no_files": "No files selected",
       "validation": "Validation",
       "slug_hint": "Slug must be lowercase and use dashes only",
-      "license": "License",
-      "license_placeholder": "Select a license",
+      "is_required": "required",
+      "add_file": "Add at least one file",
+      "changelog": "Changelog",
+      "changelog_placeholder": "Enter the changelog for this version...",
       "cancel": "Cancel",
       "publish": "Publish"
     },

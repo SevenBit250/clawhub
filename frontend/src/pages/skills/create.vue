@@ -57,24 +57,42 @@
         </div>
       </div>
 
-      <!-- Validation & License -->
+      <!-- Validation & Changelog -->
       <div class="options-section">
         <div class="option-card">
           <h4 class="option-title">{{ $t("skill.publish.validation") }}</h4>
-          <p class="validation-hint">{{ $t("skill.publish.slug_hint") }}</p>
+          <ul class="validation-list">
+            <li :class="{ done: form.slug }">
+              <CheckCircleOutlined v-if="form.slug" />
+              <CiCircleOutlined v-else />
+              {{ $t("skill.publish.slug") }} {{ $t("skill.publish.is_required") }}
+            </li>
+            <li :class="{ done: form.displayName }">
+              <CheckCircleOutlined v-if="form.displayName" />
+              <CiCircleOutlined v-else />
+              {{ $t("skill.publish.display_name") }} {{ $t("skill.publish.is_required") }}
+            </li>
+            <li :class="{ done: hasFiles }">
+              <CheckCircleOutlined v-if="hasFiles" />
+              <CiCircleOutlined v-else />
+              {{ $t("skill.publish.add_file") }}
+            </li>
+            <li :class="{ done: hasSkillMd }">
+              <CheckCircleOutlined v-if="hasSkillMd" />
+              <CiCircleOutlined v-else />
+              SKILL.md {{ $t("skill.publish.is_required") }}
+            </li>
+          </ul>
         </div>
 
         <div class="option-card">
-          <h4 class="option-title">{{ $t("skill.publish.license") }}</h4>
-          <a-select v-model:value="form.license" :placeholder="$t('skill.publish.license_placeholder')" size="large" class="w-full">
-            <a-select-option value="MIT">MIT</a-select-option>
-            <a-select-option value="Apache-2.0">Apache-2.0</a-select-option>
-            <a-select-option value="GPL-3.0">GPL-3.0</a-select-option>
-            <a-select-option value="BSD-3-Clause">BSD-3-Clause</a-select-option>
-            <a-select-option value="MPL-2.0">MPL-2.0</a-select-option>
-            <a-select-option value="CC0-1.0">CC0-1.0</a-select-option>
-            <a-select-option value="无">无</a-select-option>
-          </a-select>
+          <h4 class="option-title">{{ $t("skill.publish.changelog") }}</h4>
+          <a-textarea
+            v-model:value="form.changelog"
+            :placeholder="$t('skill.publish.changelog_placeholder')"
+            :rows="3"
+            class="w-full"
+          />
         </div>
       </div>
 
@@ -93,7 +111,7 @@
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { message } from "ant-design-vue";
-import { FolderOpenOutlined } from "@ant-design/icons-vue";
+import { FolderOpenOutlined, CheckCircleOutlined, CiCircleOutlined } from "@ant-design/icons-vue";
 
 const router = useRouter();
 const { token } = useAuth();
@@ -104,7 +122,7 @@ const form = ref({
   displayName: "",
   version: "1.0.0",
   tags: "",
-  license: "MIT",
+  changelog: "",
 });
 
 const files = ref<FileList | null>(null);
@@ -113,6 +131,9 @@ const fileInput = ref<HTMLInputElement | null>(null);
 
 const fileCount = computed(() => files.value?.length || 0);
 const hasFiles = computed(() => fileCount.value > 0);
+const hasSkillMd = computed(() =>
+  Array.from(files.value || []).some((f) => f.name === "SKILL.md")
+);
 
 const totalSize = computed(() => {
   if (!files.value) return 0;
@@ -165,6 +186,15 @@ async function handlePublish() {
     message.error("Display name is required");
     return;
   }
+  if (!files.value || files.value.length === 0) {
+    message.error("Add at least one file");
+    return;
+  }
+  const hasSkillMd = Array.from(files.value).some((f) => f.name === "SKILL.md");
+  if (!hasSkillMd) {
+    message.error("SKILL.md is required");
+    return;
+  }
   if (!token.value) {
     message.error("Please login first");
     return;
@@ -182,7 +212,7 @@ async function handlePublish() {
         summary: "",
         version: form.value.version,
         tags: form.value.tags ? form.value.tags.split(",").map((t) => t.trim()) : [],
-        license: form.value.license,
+        changelog: form.value.changelog,
       },
       { token: token.value }
     );
@@ -350,6 +380,31 @@ function goBack() {
   font-size: 0.8125rem;
   color: var(--color-text-muted);
   margin: 0;
+}
+
+.validation-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.validation-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.validation-list li.done {
+  color: #52c41a;
+}
+
+.validation-list li :deep(.anticon) {
+  font-size: 1rem;
 }
 
 .w-full {
