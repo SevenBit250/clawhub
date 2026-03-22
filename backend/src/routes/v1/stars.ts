@@ -2,7 +2,7 @@ import { FastifyInstance } from "fastify";
 import { db } from "../../db/index.js";
 import { stars, skills } from "../../db/schema.js";
 import { validateSession } from "../../auth/session.js";
-import { eq, and, isNull } from "drizzle-orm";
+import { eq, and, isNull, sql } from "drizzle-orm";
 
 export async function registerStarsV1(fastify: FastifyInstance) {
   fastify.post("/stars/:slug", {
@@ -67,9 +67,15 @@ export async function registerStarsV1(fastify: FastifyInstance) {
       .limit(1);
 
     if (existing) {
+      // Unstar
+      await db.delete(stars).where(eq(stars.id, existing.id));
+      await db
+        .update(skills)
+        .set({ statsStars: sql`${skills.statsStars} - 1` })
+        .where(eq(skills.id, skill.id));
       return {
         ok: true as const,
-        starred: true,
+        starred: false,
         alreadyStarred: true,
       };
     }
@@ -83,7 +89,7 @@ export async function registerStarsV1(fastify: FastifyInstance) {
     // Update skill stats
     await db
       .update(skills)
-      .set({ statsStars: skills.statsStars })
+      .set({ statsStars: sql`${skills.statsStars} + 1` })
       .where(eq(skills.id, skill.id));
 
     return {

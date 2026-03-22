@@ -120,7 +120,7 @@ const skills = computed(() => data.value || []);
 
 function handleSearch(value: string) {
   if (value.trim()) {
-    router.push(`/search?q=${encodeURIComponent(value.trim())}`);
+    router.push(`/skills?q=${encodeURIComponent(value.trim())}`);
   }
 }
 </script>
