@@ -105,6 +105,11 @@
     "no_skills": "No skills found"
   },
   "skill": {
+    "moderation": {
+      "title": "Review Skill",
+      "approve": "Approve",
+      "reject": "Reject"
+    },
     "publish": {
       "title": "Publish a Skill",
       "desc": "Upload your skill folder to share",
@@ -199,5 +204,8 @@
   "errors": {
     "login_failed": "Login failed",
     "search_failed": "Search failed"
+  },
+  "common": {
+    "cancel": "Cancel"
   }
 }

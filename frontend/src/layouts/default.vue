@@ -61,10 +61,22 @@
             </a-dropdown>
 
             <template v-if="isAuthenticated">
-              <a-button type="text" class="nav-btn">
-                <router-link to="/dashboard">{{ $t("nav.dashboard") }}</router-link>
-              </a-button>
-              <a-button type="text" class="nav-btn" @click="handleLogout">{{ $t("nav.logout") }}</a-button>
+              <a-dropdown :trigger="['click']">
+                <template #overlay>
+                  <a-menu>
+                    <a-menu-item key="dashboard" @click="router.push('/dashboard')">
+                      {{ $t("nav.dashboard") }}
+                    </a-menu-item>
+                    <a-menu-item key="logout" @click="handleLogout">
+                      {{ $t("nav.logout") }}
+                    </a-menu-item>
+                  </a-menu>
+                </template>
+                <a-button type="text" class="nav-btn user-dropdown">
+                  <UserOutlined />
+                  {{ userDisplayName }}
+                </a-button>
+              </a-dropdown>
             </template>
             <template v-else>
               <a-button type="text" class="nav-btn" @click="handleLogin">{{ $t("nav.login") }}</a-button>
@@ -87,12 +99,13 @@
 </template>
 
 <script setup lang="ts">
-import { BulbFilled, BulbOutlined, DesktopOutlined, GlobalOutlined } from "@ant-design/icons-vue";
+import { BulbFilled, BulbOutlined, DesktopOutlined, GlobalOutlined, UserOutlined } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 import { useI18n } from "vue-i18n";
 import { i18n } from "@/plugins/i18n";
 
-const { isAuthenticated, logout } = useAuth();
+const { isAuthenticated, logout, user } = useAuth();
+const userDisplayName = computed(() => user.value?.displayName || user.value?.name || user.value?.handle || "User");
 const { effectiveTheme, antdTheme, setTheme, initTheme } = useTheme();
 const { t } = useI18n();
 const router = useRouter();

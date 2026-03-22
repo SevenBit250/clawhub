@@ -186,7 +186,12 @@
       "copy": "复制",
       "download": "下载"
     },
-    "download_zip": "下载 ZIP"
+    "download_zip": "下载 ZIP",
+    "moderation": {
+      "title": "审核技能",
+      "approve": "通过",
+      "reject": "拒绝"
+    }
   },
   "souls": {
     "title": "灵魂",
@@ -199,5 +204,8 @@
   "errors": {
     "login_failed": "登录失败",
     "search_failed": "搜索失败"
+  },
+  "common": {
+    "cancel": "取消"
   }
 }
