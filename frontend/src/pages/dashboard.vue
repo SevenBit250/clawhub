@@ -58,29 +58,12 @@
         <div v-if="!mySkills?.length" class="text-center py-10 border rounded-lg">
           <p class="text-gray-500">{{ t('dashboard.no_skills') }}</p>
         </div>
-        <div v-else class="space-y-4">
-          <div
+        <div v-else class="space-y-3">
+          <DashboardSkillItem
             v-for="s in mySkills"
             :key="s.id"
-            class="border rounded-lg p-4 flex items-center justify-between"
-            :class="{ 'opacity-60': s.moderationStatus === 'pending' }"
-          >
-            <router-link :to="`/skills/${s.slug}`" class="flex-1">
-              <div class="flex items-center gap-2">
-                <h3 class="font-medium">{{ s.displayName }}</h3>
-                <a-tag v-if="s.moderationStatus === 'pending'" color="orange">
-                  {{ t('dashboard.pending_review') }}
-                </a-tag>
-              </div>
-              <p class="text-sm text-gray-500">{{ s.slug }}</p>
-              <p v-if="s.moderationStatus === 'pending'" class="text-xs text-orange-500 mt-1">
-                {{ t('dashboard.pending_hint') }}
-              </p>
-            </router-link>
-            <router-link :to="`/skills/${s.slug}/edit`">
-              <a-button type="default">{{ t('dashboard.edit') }}</a-button>
-            </router-link>
-          </div>
+            :skill="s"
+          />
         </div>
       </div>
     </div>
@@ -100,6 +83,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { message } from "ant-design-vue";
 import ModerationDialog from "@/components/ModerationDialog.vue";
+import DashboardSkillItem from "@/components/DashboardSkillItem.vue";
 
 const { t } = useI18n();
 const { isAuthenticated, token, loaded, getAuthUrl, user } = useAuth();
