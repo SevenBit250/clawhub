@@ -349,8 +349,10 @@ const getSkillBySlug: FastifyPluginAsync = async (fastify) => {
     async handler(request) {
     const { slug } = request.params as { slug: string };
 
-    // Check if requester can see pending skills
+    // Check if requester can see pending/removed skills
     let canSeePending = false;
+    let isOwner = false;
+    let requesterId: string | null = null;
     const auth = request.headers.authorization;
     if (auth?.startsWith("Bearer ")) {
       try {
@@ -358,8 +360,11 @@ const getSkillBySlug: FastifyPluginAsync = async (fastify) => {
         const session = await validateSession(auth.slice(7));
         if (session) {
           const [user] = await db.select({ id: users.id, role: users.role }).from(users).where(eq(users.id, session.userId)).limit(1);
-          if (user && (user.role === "admin" || user.role === "moderator")) {
-            canSeePending = true;
+          if (user) {
+            requesterId = user.id;
+            if (user.role === "admin" || user.role === "moderator") {
+              canSeePending = true;
+            }
           }
         }
       } catch {
@@ -367,10 +372,26 @@ const getSkillBySlug: FastifyPluginAsync = async (fastify) => {
       }
     }
 
+    // First get the skill to check ownership
+    const [skillCheck] = await db
+      .select({ ownerUserId: skills.ownerUserId })
+      .from(skills)
+      .where(and(eq(skills.slug, slug), isNull(skills.softDeletedAt)))
+      .limit(1);
+
+    if (skillCheck && skillCheck.ownerUserId === requesterId) {
+      isOwner = true;
+    }
+
     const conditions = [eq(skills.slug, slug), isNull(skills.softDeletedAt)];
     if (!canSeePending) {
-      conditions.push(ne(skills.moderationStatus, "pending") as any);
-      conditions.push(ne(skills.moderationStatus, "removed") as any);
+      // Moderators/admins can see all non-deleted skills
+      // Owners can see their own pending/removed skills
+      // Others can only see active/hidden skills
+      if (!isOwner) {
+        conditions.push(ne(skills.moderationStatus, "pending") as any);
+        conditions.push(ne(skills.moderationStatus, "removed") as any);
+      }
     }
 
     const skillRows = await db
@@ -444,6 +465,7 @@ const getSkillBySlug: FastifyPluginAsync = async (fastify) => {
         displayName: skillRow.displayName,
         summary: skillRow.summary,
         tags: parseTags(skillRow.tags),
+        moderationStatus: skillRow.moderationStatus,
         stats: {
           downloads: skillRow.statsDownloads,
           stars: skillRow.statsStars,
@@ -1114,6 +1136,213 @@ const registerSkillManageV1: FastifyPluginAsync = async (fastify) => {
       .where(eq(skills.id, skill.id));
 
     return { ok: true as const };
+    },
+  });
+
+  // Resubmit a rejected skill (change status from removed to pending)
+  fastify.post("/skills/:slug/resubmit", {
+    schema: {
+      description: "重新提交被驳回的技能",
+      tags: ["skills"],
+      params: {
+        type: "object",
+        required: ["slug"],
+        properties: {
+          slug: { type: "string" },
+        },
+      },
+      headers: {
+        type: "object",
+        required: ["authorization"],
+        properties: {
+          authorization: { type: "string" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            ok: { type: "boolean" },
+          },
+        },
+      },
+    },
+    async handler(request) {
+    const session = await requireAuth(request);
+    const { slug } = request.params as { slug: string };
+
+    const [skill] = await db
+      .select()
+      .from(skills)
+      .where(eq(skills.slug, slug))
+      .limit(1);
+
+    if (!skill) {
+      throw { statusCode: 404, message: "Skill not found" };
+    }
+
+    if (skill.ownerUserId !== session.userId) {
+      throw { statusCode: 403, message: "Not skill owner" };
+    }
+
+    if (skill.moderationStatus !== "removed") {
+      throw { statusCode: 400, message: "Only rejected skills can be resubmitted" };
+    }
+
+    await db.update(skills)
+      .set({ moderationStatus: "pending", updatedAt: new Date() })
+      .where(eq(skills.id, skill.id));
+
+    return { ok: true as const };
+    },
+  });
+
+  // Update skill and resubmit (for rejected skills)
+  fastify.put("/skills/:slug/update", {
+    schema: {
+      description: "更新技能并重新提交",
+      tags: ["skills"],
+      params: {
+        type: "object",
+        required: ["slug"],
+        properties: {
+          slug: { type: "string" },
+        },
+      },
+      headers: {
+        type: "object",
+        required: ["authorization"],
+        properties: {
+          authorization: { type: "string" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            ok: { type: "boolean" },
+          },
+        },
+      },
+    },
+    async handler(request) {
+    const session = await requireAuth(request);
+    const { slug } = request.params as { slug: string };
+
+    const [skill] = await db
+      .select()
+      .from(skills)
+      .where(and(eq(skills.slug, slug), isNull(skills.softDeletedAt)))
+      .limit(1);
+
+    if (!skill) {
+      throw { statusCode: 404, message: "Skill not found" };
+    }
+
+    if (skill.ownerUserId !== session.userId) {
+      throw { statusCode: 403, message: "Not skill owner" };
+    }
+
+    if (skill.moderationStatus !== "removed" && skill.moderationStatus !== "pending") {
+      throw { statusCode: 400, message: "Only rejected or pending skills can be updated" };
+    }
+
+    // Parse multipart form data
+    const files: Array<{ path: string; size: number; storageId: string; sha256: string; contentType?: string }> = [];
+    const { generateUploadId, storeFile } = await import("../../lib/storage.js");
+
+    let payload: {
+      displayName?: string;
+      version?: string;
+      changelog?: string;
+      tags?: string[];
+    } | null = null;
+
+    return new Promise((resolve, reject) => {
+      const busboy = import("busboy").then(({ default: BB }) => {
+        const bb = BB({ headers: request.headers as Record<string, string> });
+
+        bb.on("field", (name: string, value: string) => {
+          if (name === "payload") {
+            try {
+              payload = JSON.parse(value);
+            } catch {
+              reject({ statusCode: 400, message: "Invalid payload JSON" });
+            }
+          }
+        });
+
+        bb.on("file", async (name: string, stream: any, info: any) => {
+          const { filename, mimeType } = info;
+          const chunks: Buffer[] = [];
+
+          stream.on("data", (chunk: Buffer) => {
+            chunks.push(chunk);
+          });
+
+          stream.on("end", async () => {
+            try {
+              const buffer = Buffer.concat(chunks);
+              const id = await generateUploadId();
+              const file = await storeFile(id, buffer, mimeType || "application/octet-stream");
+              files.push({
+                path: filename,
+                size: buffer.length,
+                storageId: id,
+                sha256: file.sha256,
+                contentType: mimeType,
+              });
+            } catch (err) {
+              reject(err);
+            }
+          });
+
+          stream.on("error", reject);
+        });
+
+        bb.on("close", async () => {
+          if (!payload) {
+            reject({ statusCode: 400, message: "Missing payload" });
+            return;
+          }
+
+          // Update skill metadata
+          const updateData: Record<string, any> = {
+            updatedAt: new Date(),
+            moderationStatus: "pending",
+          };
+          if (payload.displayName) {
+            updateData.displayName = payload.displayName;
+          }
+          if (payload.tags) {
+            updateData.tags = payload.tags;
+          }
+
+          await db.update(skills)
+            .set(updateData)
+            .where(eq(skills.id, skill.id));
+
+          // Create new version if files provided
+          if (files.length > 0) {
+            const version = await createSkillVersion(session.userId, skill.id, {
+              skillId: skill.id,
+              version: payload.version || "1.0.0",
+              changelog: payload.changelog || "",
+              files,
+            });
+
+            await db.update(skills)
+              .set({ latestVersionId: version.id, updatedAt: new Date() })
+              .where(eq(skills.id, skill.id));
+          }
+
+          resolve({ ok: true as const });
+        });
+
+        bb.on("error", reject);
+        (request.raw as any).pipe(bb);
+      });
+    });
     },
   });
 };

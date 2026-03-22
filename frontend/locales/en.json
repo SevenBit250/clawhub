@@ -76,7 +76,9 @@
     "no_skills": "You haven't created any skills yet",
     "edit": "Edit",
     "pending_review": "Pending Review",
-    "pending_hint": "This skill is under review and not yet visible to others"
+    "pending_hint": "This skill is under review and not yet visible to others",
+    "rejected": "Rejected",
+    "rejected_hint": "This skill was rejected and is not visible to others"
   },
   "skills": {
     "title": "Skills",
@@ -191,7 +193,15 @@
       "copy": "Copy",
       "download": "Download"
     },
-    "download_zip": "Download ZIP"
+    "download_zip": "Download ZIP",
+    "resubmit": "Resubmit",
+    "resubmit_success": "Skill resubmitted for review",
+    "resubmit_failed": "Failed to resubmit skill",
+    "edit": {
+      "title": "Edit Skill",
+      "resubmit": "Update & Resubmit",
+      "success": "Skill updated and resubmitted for review"
+    }
   },
   "souls": {
     "title": "Souls",

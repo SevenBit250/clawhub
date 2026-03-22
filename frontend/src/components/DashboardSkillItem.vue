@@ -1,8 +1,8 @@
 <template>
   <router-link
-    :to="`/skills/${skill.slug}`"
+    :to="skill.moderationStatus === 'removed' ? `/skills/${skill.slug}/edit` : `/skills/${skill.slug}`"
     class="skill-item"
-    :class="{ 'opacity-60': skill.moderationStatus === 'pending' || skill.moderationStatus === 'removed' }"
+    :class="{ 'opacity-60': skill.moderationStatus === 'pending' }"
   >
     <div class="flex items-start justify-between flex-1 min-w-0">
       <div class="min-w-0 flex-1">

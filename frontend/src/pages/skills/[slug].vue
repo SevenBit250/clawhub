@@ -38,6 +38,9 @@
           <a-button type="primary" @click="showInstallDialog = true">
             <DownloadOutlined /> {{ t('skill.install') }}
           </a-button>
+          <a-button v-if="isOwner && skill.moderationStatus === 'removed'" type="default" @click="$router.push(`/skills/${skill.slug}/edit`)">
+            {{ t('skill.edit.title') }}
+          </a-button>
         </div>
       </div>
 
@@ -156,6 +159,7 @@ const data = ref<{
     slug: string;
     displayName: string;
     summary: string | null;
+    moderationStatus: string | null;
     stats: { downloads: number; stars: number; installs: number };
     badges: Record<string, unknown> | null;
     owner: { handle: string | null; displayName: string | null } | null;
@@ -178,6 +182,7 @@ const error = ref<string | null>(null);
 const skill = computed(() => data.value?.skill);
 const version = computed(() => data.value?.latestVersion);
 const owner = computed(() => data.value?.owner);
+const isOwner = computed(() => owner.value?.handle === user.value?.handle);
 
 const isStarred = ref(false);
 const starCount = ref(0);
@@ -195,7 +200,7 @@ const cliDownloadUrl = computed(() => `${API_BASE}/api/v1/download?slug=${skill.
 
 onMounted(async () => {
   try {
-    data.value = await api.get(`/api/v1/skills/${slug}`);
+    data.value = await api.get(`/api/v1/skills/${slug}`, { token: token.value });
   } catch (e) {
     error.value = e instanceof Error ? e.message : "Failed to load skill";
   } finally {

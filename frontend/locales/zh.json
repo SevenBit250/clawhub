@@ -76,7 +76,9 @@
     "no_skills": "您还没有创建任何技能",
     "edit": "编辑",
     "pending_review": "审核中",
-    "pending_hint": "此技能正在审核中，暂不对外显示"
+    "pending_hint": "此技能正在审核中，暂不对外显示",
+    "rejected": "已驳回",
+    "rejected_hint": "此技能已被驳回，不对外显示"
   },
   "skills": {
     "title": "技能",
@@ -187,6 +189,14 @@
       "download": "下载"
     },
     "download_zip": "下载 ZIP",
+    "resubmit": "重新提交",
+    "resubmit_success": "技能已重新提交审核",
+    "resubmit_failed": "重新提交失败",
+    "edit": {
+      "title": "编辑技能",
+      "resubmit": "更新并重新提交",
+      "success": "技能已更新并重新提交审核"
+    },
     "moderation": {
       "title": "审核技能",
       "approve": "通过",
