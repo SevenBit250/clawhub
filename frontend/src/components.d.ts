@@ -23,9 +23,13 @@ declare module 'vue' {
     ASpin: typeof import('ant-design-vue/es')['Spin']
     ATag: typeof import('ant-design-vue/es')['Tag']
     ATextarea: typeof import('ant-design-vue/es')['Textarea']
+    DashboardSkillItem: typeof import('./components/DashboardSkillItem.vue')['default']
     InstallDialog: typeof import('./components/InstallDialog.vue')['default']
+    ModerationDialog: typeof import('./components/ModerationDialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SkillCard: typeof import('./components/SkillCard.vue')['default']
+    SkillListItem: typeof import('./components/SkillListItem.vue')['default']
     SkillsFilters: typeof import('./components/SkillsFilters.vue')['default']
     SkillsList: typeof import('./components/SkillsList.vue')['default']
   }
