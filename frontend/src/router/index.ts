@@ -28,6 +28,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import("@/pages/skills/index.vue"),
   },
   {
+    path: "/skills/create",
+    name: "skill-create",
+    component: () => import("@/pages/skills/create.vue"),
+  },
+  {
     path: "/skills/:slug",
     name: "skill-detail",
     component: () => import("@/pages/skills/[slug].vue"),
