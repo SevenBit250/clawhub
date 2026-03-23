@@ -20,26 +20,16 @@
           <span>{{ skill.owner?.handle || skill.owner?.displayName || t('skills.unknown_author') }}</span>
         </div>
       </div>
-      <div class="flex items-center gap-6 text-sm ml-4 shrink-0">
-        <div class="text-center">
-          <div class="font-medium">{{ formatCount(skill.stats?.downloads || 0) }}</div>
-          <div class="text-gray-400 text-xs">{{ t('skills.stats.downloads') }}</div>
-        </div>
-        <div class="text-center">
-          <div class="font-medium">{{ formatCount(skill.stats?.stars || 0) }}</div>
-          <div class="text-gray-400 text-xs">{{ t('skills.stats.stars') }}</div>
-        </div>
-        <div class="text-center">
-          <div class="font-medium">{{ skill.stats?.installs || 0 }}</div>
-          <div class="text-gray-400 text-xs">{{ t('skills.stats.installs') }}</div>
-        </div>
+      <div class="ml-4 shrink-0">
+        <SkillStats :stats="skill.stats" />
       </div>
     </div>
   </router-link>
 </template>
 
 <script setup lang="ts">
-import { StarFilled, UserOutlined } from "@ant-design/icons-vue";
+import { UserOutlined, StarFilled } from "@ant-design/icons-vue";
+import SkillStats from "./SkillStats.vue";
 
 defineProps<{
   skill: {
@@ -53,12 +43,6 @@ defineProps<{
 }>();
 
 const { t } = useI18n();
-
-function formatCount(num: number): string {
-  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-  if (num >= 1000) return `${(num / 1000).toFixed(1)}k`;
-  return String(num);
-}
 </script>
 
 <style scoped>

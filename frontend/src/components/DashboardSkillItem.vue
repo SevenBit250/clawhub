@@ -23,25 +23,16 @@
           {{ t('dashboard.rejected_hint') }}
         </p>
       </div>
-      <div class="flex items-center gap-6 text-sm ml-4 shrink-0">
-        <div class="text-center">
-          <div class="font-medium">{{ skill.stats?.downloads || 0 }}</div>
-          <div class="text-gray-400 text-xs">{{ t('skills.stats.downloads') }}</div>
-        </div>
-        <div class="text-center">
-          <div class="font-medium">{{ skill.stats?.stars || 0 }}</div>
-          <div class="text-gray-400 text-xs">{{ t('skills.stats.stars') }}</div>
-        </div>
-        <div class="text-center">
-          <div class="font-medium">{{ skill.stats?.installs || 0 }}</div>
-          <div class="text-gray-400 text-xs">{{ t('skills.stats.installs') }}</div>
-        </div>
+      <div class="ml-4 shrink-0">
+        <SkillStats :stats="skill.stats || { downloads: 0, stars: 0, installs: 0 }" />
       </div>
     </div>
   </router-link>
 </template>
 
 <script setup lang="ts">
+import SkillStats from "./SkillStats.vue";
+
 defineProps<{
   skill: {
     slug: string;

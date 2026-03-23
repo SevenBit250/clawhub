@@ -15,17 +15,15 @@
       </p>
       <div class="flex items-center justify-between text-sm text-gray-500">
         <span>{{ skill.owner?.handle || skill.owner?.displayName || t('skills.unknown_author') }}</span>
-        <div class="flex gap-3">
-          <span><StarFilled style="color: #faad14" /> {{ skill.stats?.stars || 0 }}</span>
-          <span><DownloadOutlined /> {{ skill.stats?.downloads || 0 }}</span>
-        </div>
+        <SkillStats :stats="skill.stats" />
       </div>
     </router-link>
   </a-card>
 </template>
 
 <script setup lang="ts">
-import { StarFilled, DownloadOutlined } from "@ant-design/icons-vue";
+import { StarFilled } from "@ant-design/icons-vue";
+import SkillStats from "./SkillStats.vue";
 
 defineProps<{
   skill: {
