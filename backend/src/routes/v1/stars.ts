@@ -100,6 +100,71 @@ export async function registerStarsV1(fastify: FastifyInstance) {
     },
   });
 
+  fastify.get("/stars/:slug", {
+    schema: {
+      description: "查询当前用户是否已收藏技能",
+      tags: ["skills"],
+      params: {
+        type: "object",
+        required: ["slug"],
+        properties: {
+          slug: { type: "string" },
+        },
+      },
+      headers: {
+        type: "object",
+        required: ["authorization"],
+        properties: {
+          authorization: { type: "string" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            ok: { type: "boolean" },
+            starred: { type: "boolean" },
+          },
+        },
+      },
+    },
+    async handler(request) {
+      const auth = request.headers.authorization;
+      if (!auth?.startsWith("Bearer ")) {
+        throw { statusCode: 401, message: "Unauthorized" };
+      }
+
+      const token = auth.slice(7);
+      const session = await validateSession(token);
+      if (!session) {
+        throw { statusCode: 401, message: "Unauthorized" };
+      }
+
+      const { slug } = request.params as { slug: string };
+
+      const [skill] = await db
+        .select({ id: skills.id })
+        .from(skills)
+        .where(and(eq(skills.slug, slug), isNull(skills.softDeletedAt)))
+        .limit(1);
+
+      if (!skill) {
+        throw { statusCode: 404, message: "Skill not found" };
+      }
+
+      const [existing] = await db
+        .select()
+        .from(stars)
+        .where(and(eq(stars.skillId, skill.id), eq(stars.userId, session.userId)))
+        .limit(1);
+
+      return {
+        ok: true as const,
+        starred: !!existing,
+      };
+    },
+  });
+
   fastify.delete("/stars/:slug", {
     schema: {
       description: "取消收藏技能",

@@ -152,6 +152,11 @@ describe("API Regression Tests", () => {
 
   describe("v1 Stars", () => {
     it("POST /api/v1/stars/:slug stars a skill", async () => {
+      // Ensure skill is unstarred first
+      await fetch(`${API_BASE}/api/v1/stars/test-skill`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
       const res = await fetch(`${API_BASE}/api/v1/stars/test-skill`, {
         method: "POST",
         headers: { Authorization: `Bearer ${authToken}` },
@@ -171,6 +176,26 @@ describe("API Regression Tests", () => {
       const data = await res.json();
       expect(data.ok).toBe(true);
       expect(data.unstarred).toBe(true);
+    });
+
+    it("GET /api/v1/stars/:slug returns starred status", async () => {
+      // First star the skill
+      await fetch(`${API_BASE}/api/v1/stars/test-skill`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      const res = await fetch(`${API_BASE}/api/v1/stars/test-skill`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data.ok).toBe(true);
+      expect(data.starred).toBe(true);
+    });
+
+    it("GET /api/v1/stars/:slug without auth returns 401 or 400", async () => {
+      const res = await fetch(`${API_BASE}/api/v1/stars/test-skill`);
+      expect([400, 401]).toContain(res.status);
     });
 
     it("POST /api/v1/stars/:slug without auth returns 401 or 400", async () => {

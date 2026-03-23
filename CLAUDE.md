@@ -45,6 +45,8 @@ bunx tsc -p packages/clawdhub --noEmit
 docker compose -f docker-compose.dev.yml up -d  # PostgreSQL + Redis
 # 首次启动后需要在数据库中启用 pgvector 扩展（只需执行一次）
 docker exec clawhub-postgres psql -U clawhub -d clawhub -c "CREATE EXTENSION IF NOT EXISTS vector;"
+# 首次启动后创建测试数据（用于本地开发和测试）
+bun run scripts/seed-test-data.ts
 # 模拟 OAuth 登录：
 curl http://localhost:3001/auth/url
 curl "http://localhost:3001/auth/callback?code=mock_admin"
