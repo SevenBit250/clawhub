@@ -133,7 +133,7 @@ onMounted(() => {
 });
 
 function handleLogin() {
-  router.push(`/login?redirect=${encodeURIComponent(route.fullPath)}`);
+  router.push(`/auth/callback?redirect=${encodeURIComponent(route.fullPath)}`);
 }
 
 async function handleLogout() {

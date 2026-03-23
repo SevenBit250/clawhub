@@ -8,9 +8,9 @@ const routes: RouteRecordRaw[] = [
     component: () => import("@/pages/index.vue"),
   },
   {
-    path: "/login",
-    name: "login",
-    component: () => import("@/pages/login.vue"),
+    path: "/auth/callback",
+    name: "auth-callback",
+    component: () => import("@/pages/auth/callback.vue"),
   },
   {
     path: "/search",

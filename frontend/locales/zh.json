@@ -37,9 +37,10 @@
   },
   "login": {
     "title": "登录 ClawHub",
-    "mock_notice": "开发环境模拟登录",
-    "logging_in": "登录中...",
-    "go_back": "返回",
+    "subtitle": "登录以访问您的账户",
+    "loading": "加载中...",
+    "authing_login": "使用 SSO 登录",
+    "dev_divider": "仅开发环境",
     "admin": {
       "label": "管理员用户",
       "access": "完全访问权限"
@@ -52,7 +53,15 @@
       "label": "新用户",
       "access": "创建新账户"
     },
-    "mock_footer": "此为开发环境模拟登录"
+    "footer": "登录即表示您同意我们的服务条款"
+  },
+  "auth": {
+    "callback": {
+      "logging_in": "正在完成登录...",
+      "go_login": "返回登录页",
+      "missing_code": "缺少认证码",
+      "login_failed": "登录失败"
+    }
   },
   "search": {
     "title": "搜索",

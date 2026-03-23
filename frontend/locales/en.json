@@ -37,9 +37,10 @@
   },
   "login": {
     "title": "Login to ClawHub",
-    "mock_notice": "Mock login for development",
-    "logging_in": "Logging in...",
-    "go_back": "Go Back",
+    "subtitle": "Sign in to access your account",
+    "loading": "Loading...",
+    "authing_login": "Sign in with SSO",
+    "dev_divider": "Development only",
     "admin": {
       "label": "Admin User",
       "access": "Full access"
@@ -52,7 +53,15 @@
       "label": "New User",
       "access": "Creates a new account"
     },
-    "mock_footer": "This is a mock login for development only"
+    "footer": "By signing in, you agree to our terms of service"
+  },
+  "auth": {
+    "callback": {
+      "logging_in": "Completing sign in...",
+      "go_login": "Go to Login",
+      "missing_code": "Missing authentication code",
+      "login_failed": "Sign in failed"
+    }
   },
   "search": {
     "title": "Search",
