@@ -15,8 +15,8 @@
 **主要改动：**
 - 将 Convex 替换为自托管的 Fastify 后端
 - 使用 PostgreSQL + pgvector 替代 Convex 数据库
-- 使用 Redis (BullMQ) 替代 Convex 函数队列
-- 保留 Nuxt 3 前端，无需 Convex 部署
+- 使用 Redis 替代 Convex 函数队列
+- 使用 Vite + Vue 3 SPA 替代 Nuxt 3 前端，无需 Convex 部署
 - 支持完整的 CLI API 兼容
 
 ## 功能特性
@@ -34,11 +34,11 @@
 
 | 层级 | 技术 |
 |------|------|
-| 前端 | Nuxt 3 + Vue 3 |
+| 前端 | Vite + Vue 3 + Ant Design Vue 4 |
 | 后端 | Fastify |
 | 数据库 | PostgreSQL + pgvector |
 | ORM | Drizzle |
-| 任务队列 | BullMQ (Redis) |
+| 任务队列 | Redis (可选，用于 BullMQ 队列) |
 | 认证 | JWT Session |
 
 ## 快速开始
@@ -174,7 +174,7 @@ clawhub/
 │       └── routes/      # API 路由
 │           ├── v1/      # v1 API 端点
 │           └── legacy/  # CLI 兼容接口
-├── frontend/            # Nuxt 3 前端应用
+├── frontend/            # Vite + Vue 3 前端应用
 │   ├── pages/           # 页面路由
 │   ├── composables/     # Vue 组合式函数
 │   └── layouts/         # 布局组件
@@ -251,7 +251,7 @@ bunx tsc --noEmit
 | 部署方式 | 需要 Convex 托管 | 完全自托管 |
 | 数据库 | Convex (云) | PostgreSQL (本地) | 
 | 文件存储 | Convex Storage | 本地文件系统 |
-| 任务队列 | Convex Functions | BullMQ (Redis) |
+| 任务队列 | Convex Functions | Redis (可选) |
 | 前端部署 | 需要 Convex | 任意静态托管 |
 | OAuth | 仅 GitHub | 可配置任意 OAuth |
 

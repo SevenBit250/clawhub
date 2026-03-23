@@ -20,6 +20,7 @@ bun run dev              # 启动开发服务器 http://localhost:3001
 bun run build            # TypeScript 编译
 bun run db:generate      # 生成 Drizzle 迁移
 bun run db:migrate       # 执行数据库迁移
+bun run db:studio        # 数据库管理工具 (Drizzle Studio)
 bun run test:run         # 运行测试（单次执行）
 bun run test             # 监视模式
 bun run test:ui          # UI 模式
@@ -252,14 +253,21 @@ import Fastify from "fastify";
 - 测试文件位置：`backend/tests/`
 
 ### 测试类型
-- **单元测试**: `tests/*.test.ts` — 纯函数、工具函数、存储逻辑
-- **回归测试**: `tests/api.test.ts` — API 端点、CLI 兼容性（**90 个测试全部通过**）
+- **单元测试**: `tests/*.test.ts`（如 `storage.test.ts`）— 纯函数、工具函数、存储逻辑
+- **API 回归测试**: `tests/*.test.ts` — 按类型分文件的 API 端点测试
+  - `auth.test.ts` — 认证与会话
+  - `skills.test.ts` — 技能 CRUD 与管理
+  - `souls.test.ts` — 灵魂
+  - `stars.test.ts` — 收藏
+  - `search.test.ts` — 搜索、解析、下载
+  - `legacy-cli.test.ts` — CLI 兼容接口（含 v1 Whoami）
+  - `transfers.test.ts` — 技能转让
+  - `users.test.ts` — 用户路由与 v1 用户
+  - `storage-routes.test.ts` — 存储路由
+  - `helpers.ts` — 共享测试工具（API_BASE、getAuthToken 等）
 
 ### CLI 兼容性测试 ⚠️
-`api.test.ts` 中的测试是**必须通过**的，用于保证 ClawHub CLI 的完全兼容：
-- Legacy CLI 路由：`/api/cli/*`（whoami, publish, telemetry/sync, skill/delete, skill/undelete 等）
-- 遗留兼容路由：`/api/skill`, `/api/skill/resolve`, `/api/download`, `/api/search`
-- v1 API 路由：`/api/v1/*`
+`legacy-cli.test.ts` 中的测试是**必须通过**的，用于保证 ClawHub CLI 的完全兼容：
 
 **任何 API 变更都必须同步更新对应测试，确保 CLI 兼容性不被破坏。**
 
