@@ -95,6 +95,7 @@ const mySkills = ref<Array<{
   displayName: string;
   summary: string | null;
   moderationStatus?: string;
+  stats?: { downloads: number; stars: number; installs: number };
 }>>([]);
 const mySouls = ref<Array<{ id: string; slug: string; displayName: string }>>([]);
 const pendingSkills = ref<Array<{
@@ -173,7 +174,7 @@ watch(isModerator, () => {
 });
 
 const totalStars = computed(() =>
-  (mySkills.value || []).reduce((sum: number, s: any) => sum + (s.statsStars || 0), 0)
+  (mySkills.value || []).reduce((sum: number, s: any) => sum + (s.stats?.stars || 0), 0)
 );
 
 async function handleLogin() {

@@ -174,8 +174,17 @@ export async function deleteSkill(skillId: string, userId: string) {
 }
 
 export async function getUserSkills(userId: string) {
-  return db.query.skills.findMany({
+  const rows = await db.query.skills.findMany({
     where: and(eq(skills.ownerUserId, userId), isNull(skills.softDeletedAt)),
     orderBy: desc(skills.updatedAt),
   });
+
+  return rows.map((s) => ({
+    ...s,
+    stats: {
+      downloads: s.statsDownloads,
+      stars: s.statsStars,
+      installs: s.statsInstallsCurrent,
+    },
+  }));
 }
