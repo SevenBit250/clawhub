@@ -43,9 +43,17 @@ bunx tsc -p packages/clawdhub --noEmit
 ### 开发环境
 ```bash
 docker compose -f docker-compose.dev.yml up -d  # PostgreSQL + Redis
+# 首次启动后需要在数据库中启用 pgvector 扩展（只需执行一次）
+docker exec clawhub-postgres psql -U clawhub -d clawhub -c "CREATE EXTENSION IF NOT EXISTS vector;"
 # 模拟 OAuth 登录：
 curl http://localhost:3001/auth/url
 curl "http://localhost:3001/auth/callback?code=mock_admin"
+```
+
+### CLI 本地测试
+```bash
+# 测试 clawdhub CLI 指向本地实例
+CLAWHUB_REGISTRY=http://localhost:3001 CLAWHUB_SITE=http://localhost:3000 clawhub search "padel"
 ```
 
 ## 架构
@@ -60,6 +68,8 @@ curl "http://localhost:3001/auth/callback?code=mock_admin"
 frontend/
 ├── src/
 │   ├── pages/           # index.vue, search.vue, dashboard.vue, login.vue, skills/, souls/
+│   │   └── skills/       # index.vue, [slug].vue, create.vue, edit.vue
+│   │   └── souls/       # index.vue
 │   ├── composables/     # useApi.ts, useAuth.ts, useSearch.ts, useTheme.ts
 │   ├── plugins/         # antdv.ts, i18n.ts
 │   ├── router/          # Vue Router 配置
@@ -71,6 +81,12 @@ frontend/
 ├── vite.config.ts
 └── index.html
 ```
+
+### 后端 `src/auth/` — `backend/src/auth/`
+`index.ts` (入口), `session.ts` (JWT 会话), `wecom.ts` (WeCom OAuth)
+
+### 后端 `src/lib/` — `backend/src/lib/`
+业务逻辑模块：`comments.ts`, `search.ts`, `searchText.ts`, `skills.ts`, `souls.ts`, `stars.ts`, `storage.ts`
 
 ### CLI 结构 — `packages/clawdhub/src/`
 ```
@@ -160,18 +176,21 @@ import Fastify from "fastify";
 | 端点 | 方法 | 认证 | 描述 |
 |------|------|------|------|
 | `/health` | GET | 否 | 健康检查 |
+| `/docs` | GET | 否 | Swagger API 文档 |
 | `/auth/url` | GET | 否 | 获取 OAuth URL |
 | `/auth/mock` | GET | 否 | 模拟登录页面（仅开发环境）|
 | `/auth/callback` | GET | 否 | OAuth 回调 |
 | `/auth/logout` | POST | 是 | 登出 |
 | `/auth/session` | GET | 可选 | 获取当前会话 |
 | `/users/me` | GET | 是 | 当前用户信息 |
+| `/users/me` | PATCH | 是 | 更新当前用户信息 |
 | `/users/me/skills` | GET | 是 | 当前用户的技能 |
 | `/users/me/stars` | GET | 是 | 当前用户收藏的技能 |
 | `/users/me/souls` | GET | 是 | 当前用户的灵魂 |
 | `/storage/upload` | POST | 是 | 上传文件 |
 | `/storage/:id` | GET | 否 | 下载文件 |
 | `/skills/:id/comments` | GET/POST | 否/是 | 获取/添加评论 |
+| `/comments/:id` | DELETE | 是 | 删除评论 |
 
 ### v1 API (`/api/v1` 前缀) — `backend/src/routes/v1/`
 | 端点 | 方法 | 认证 | 描述 |
@@ -180,18 +199,32 @@ import Fastify from "fastify";
 | `/api/v1/skills` | POST | 是 | 创建技能 |
 | `/api/v1/skills/:slug` | GET | 否 | 技能详情 |
 | `/api/v1/skills/:slug` | DELETE | 是 | 删除技能（软删除） |
+| `/api/v1/skills/:slug` | PUT | 是 | 更新技能元信息 |
 | `/api/v1/skills/:slug/versions` | GET | 否 | 版本列表 |
+| `/api/v1/skills/:slug/versions/:version` | GET | 否 | 指定版本详情 |
+| `/api/v1/skills/:slug/rename` | PATCH | 是 | 重命名技能 |
+| `/api/v1/skills/:slug/merge` | PATCH | 是 | 合并技能 |
+| `/api/v1/skills/:slug/restore` | POST | 是 | 恢复已删除技能 |
+| `/api/v1/skills/:slug/undelete` | POST | 是 | 取消删除（恢复） |
+| `/api/v1/skills/:slug/resubmit` | POST | 是 | 重新提交被驳回技能 |
 | `/api/v1/search` | GET | 否 | 搜索 |
 | `/api/v1/souls` | GET | 否 | 灵魂列表 |
-| `/api/v1/stars` | POST/DELETE | 是 | 收藏操作 |
+| `/api/v1/souls/:slug` | GET | 否 | 灵魂详情 |
+| `/api/v1/stars/:slug` | POST/DELETE | 是 | 收藏/取消收藏技能 |
 | `/api/v1/resolve` | GET | 否 | CLI 指纹解析 |
 | `/api/v1/download` | GET | 否 | 下载技能 zip |
-| `/api/v1/transfers/incoming` | GET | 是 | 收到的转让请求 |
-| `/api/v1/transfers/outgoing` | GET | 是 | 发出的转让请求 |
+| `/api/v1/transfers` | GET | 是 | 获取所有转让请求（入栈/出栈） |
+| `/api/v1/transfers` | POST | 是 | 创建转让请求 |
+| `/api/v1/transfers/:id/accept` | POST | 是 | 接受转让 |
+| `/api/v1/transfers/:id/reject` | POST | 是 | 拒绝转让 |
 | `/api/v1/users` | GET | 是 | 用户列表（管理员） |
-| `/api/v1/users/ban` | POST | 是 | 封禁用户（管理员） |
-| `/api/v1/users/role` | POST | 是 | 更改用户角色（管理员） |
-| `/api/v1/admin/*` | — | 是 | 管理员接口 |
+| `/api/v1/users/role` | PATCH | 是 | 更改用户角色（管理员） |
+| `/api/v1/admin/skills/pending` | GET | moderator | 获取待审核技能列表 |
+| `/api/v1/admin/skills/:id/approve` | POST | moderator | 批准技能 |
+| `/api/v1/admin/skills/:id/reject` | POST | moderator | 驳回技能 |
+| `/api/v1/admin/skills/:id/hide` | POST | moderator | 隐藏技能 |
+| `/api/v1/admin/skills/:id/unhide` | POST | moderator | 取消隐藏技能 |
+| `/api/v1/admin/users` | GET | admin | 用户列表 |
 
 ### 遗留兼容路由 (`/api` 前缀) — `backend/src/routes/legacy/`
 | 端点 | 方法 | 认证 | 描述 |
@@ -234,7 +267,7 @@ import Fastify from "fastify";
 |---------|---------------|
 | `src/lib/*.ts` | `bun run test:run` |
 | `src/routes/` | `bun run dev` + `bun run test:run` |
-| 数据库 Schema | `bun run build && `bun run test:run`` |
+| 数据库 Schema | `bun run build && bun run test:run` |
 | **所有提交前** | `bun run build && bun run test:run` |
 
 ### 测试通过标准

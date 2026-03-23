@@ -594,6 +594,7 @@ const registerPublishSkillV1: FastifyPluginAsync = async (fastify) => {
           const skill = await createSkill(session.userId, {
             slug: payload.slug,
             displayName: payload.displayName,
+            moderationStatus: session.user.role === "admin" ? "active" : "pending",
           });
 
           const version = await createSkillVersion(session.userId, skill.id, {

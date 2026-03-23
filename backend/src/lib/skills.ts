@@ -8,6 +8,7 @@ export interface CreateSkillInput {
   displayName: string;
   summary?: string;
   resourceId?: string;
+  moderationStatus?: "pending" | "active";
 }
 
 export interface CreateSkillVersionInput {
@@ -35,7 +36,7 @@ export async function createSkill(ownerUserId: string, input: CreateSkillInput) 
     resourceId: input.resourceId,
     ownerUserId,
     latestVersionId: null,
-    moderationStatus: "pending",
+    moderationStatus: input.moderationStatus ?? "pending",
     statsDownloads: 0,
     statsStars: 0,
     statsInstallsCurrent: 0,
