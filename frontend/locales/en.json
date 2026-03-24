@@ -5,6 +5,7 @@
     "home": "Home",
     "skills": "Skills",
     "souls": "Souls",
+    "demands": "Demands",
     "dashboard": "Dashboard",
     "logout": "Logout",
     "login": "Login",
@@ -219,6 +220,12 @@
     "no_description": "No description",
     "unknown_author": "Unknown",
     "no_souls": "No souls found"
+  },
+  "demands": {
+    "title": "Demands",
+    "loading": "Loading...",
+    "failed": "Failed to load demands",
+    "no_demands": "No demands found"
   },
   "errors": {
     "login_failed": "Login failed",

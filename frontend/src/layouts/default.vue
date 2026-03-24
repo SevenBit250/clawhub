@@ -16,6 +16,9 @@
             <router-link to="/souls" class="nav-btn" active-class="nav-btn-active">
               {{ $t("nav.souls") }}
             </router-link>
+            <router-link to="/demands" class="nav-btn" active-class="nav-btn-active">
+              {{ $t("nav.demands") }}
+            </router-link>
 
             <!-- Language Switcher -->
             <a-dropdown :trigger="['click']">
