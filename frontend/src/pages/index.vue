@@ -39,14 +39,14 @@
         </div>
 
         <!-- CTA pill button (gradient) -->
-        <div class="cta-wrap" :class="{ 'cta-in': mounted }">
+        <!-- <div class="cta-wrap" :class="{ 'cta-in': mounted }">
           <router-link to="/skills" class="cta-btn">
             {{ $t('home.hero.browse') }}
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
           </router-link>
-        </div>
+        </div> -->
       </div>
     </section>
   </div>
@@ -96,12 +96,6 @@ function handleSearch(value: string) {
 .bg-gradient {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    154deg,
-    #eef6ff 0%,
-    rgba(238, 242, 255, 0.3) 50%,
-    #faf5ff 100%
-  );
   z-index: 0;
 }
 
@@ -224,7 +218,7 @@ function handleSearch(value: string) {
   background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(237, 237, 237, 0.8);
   border-radius: 99999px;
   box-shadow:
     0 10px 15px -3px rgba(43, 127, 255, 0.1),
@@ -267,20 +261,34 @@ function handleSearch(value: string) {
   flex: 1;
 }
 
-.hero-search :deep(.ant-input) {
+:deep(.ant-input) {
   font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   font-size: 1rem;
   font-weight: 400;
   background: transparent;
   border: none;
   outline: none;
-  color: #27272a;
+  border-radius: 0;
+  box-shadow: none;
+  color: #525257;
   padding: 0;
   line-height: 1;
+  caret-color: #9f9fa9;
 }
 
-.hero-search :deep(.ant-input)::placeholder {
+:deep(.ant-input)::placeholder {
   color: #9f9fa9;
+}
+
+/* 抑制 Ant Design 默认聚焦边框/阴影，由外层 search-pill 统一处理 */
+:deep(.ant-input-affix-wrapper) {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+:deep(.ant-input-affix-wrapper):focus-within {
+  background: rgba(255, 255, 255, 0.8) !important;
 }
 
 /* ─── CTA Pill Button (Gradient) ─── */
@@ -370,12 +378,23 @@ function handleSearch(value: string) {
   border-color: rgba(43, 127, 255, 0.5);
 }
 
-[data-theme="dark"] .hero-search :deep(.ant-input) {
+[data-theme="dark"] :deep(.ant-input) {
   color: #f1f5f9;
+  caret-color: #64748b;
 }
 
-[data-theme="dark"] .hero-search :deep(.ant-input)::placeholder {
+[data-theme="dark"] :deep(.ant-input)::placeholder {
   color: #64748b;
+}
+
+[data-theme="dark"] :deep(.ant-input-affix-wrapper) {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+[data-theme="dark"] :deep(.ant-input-affix-wrapper):focus-within {
+  background: rgba(255, 255, 255, 0.08) !important;
 }
 
 [data-theme="dark"] .search-icon {

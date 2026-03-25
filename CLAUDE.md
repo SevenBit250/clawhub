@@ -116,13 +116,13 @@ frontend/
 ```
 backend/src/
 ├── index.ts              # Fastify 入口，含 auth/storage/comment 路由
-├── auth/                  # 认证模块
+├── auth/                 # 认证模块（与 index.ts 同级）
 │   ├── session.ts        # JWT Session 管理
 │   └── wecom.ts          # WeCom OAuth（开发环境使用 MockWeComAuth）
-├── db/                    # 数据库
+├── db/
 │   ├── index.ts          # Drizzle 客户端
 │   └── schema.ts         # 表结构定义
-├── lib/                   # 业务逻辑
+├── lib/                  # 业务逻辑
 │   ├── skills.ts         # 技能 CRUD
 │   ├── souls.ts          # 灵魂 CRUD
 │   ├── search.ts         # 向量搜索
@@ -130,7 +130,7 @@ backend/src/
 │   ├── comments.ts       # 评论
 │   ├── stars.ts          # 收藏
 │   └── storage.ts        # 文件存储
-├── routes/                # API 路由
+├── routes/
 │   ├── v1/               # v1 RESTful API
 │   └── legacy/           # CLI 兼容接口
 backend/scripts/
@@ -138,8 +138,8 @@ backend/scripts/
 ```
 
 ### 认证
-- **前端**：使用 Authing SSO（`VITE_AUTHING_*` 环境变量配置）
-- **后端**：使用 WeCom OAuth 交换用户信息，`MockWeComAuth` 支持模拟登录
+- **前端**：使用 Authing SSO SDK（`@authing/web`）处理登录 UI，登录成功后携带 code 回调到 `/auth/callback`
+- **后端**：使用 WeCom OAuth（`MockWeComAuth` 用于开发）兑换 code 获取用户信息并创建 Session
 - JWT Session 管理，Session 存储在数据库 `auth_sessions` 表
 - 开发环境支持模拟登录（`/auth/callback?code=mock_admin`）
 
@@ -329,6 +329,7 @@ import { useApi } from "@/composables/useApi";
   - `transfers.test.ts` — 技能转让
   - `users.test.ts` — 用户路由与 v1 用户
   - `storage-routes.test.ts` — 存储路由
+  - `serialization.test.ts` — 序列化/反序列化
   - `helpers.ts` — 共享测试工具（API_BASE、getAuthToken 等）
 
 ### CLI 兼容性测试 ⚠️
