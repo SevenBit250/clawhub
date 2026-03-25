@@ -52,16 +52,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
+import { useRoute } from "vue-router";
 import SkillsFilters from "@/components/SkillsFilters.vue";
 import SkillsList from "@/components/SkillsList.vue";
 
 const { t } = useI18n();
 
 const api = useApi();
+const route = useRoute();
 
-const sortBy = ref("updated");
-const searchQuery = ref("");
+const sortBy = ref((route.query.sort as string) || "updated");
+const searchQuery = ref((route.query.q as string) || "");
 const filterHighlighted = ref(false);
 const viewMode = ref<"list" | "card">("list");
 const mounted = ref(false);
@@ -132,6 +134,15 @@ onMounted(() => {
   });
   fetchSkills();
 });
+
+watch(
+  () => route.query,
+  () => {
+    sortBy.value = (route.query.sort as string) || "updated";
+    searchQuery.value = (route.query.q as string) || "";
+    fetchSkills();
+  }
+);
 
 const skills = computed(() => data.value?.items || []);
 const total = computed(() => data.value?.total || 0);
