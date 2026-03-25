@@ -171,6 +171,40 @@ watch(() => route.query, (query) => {
   gap: 0.5rem;
 }
 
+/* Slot 按钮（精选等）统一为玻璃态药丸尺寸 */
+.filter-actions :deep(.ant-btn) {
+  border-radius: 99999px !important;
+  height: 36px !important;
+  padding: 0 16px !important;
+  font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif !important;
+  font-size: 0.875rem !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(8px) !important;
+  border-color: rgba(228, 228, 231, 0.6) !important;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  color: #525257 !important;
+  transition: all 0.2s ease !important;
+}
+
+.filter-actions :deep(.ant-btn:hover) {
+  border-color: rgba(43, 127, 255, 0.4) !important;
+  color: #2b7fff !important;
+  box-shadow:
+    0 2px 8px rgba(43, 127, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+.filter-actions :deep(.ant-btn.ant-btn-primary) {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(43, 127, 255, 0.3) !important;
+  color: #2b7fff !important;
+  box-shadow:
+    0 2px 8px rgba(43, 127, 255, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
 /* ─── Sort Select ─── */
 .sort-select {
   border-radius: 99999px !important;
@@ -184,11 +218,19 @@ watch(() => route.query, (query) => {
   font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif !important;
   font-size: 0.875rem !important;
   height: 36px !important;
-  padding: 0 12px !important;
+  padding: 0 28px 0 12px !important;
   box-shadow:
     0 1px 3px rgba(0, 0, 0, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
   transition: all 0.2s ease !important;
+}
+
+:deep(.ant-select-selection-item) {
+  font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif !important;
+  font-size: 0.875rem !important;
+  line-height: 36px !important;
+  color: #525257 !important;
+  padding: 0 !important;
 }
 
 :deep(.ant-select:not(.ant-select-disabled):hover .ant-select-selector) {
@@ -361,6 +403,32 @@ watch(() => route.query, (query) => {
 
 [data-theme="dark"] :deep(.ant-select-selection-item) {
   color: #f1f5f9 !important;
+  font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif !important;
+  font-size: 0.875rem !important;
+  line-height: 36px !important;
+}
+
+[data-theme="dark"] .filter-actions :deep(.ant-btn) {
+  background: rgba(30, 35, 60, 0.5) !important;
+  border-color: rgba(99, 102, 241, 0.15) !important;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .filter-actions :deep(.ant-btn:hover) {
+  border-color: rgba(43, 127, 255, 0.35) !important;
+  color: #60a5fa !important;
+}
+
+[data-theme="dark"] .filter-actions :deep(.ant-btn.ant-btn-primary) {
+  background: rgba(40, 45, 80, 0.6) !important;
+  border-color: rgba(43, 127, 255, 0.35) !important;
+  color: #60a5fa !important;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
 }
 
 [data-theme="dark"] :deep(.ant-select-arrow) {
