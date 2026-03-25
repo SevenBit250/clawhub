@@ -32,5 +32,6 @@ declare module 'vue' {
     SkillListItem: typeof import('./components/SkillListItem.vue')['default']
     SkillsFilters: typeof import('./components/SkillsFilters.vue')['default']
     SkillsList: typeof import('./components/SkillsList.vue')['default']
+    SkillStats: typeof import('./components/SkillStats.vue')['default']
   }
 }

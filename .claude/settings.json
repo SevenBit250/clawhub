@@ -1,6 +1,17 @@
 {
   "permissions": {
-    "allow": ["Bash(*)"],
+    "allow": [
+      "Bash(*)",
+      "mcp__penpot__penpot_api_info",
+      "mcp__penpot__execute_code",
+      "mcp__penpot__high_level_overview",
+      "mcp__penpot__export_shape",
+      "mcp__figma__whoami",
+      "mcp__figma__generate_figma_design",
+      "mcp__figma__get_design_context",
+      "mcp__figma__use_figma",
+      "mcp__figma__get_metadata"
+    ],
     "defaultMode": "acceptEdits"
   }
 }

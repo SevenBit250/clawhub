@@ -27,3 +27,4 @@ test-results
 *.zip
 storage/
 .nuxt/
+github_token.env

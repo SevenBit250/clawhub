@@ -2,22 +2,31 @@
   <a-config-provider :theme="antdTheme">
     <div class="min-h-screen flex flex-col" :data-theme="effectiveTheme">
       <header class="header-nav">
-        <nav class="container py-4 flex items-center justify-between">
-          <div class="flex items-center gap-6">
-            <router-link to="/" class="text-xl font-bold">{{ $t("nav.clawhub") }}</router-link>
-          </div>
-          <div class="flex items-center gap-2">
-            <router-link to="/" class="nav-btn" active-class="nav-btn-active">
-              {{ $t("nav.home") }}
+        <nav class="container nav-inner">
+          <!-- Logo -->
+          <router-link to="/" class="logo-link">{{ $t("nav.clawhub") }}</router-link>
+
+          <!-- Nav -->
+          <div class="nav-group">
+            <router-link to="/" custom v-slot="{ isActive, navigate }">
+              <div class="nav-pill" :class="{ 'nav-pill-active': isActive }" @click="navigate">
+                {{ $t("nav.home") }}
+              </div>
             </router-link>
-            <router-link to="/skills" class="nav-btn" active-class="nav-btn-active">
-              {{ $t("nav.skills") }}
+            <router-link to="/skills" custom v-slot="{ isActive, navigate }">
+              <div class="nav-pill" :class="{ 'nav-pill-active': isActive }" @click="navigate">
+                {{ $t("nav.skills") }}
+              </div>
             </router-link>
-            <router-link to="/souls" class="nav-btn" active-class="nav-btn-active">
-              {{ $t("nav.souls") }}
+            <router-link to="/souls" custom v-slot="{ isActive, navigate }">
+              <div class="nav-pill" :class="{ 'nav-pill-active': isActive }" @click="navigate">
+                {{ $t("nav.souls") }}
+              </div>
             </router-link>
-            <router-link to="/demands" class="nav-btn" active-class="nav-btn-active">
-              {{ $t("nav.demands") }}
+            <router-link to="/demands" custom v-slot="{ isActive, navigate }">
+              <div class="nav-pill" :class="{ 'nav-pill-active': isActive }" @click="navigate">
+                {{ $t("nav.demands") }}
+              </div>
             </router-link>
 
             <!-- Language Switcher -->
@@ -32,11 +41,9 @@
                   </a-menu-item>
                 </a-menu>
               </template>
-              <a-button type="text" class="nav-btn lang-toggle">
-                <template #icon>
-                  <GlobalOutlined />
-                </template>
-              </a-button>
+              <button type="button" class="nav-icon-btn lang-toggle">
+                <GlobalOutlined />
+              </button>
             </a-dropdown>
 
             <!-- Theme Toggle -->
@@ -54,13 +61,11 @@
                   </a-menu-item>
                 </a-menu>
               </template>
-              <a-button type="text" class="nav-btn theme-toggle">
-                <template #icon>
-                  <BulbOutlined v-if="effectiveTheme === 'light'" />
-                  <BulbFilled v-else-if="effectiveTheme === 'dark'" />
-                  <DesktopOutlined v-else />
-                </template>
-              </a-button>
+              <button type="button" class="nav-icon-btn theme-toggle">
+                <BulbOutlined v-if="effectiveTheme === 'light'" />
+                <BulbFilled v-else-if="effectiveTheme === 'dark'" />
+                <DesktopOutlined v-else />
+              </button>
             </a-dropdown>
 
             <template v-if="isAuthenticated">
@@ -75,14 +80,16 @@
                     </a-menu-item>
                   </a-menu>
                 </template>
-                <a-button type="text" class="nav-btn user-dropdown">
+                <button type="button" class="nav-btn user-dropdown">
                   <UserOutlined />
                   {{ userDisplayName }}
-                </a-button>
+                </button>
               </a-dropdown>
             </template>
             <template v-else>
-              <a-button type="text" class="nav-btn" @click="handleLogin">{{ $t("nav.login") }}</a-button>
+              <button type="button" class="login-btn" @click="handleLogin">
+                {{ $t("nav.login") }}
+              </button>
             </template>
           </div>
         </nav>
@@ -146,29 +153,161 @@ async function handleLogout() {
 </script>
 
 <style scoped>
-.nav-btn {
+/* ─── Nav Group ─── */
+.nav-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ─── Nav Pill ─── */
+.nav-pill {
+  padding: 0.5rem 1.25rem;
+  border-radius: 99999px;
+  font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
+  color: #52525c;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+  white-space: nowrap;
+  text-decoration: none;
+  user-select: none;
+}
+
+.nav-pill:hover {
+  color: #27272a;
+}
+
+/* Active state — solid Dodger Blue with colored shadow */
+.nav-pill-active {
+  background: #2b7fff;
+  color: #fff;
+  box-shadow:
+    0 10px 15px -3px rgba(43, 127, 255, 0.3),
+    0 4px 6px -4px rgba(43, 127, 255, 0.3);
+  transform: translateY(0);
+}
+
+.nav-pill-active:hover {
+  background: #2b7fff;
+  color: #fff;
+  opacity: 0.92;
+}
+
+/* ─── Logo ─── */
+.logo-link {
+  font-family: 'Archivo', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 1.125rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #155dfc 0%, #4f39f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-decoration: none;
+  letter-spacing: -0.01em;
+  transition: opacity 0.2s ease;
+}
+
+.logo-link:hover {
+  opacity: 0.85;
+}
+
+/* ─── Icon Buttons ─── */
+.nav-icon-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.375rem;
-  padding: 0.375rem 0.75rem;
-  border-radius: 0.375rem;
-  font-size: 0.9375rem;
-  color: var(--color-text-secondary);
-  text-decoration: none;
-  transition: all 0.2s;
+  justify-content: center;
+  padding: 0.625rem;
+  border-radius: 99999px;
+  color: #52525c;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  background: transparent;
 }
 
-.nav-btn:hover {
-  color: var(--color-foreground);
-  background: var(--color-hover);
+.nav-icon-btn:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: #27272a;
 }
 
-.nav-btn-active {
-  color: var(--color-primary);
+/* ─── Login Button ─── */
+.login-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.625rem 1.5rem;
+  border-radius: 99999px;
+  font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 1rem;
   font-weight: 500;
+  color: #3f3f46;
+  border: 1px solid rgba(228, 228, 231, 0.6);
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
 }
 
-.nav-btn-active:hover {
-  color: var(--color-primary);
+.login-btn:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(43, 127, 255, 0.4);
+  color: #27272a;
+  transform: translateY(-1px);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* ─── Dark Theme ─── */
+[data-theme="dark"] .nav-pill {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .nav-pill:hover {
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .nav-pill-active {
+  background: #2b7fff;
+  opacity: 0.95;
+}
+
+[data-theme="dark"] .nav-pill-active:hover {
+  opacity: 0.85;
+}
+
+[data-theme="dark"] .nav-icon-btn {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .nav-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .login-btn {
+  background: rgba(30, 35, 60, 0.6);
+  border-color: rgba(99, 102, 241, 0.2);
+  color: #f1f5f9;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.3),
+    0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .login-btn:hover {
+  background: rgba(40, 45, 80, 0.7);
+  border-color: rgba(43, 127, 255, 0.4);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.2);
 }
 </style>

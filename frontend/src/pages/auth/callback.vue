@@ -2,6 +2,7 @@
 import { onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { Authing } from "@authing/web";
+import { message } from "ant-design-vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -21,25 +22,39 @@ const sdk = new Authing({
   redirectUri,
 });
 
+const REDIRECT_KEY = "auth_redirect_uri";
+
 onMounted(async () => {
   // 如果是 Authing 回调，处理 code
   if (sdk.isRedirectCallback()) {
-    const redirect = (route.query.redirect as string) || "/";
     try {
+      // handleRedirectCallback 会自动用 code 换 token并存入 SDK 内部存储
       await sdk.handleRedirectCallback();
-      const code = route.query.code as string;
-      if (code) {
-        await login(code);
+      const state = await sdk.getLoginState();
+      if (state) {
+        // 从 SDK 获取 code，通过后端换 JWT token
+        const code = route.query.code as string;
+        if (code) {
+          await login(code);
+        }
       }
-      router.push(redirect);
+      // 优先从 URL 读取 redirect，兜底从 sessionStorage 读取
+      const redirect =
+        (route.query.redirect as string) ||
+        sessionStorage.getItem(REDIRECT_KEY) ||
+        "/";
+      sessionStorage.removeItem(REDIRECT_KEY);
+      window.location.replace(redirect);
     } catch {
-      router.push("/");
+      message.error("登录失败，请重试");
+      window.location.replace("/");
     }
     return;
   }
 
   // 直接发起 SSO 登录
   const redirect = (route.query.redirect as string) || "/";
+  sessionStorage.setItem(REDIRECT_KEY, redirect);
   sdk.loginWithRedirect({ originalUri: redirect });
 });
 </script>

@@ -22,6 +22,7 @@ bun run db:generate      # 生成 Drizzle 迁移
 bun run db:migrate       # 执行数据库迁移
 bun run db:studio        # 数据库管理工具 (Drizzle Studio)
 bun run test:run         # 运行测试（单次执行）
+bun run test:run -- tests/auth.test.ts  # 运行单个测试文件
 bun run test             # 监视模式
 bun run test:ui          # UI 模式
 bun run test:coverage    # 覆盖率报告
@@ -47,7 +48,7 @@ docker compose -f docker-compose.dev.yml up -d  # PostgreSQL + Redis
 # 首次启动后需要在数据库中启用 pgvector 扩展（只需执行一次）
 docker exec clawhub-postgres psql -U clawhub -d clawhub -c "CREATE EXTENSION IF NOT EXISTS vector;"
 # 首次启动后创建测试数据（用于本地开发和测试）
-bun run scripts/seed-test-data.ts
+cd backend && bun run scripts/seed-test-data.ts
 # 模拟 OAuth 登录：
 curl http://localhost:3001/auth/url
 curl "http://localhost:3001/auth/callback?code=mock_admin"
@@ -56,23 +57,49 @@ curl "http://localhost:3001/auth/callback?code=mock_admin"
 ### CLI 本地测试
 ```bash
 # 测试 clawdhub CLI 指向本地实例
-CLAWHUB_REGISTRY=http://localhost:3001 CLAWHUB_SITE=http://localhost:3000 clawhub search "padel"
+CLAWHUB_REGISTRY=http://localhost:3001 CLAWHUB_SITE=http://localhost:3000 clawdhub search "padel"
 ```
+
+### 后端环境变量 (`backend/.env`)
+```env
+DATABASE_URL=postgresql://clawhub:clawhub@localhost:5432/clawhub
+JWT_SECRET=your-jwt-secret
+STORAGE_DIR=./storage
+DEMANDS_SERVICE_URL=https://your-demands-service.com  # 可选
+# Auth
+WECOM_CORP_ID=
+WECOM_AGENT_ID=
+WECOM_CORP_SECRET=
+AUTHING_DOMAIN=
+AUTHING_APP_ID=
+AUTHING_USER_POOL_ID=
+```
+
+### 前端环境变量 (`frontend/.env`)
+```env
+VITE_AUTHING_DOMAIN=your-domain.authing.cn
+VITE_AUTHING_APP_ID=your-app-id
+VITE_AUTHING_USER_POOL_ID=your-user-pool-id
+VITE_AUTHING_REDIRECT_URI=http://localhost:3000/auth/callback
+```
+API 请求默认发往 `http://localhost:3001`，可通过 `VITE_API_BASE` 覆盖。
 
 ## 架构
 
 ### 后端路由
 - `routes/v1/` — RESTful API（skills, souls, users, search, storage）
 - `routes/legacy/` — CLI 兼容接口
-- 认证：JWT Session + WeCom OAuth（支持模拟登录）
+- 认证：JWT Session + Authing SSO（支持模拟登录）
 
 ### 前端结构
 ```
 frontend/
 ├── src/
-│   ├── pages/           # index.vue, search.vue, dashboard.vue, login.vue, skills/, souls/
-│   │   └── skills/       # index.vue, [slug].vue, create.vue, edit.vue
-│   │   └── souls/       # index.vue
+│   ├── pages/           # index.vue, search.vue, dashboard.vue, skills/, souls/, demands/, auth/
+│   │   ├── skills/       # index.vue, [slug].vue, create.vue, edit.vue
+│   │   ├── souls/       # index.vue
+│   │   ├── demands/     # index.vue (代理外部需求服务)
+│   │   └── auth/        # callback.vue (OAuth 回调)
 │   ├── composables/     # useApi.ts, useAuth.ts, useSearch.ts, useTheme.ts
 │   ├── plugins/         # antdv.ts, i18n.ts
 │   ├── router/          # Vue Router 配置
@@ -85,11 +112,36 @@ frontend/
 └── index.html
 ```
 
-### 后端 `src/auth/` — `backend/src/auth/`
-`index.ts` (入口), `session.ts` (JWT 会话), `wecom.ts` (WeCom OAuth)
+### 后端结构
+```
+backend/src/
+├── index.ts              # Fastify 入口，含 auth/storage/comment 路由
+├── auth/                  # 认证模块
+│   ├── session.ts        # JWT Session 管理
+│   └── wecom.ts          # WeCom OAuth（开发环境使用 MockWeComAuth）
+├── db/                    # 数据库
+│   ├── index.ts          # Drizzle 客户端
+│   └── schema.ts         # 表结构定义
+├── lib/                   # 业务逻辑
+│   ├── skills.ts         # 技能 CRUD
+│   ├── souls.ts          # 灵魂 CRUD
+│   ├── search.ts         # 向量搜索
+│   ├── searchText.ts     # 文本搜索
+│   ├── comments.ts       # 评论
+│   ├── stars.ts          # 收藏
+│   └── storage.ts        # 文件存储
+├── routes/                # API 路由
+│   ├── v1/               # v1 RESTful API
+│   └── legacy/           # CLI 兼容接口
+backend/scripts/
+└── seed-test-data.ts     # 测试数据初始化脚本
+```
 
-### 后端 `src/lib/` — `backend/src/lib/`
-业务逻辑模块：`comments.ts`, `search.ts`, `searchText.ts`, `skills.ts`, `souls.ts`, `stars.ts`, `storage.ts`
+### 认证
+- **前端**：使用 Authing SSO（`VITE_AUTHING_*` 环境变量配置）
+- **后端**：使用 WeCom OAuth 交换用户信息，`MockWeComAuth` 支持模拟登录
+- JWT Session 管理，Session 存储在数据库 `auth_sessions` 表
+- 开发环境支持模拟登录（`/auth/callback?code=mock_admin`）
 
 ### CLI 结构 — `packages/clawdhub/src/`
 ```
@@ -111,8 +163,15 @@ src/
 - 主要表：users, skills, skill_versions, souls, soul_versions, skill_embeddings, auth_sessions, stars, comments
 - 文件存储：`POST /storage/upload`，存储在 `STORAGE_DIR`，路径格式 `{id[:2]}/{id}`
 
+### 技能 (Skills) 和灵魂 (Souls)
+- 技能：包含 `SKILL.md` 的文件夹，支持多版本管理、标签（latest + 自定义标签）
+- 灵魂：类似技能，入口文件为 `SOUL.md`，用于 Agent 灵魂市场
+- 上传限制：每个版本 ≤ 50MB，仅文本文件
+- 版本历史：支持 changelog，可回滚（移动 latest 标签）
+
 ### 共享类型
 - `packages/schema/` — ArkType 类型定义，供 backend 和 CLI 共用
+- `src/schema.ts` — 主要类型：`Skill`、`SkillVersion`、`Soul`、`PublicUser` 等
 
 ## 技术栈
 
@@ -165,6 +224,11 @@ import { eq, and, isNull } from "drizzle-orm";
 
 // Backend - Fastify
 import Fastify from "fastify";
+
+// Frontend - Composables 自动导入（无需手动 import）
+// useApi, useAuth, useSearch, useTheme 等直接在组件中使用
+// 其他手动导入：
+import { useApi } from "@/composables/useApi";
 ```
 
 ### 错误处理
@@ -213,6 +277,7 @@ import Fastify from "fastify";
 | `/api/v1/search` | GET | 否 | 搜索 |
 | `/api/v1/souls` | GET | 否 | 灵魂列表 |
 | `/api/v1/souls/:slug` | GET | 否 | 灵魂详情 |
+| `/api/v1/demands` | GET | 否 | 需求列表（代理外部服务，需配置 `DEMANDS_SERVICE_URL`） |
 | `/api/v1/stars/:slug` | POST/DELETE | 是 | 收藏/取消收藏技能 |
 | `/api/v1/resolve` | GET | 否 | CLI 指纹解析 |
 | `/api/v1/download` | GET | 否 | 下载技能 zip |
@@ -267,7 +332,7 @@ import Fastify from "fastify";
   - `helpers.ts` — 共享测试工具（API_BASE、getAuthToken 等）
 
 ### CLI 兼容性测试 ⚠️
-`legacy-cli.test.ts` 中的测试是**必须通过**的，用于保证 ClawHub CLI 的完全兼容：
+`legacy-cli.test.ts`（`tests/legacy-cli.test.ts`）中的测试是**必须通过**的，用于保证 ClawHub CLI 的完全兼容：
 
 **任何 API 变更都必须同步更新对应测试，确保 CLI 兼容性不被破坏。**
 
@@ -276,7 +341,7 @@ import Fastify from "fastify";
 | 修改内容 | 必须执行的测试 |
 |---------|---------------|
 | `src/lib/*.ts` | `bun run test:run` |
-| `src/routes/` | `bun run dev` + `bun run test:run` |
+| `src/routes/` | `bun run dev`（后台运行）+ `bun run test:run` |
 | 数据库 Schema | `bun run build && bun run test:run` |
 | **所有提交前** | `bun run build && bun run test:run` |
 

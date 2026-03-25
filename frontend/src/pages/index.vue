@@ -1,122 +1,73 @@
 <template>
   <div class="home-page">
-    <!-- Hero Section -->
     <section class="hero">
-      <div class="hero-content">
-        <h1 class="hero-title">{{ $t('home.hero.title') }}</h1>
-        <p class="hero-subtitle">{{ $t('home.hero.subtitle') }}</p>
+      <!-- Full-page gradient background -->
+      <div class="bg-gradient"></div>
 
-        <!-- Search Box - Centered -->
-        <div class="search-wrapper">
-          <a-input
-            v-model:value="searchQuery"
-            :placeholder="$t('nav.search_placeholder')"
-            class="hero-search"
-            size="large"
-            @keyup.enter="handleSearch(searchQuery)"
-          >
-            <template #prefix>
-              <SearchOutlined class="search-icon" />
-            </template>
-          </a-input>
+      <!-- Decorative azure rings -->
+      <div class="rings" aria-hidden="true">
+        <div class="ring ring-1"></div>
+        <div class="ring ring-2"></div>
+        <div class="ring ring-3"></div>
+      </div>
+
+      <!-- Hero Content -->
+      <div class="hero-content">
+        <!-- Title -->
+        <h1 class="hero-title" :class="{ 'title-in': mounted }">
+          {{ $t('home.hero.title') }}
+        </h1>
+
+        <!-- Subtitle -->
+        <p class="hero-subtitle" :class="{ 'subtitle-in': mounted }">
+          {{ $t('home.hero.subtitle') }}
+        </p>
+
+        <!-- Search pill (glassmorphism) -->
+        <div class="search-pill-wrap" :class="{ 'search-in': mounted }">
+          <div class="search-pill" :class="{ 'focused': searchFocused }">
+            <SearchOutlined class="search-icon" :class="{ 'icon-active': searchFocused }" />
+            <a-input
+              v-model:value="searchQuery"
+              :placeholder="$t('nav.search_placeholder')"
+              class="hero-search"
+              @focus="searchFocused = true"
+              @blur="searchFocused = false"
+              @keyup.enter="handleSearch(searchQuery)"
+            />
+          </div>
         </div>
 
-        <div class="hero-actions">
-          <router-link to="/skills" class="btn-secondary">
+        <!-- CTA pill button (gradient) -->
+        <div class="cta-wrap" :class="{ 'cta-in': mounted }">
+          <router-link to="/skills" class="cta-btn">
             {{ $t('home.hero.browse') }}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
           </router-link>
         </div>
-      </div>
-      <div class="hero-decoration">
-        <div class="deco-ring ring-1"></div>
-        <div class="deco-ring ring-2"></div>
-        <div class="deco-ring ring-3"></div>
       </div>
     </section>
-
-    <!-- Featured Section -->
-    <!-- <section class="featured">
-      <div class="container">
-        <div class="section-header">
-          <h2 class="section-title">{{ $t('home.featured.title') }}</h2>
-          <router-link to="/skills" class="section-link">
-            {{ $t('home.featured.view_all') || 'View all' }}
-            <span>→</span>
-          </router-link>
-        </div>
-
-        <a-spin v-if="pending" class="flex justify-center py-20" />
-        <a-result
-          v-else-if="error"
-          status="error"
-          :title="$t('home.skills.failed')"
-          class="py-20"
-        />
-        <div v-else class="skills-grid">
-          <router-link
-            v-for="skill in skills"
-            :key="skill.id"
-            :to="`/skills/${skill.slug}`"
-            class="skill-card"
-          >
-            <div class="skill-icon">
-              <FileTextOutlined />
-            </div>
-            <div class="skill-info">
-              <h3 class="skill-name">{{ skill.displayName }}</h3>
-              <p class="skill-desc line-clamp-2">
-                {{ skill.summary || $t('home.skills.no_description') }}
-              </p>
-            </div>
-            <div class="skill-stats">
-              <span class="stat">
-                <StarFilled style="color: #faad14" />
-                {{ skill.statsStars || 0 }}
-              </span>
-              <span class="stat">
-                <DownloadOutlined />
-                {{ skill.statsDownloads || 0 }}
-              </span>
-            </div>
-          </router-link>
-        </div>
-      </div>
-    </section> -->
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, computed } from "vue";
+import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { SearchOutlined, StarFilled, DownloadOutlined, FileTextOutlined } from "@ant-design/icons-vue";
+import { SearchOutlined } from "@ant-design/icons-vue";
 
 const api = useApi();
 const router = useRouter();
 const searchQuery = ref("");
+const mounted = ref(false);
+const searchFocused = ref(false);
 
-const data = ref<Array<{
-  id: string;
-  slug: string;
-  displayName: string;
-  summary: string | null;
-  statsStars: number;
-  statsDownloads: number;
-}> | null>(null);
-const pending = ref(true);
-const error = ref<string | null>(null);
-
-onMounted(async () => {
-  try {
-    const res = await api.get<{ items: Array<{ slug: string; displayName: string; summary: string | null; stats: { downloads: number; stars: number; installs: number } }> }>("/api/v1/skills?limit=6&sort=downloads");
-    data.value = res?.items || [];
-  } catch (e) {
-    error.value = e instanceof Error ? e.message : "Failed to load skills";
-  } finally {
-    pending.value = false;
-  }
+onMounted(() => {
+  requestAnimationFrame(() => {
+    mounted.value = true;
+  });
 });
-
-const skills = computed(() => data.value || []);
 
 function handleSearch(value: string) {
   if (value.trim()) {
@@ -130,284 +81,338 @@ function handleSearch(value: string) {
   height: 100%;
 }
 
-/* Hero Section */
+/* ─── Hero ─── */
 .hero {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 70vh;
-  padding: 4rem 2rem;
+  min-height: calc(100vh - 120px);
   overflow: hidden;
+  padding: 2rem 1.5rem;
 }
 
-.hero-content {
-  position: relative;
-  z-index: 2;
-  text-align: center;
-  max-width: 640px;
-  width: 100%;
+/* ─── Background Gradient ─── */
+.bg-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    154deg,
+    #eef6ff 0%,
+    rgba(238, 242, 255, 0.3) 50%,
+    #faf5ff 100%
+  );
+  z-index: 0;
 }
 
-.hero-title {
-  font-size: 3rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--color-foreground);
-  margin: 0 0 0.75rem;
-  line-height: 1.1;
-}
-
-.hero-subtitle {
-  font-size: 1.125rem;
-  color: var(--color-text-secondary);
-  margin: 0 0 2rem;
-  line-height: 1.6;
-}
-
-/* Search Box */
-.search-wrapper {
-  max-width: 560px;
-  margin: 0 auto 2rem;
-}
-
-.hero-search {
-  width: 100%;
-}
-
-.hero-search :deep(.ant-input-affix-wrapper) {
-  padding: 0.75rem 1rem;
-  border-radius: 0.75rem;
-  border: 2px solid var(--color-border);
-  font-size: 1rem;
-  background: var(--color-surface);
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-}
-
-.hero-search :deep(.ant-input-affix-wrapper:hover),
-.hero-search :deep(.ant-input-affix-wrapper:focus),
-.hero-search :deep(.ant-input-affix-wrapper-focused) {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-}
-
-.hero-search :deep(.ant-input) {
-  font-size: 1rem;
-  background: transparent;
-  border: none;
-  outline: none;
-  flex: 1;
-}
-
-.hero-search :deep(.ant-input-prefix) {
-  margin-right: 0.75rem;
-  color: var(--color-text-muted);
-  display: flex;
-  align-items: center;
-}
-
-.search-icon {
-  font-size: 1.125rem;
-}
-
-.hero-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-}
-
-.btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.625rem 1.5rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  font-weight: 500;
-  font-size: 0.9375rem;
-  color: var(--color-foreground);
-  text-decoration: none;
-  transition: all 0.2s;
-  background: var(--color-surface);
-}
-
-.btn-secondary:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
-/* Hero Decoration */
-.hero-decoration {
+/* ─── Azure Decorative Rings ─── */
+.rings {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 1;
-}
-
-.deco-ring {
-  position: absolute;
-  border: 1px solid var(--color-border);
-  border-radius: 50%;
-  opacity: 0.5;
-}
-
-.ring-1 {
-  width: 400px;
-  height: 400px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.ring-2 {
-  width: 600px;
-  height: 600px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.ring-3 {
-  width: 800px;
-  height: 800px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-[data-theme="dark"] .deco-ring {
-  opacity: 0.15;
-}
-
-/* Featured Section */
-.featured {
-  padding: 4rem 0 6rem;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 2rem;
-}
-
-.section-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--color-foreground);
-  margin: 0;
-}
-
-.section-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  color: var(--color-text-secondary);
-  font-size: 0.875rem;
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.section-link:hover {
-  color: var(--color-primary);
-}
-
-/* Skills Grid */
-.skills-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-}
-
-@media (max-width: 768px) {
-  .skills-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.skill-card {
-  display: flex;
-  flex-direction: column;
-  padding: 1.5rem;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 0.75rem;
-  text-decoration: none;
-  transition: all 0.2s;
-}
-
-.skill-card:hover {
-  border-color: var(--color-primary);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-}
-
-.skill-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-hover);
-  border-radius: 0.5rem;
-  margin-bottom: 1rem;
-  font-size: 1.25rem;
-  color: var(--color-primary);
-}
-
-.skill-info {
-  flex: 1;
-  margin-bottom: 1rem;
-}
-
-.skill-name {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--color-foreground);
-  margin: 0 0 0.5rem;
-}
-
-.skill-desc {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  margin: 0;
-  line-height: 1.5;
-}
-
-.skill-stats {
-  display: flex;
-  gap: 1rem;
-}
-
-.stat {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.8125rem;
-  color: var(--color-text-muted);
-}
-
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
+  z-index: 0;
   overflow: hidden;
 }
 
+.ring {
+  position: absolute;
+  border-radius: 99999px;
+  border: 1.5px solid rgba(190, 219, 255, 0.5);
+}
+
+.ring-1 {
+  width: 300px;
+  height: 300px;
+  right: 5%;
+  top: 30%;
+  animation: ring-float 10s ease-in-out infinite;
+}
+
+.ring-2 {
+  width: 500px;
+  height: 500px;
+  right: 0%;
+  top: 20%;
+  animation: ring-float 10s ease-in-out infinite 2s;
+}
+
+.ring-3 {
+  width: 700px;
+  height: 700px;
+  right: -5%;
+  top: 10%;
+  animation: ring-float 10s ease-in-out infinite 4s;
+}
+
+@keyframes ring-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+/* ─── Hero Content ─── */
+.hero-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  max-width: 720px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+/* ─── Entrance Animations ─── */
+.hero-title {
+  font-family: 'Archivo', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: #27272a;
+  margin: 0 0 1.25rem;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.title-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hero-subtitle {
+  font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  font-weight: 400;
+  line-height: 1.5;
+  color: #52525c;
+  margin: 0 0 2.5rem;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.subtitle-in {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.12s;
+}
+
+/* ─── Search Pill (Glassmorphism) ─── */
+.search-pill-wrap {
+  width: 100%;
+  max-width: 672px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.search-in {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.22s;
+}
+
+.search-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0 24px;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 99999px;
+  box-shadow:
+    0 10px 15px -3px rgba(43, 127, 255, 0.1),
+    0 4px 6px -4px rgba(43, 127, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  gap: 0.75rem;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    background 0.3s ease,
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.search-pill:hover {
+  transform: translateY(-2px);
+}
+
+.search-pill.focused {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(43, 127, 255, 0.4);
+  box-shadow:
+    0 10px 15px -3px rgba(43, 127, 255, 0.15),
+    0 4px 6px -4px rgba(43, 127, 255, 0.12);
+  transform: translateY(-2px);
+}
+
+.search-icon {
+  font-size: 1.25rem;
+  color: #9f9fa9;
+  flex-shrink: 0;
+  transition: color 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.search-icon.icon-active {
+  color: #2b7fff;
+  transform: scale(1.1);
+}
+
+.hero-search {
+  flex: 1;
+}
+
+.hero-search :deep(.ant-input) {
+  font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #27272a;
+  padding: 0;
+  line-height: 1;
+}
+
+.hero-search :deep(.ant-input)::placeholder {
+  color: #9f9fa9;
+}
+
+/* ─── CTA Pill Button (Gradient) ─── */
+.cta-wrap {
+  margin-top: 2rem;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cta-in {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.32s;
+}
+
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2.5rem;
+  background: linear-gradient(135deg, #155dfc 0%, #4f39f6 100%);
+  color: #fff;
+  border-radius: 99999px;
+  font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 1.125rem;
+  font-weight: 700;
+  text-decoration: none;
+  line-height: 1;
+  box-shadow:
+    0 20px 25px -5px rgba(43, 127, 255, 0.3),
+    0 8px 10px -6px rgba(43, 127, 255, 0.3);
+  transition:
+    background 0.3s ease,
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.3s ease,
+    color 0.2s ease;
+}
+
+.cta-btn:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow:
+    0 24px 30px -5px rgba(43, 127, 255, 0.35),
+    0 10px 14px -6px rgba(43, 127, 255, 0.3);
+  color: #fff;
+}
+
+.cta-btn:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow:
+    0 10px 15px -3px rgba(43, 127, 255, 0.25),
+    0 4px 6px -4px rgba(43, 127, 255, 0.2);
+}
+
+/* ─── Dark Theme ─── */
+[data-theme="dark"] .bg-gradient {
+  background: linear-gradient(
+    154deg,
+    #0f1729 0%,
+    rgba(15, 15, 45, 0.6) 50%,
+    #1a0f2e 100%
+  );
+}
+
+[data-theme="dark"] .ring {
+  border-color: rgba(43, 127, 255, 0.15);
+}
+
+[data-theme="dark"] .hero-title {
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .hero-subtitle {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .search-pill {
+  background: rgba(30, 35, 60, 0.6);
+  border-color: rgba(99, 102, 241, 0.2);
+  box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .search-pill.focused {
+  background: rgba(40, 45, 80, 0.7);
+  border-color: rgba(43, 127, 255, 0.5);
+}
+
+[data-theme="dark"] .hero-search :deep(.ant-input) {
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .hero-search :deep(.ant-input)::placeholder {
+  color: #64748b;
+}
+
+[data-theme="dark"] .search-icon {
+  color: #64748b;
+}
+
+[data-theme="dark"] .cta-btn {
+  box-shadow:
+    0 20px 25px -5px rgba(43, 127, 255, 0.4),
+    0 8px 10px -6px rgba(43, 127, 255, 0.35);
+}
+
+[data-theme="dark"] .cta-btn:hover {
+  box-shadow:
+    0 24px 30px -5px rgba(43, 127, 255, 0.5),
+    0 10px 14px -6px rgba(43, 127, 255, 0.4);
+}
+
+/* ─── Responsive ─── */
 @media (max-width: 640px) {
-  .hero-title {
-    font-size: 2rem;
+  .hero {
+    min-height: calc(100vh - 100px);
+    padding: 1.5rem 1rem;
   }
 
-  .hero {
-    min-height: 50vh;
-    padding: 3rem 1.5rem;
+  .search-pill {
+    height: 56px;
+    padding: 0 20px;
+  }
+
+  .cta-btn {
+    padding: 0.875rem 2rem;
+    font-size: 1rem;
+  }
+
+  .rings .ring-3 {
+    display: none;
   }
 }
 </style>
