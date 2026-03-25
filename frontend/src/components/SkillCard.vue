@@ -17,6 +17,7 @@
       <!-- Footer: author + stats -->
       <div class="card-footer">
         <span class="card-author">
+          <UserOutlined class="author-icon" />
           {{ skill.owner?.handle || skill.owner?.displayName || t('skills.unknown_author') }}
         </span>
         <SkillStats :stats="skill.stats" />
@@ -26,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import { StarFilled } from "@ant-design/icons-vue";
+import { StarFilled, UserOutlined } from "@ant-design/icons-vue";
 import SkillStats from "./SkillStats.vue";
 
 defineProps<{
@@ -161,6 +162,9 @@ const { t } = useI18n();
 }
 
 .card-author {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
   font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   font-size: 0.8125rem;
   color: #9ca3af;
@@ -169,6 +173,11 @@ const { t } = useI18n();
   white-space: nowrap;
   flex: 1;
   min-width: 0;
+}
+
+.author-icon {
+  font-size: 0.875rem;
+  flex-shrink: 0;
 }
 
 /* ─── Dark Theme ─── */

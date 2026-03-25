@@ -94,8 +94,14 @@ function handleSearch(value: string) {
 
 /* ─── Background Gradient ─── */
 .bg-gradient {
-  position: absolute;
+  position: fixed;
   inset: 0;
+  background: linear-gradient(
+    154deg,
+    #eef6ff 0%,
+    rgba(238, 242, 255, 0.3) 50%,
+    #faf5ff 100%
+  );
   z-index: 0;
 }
 
