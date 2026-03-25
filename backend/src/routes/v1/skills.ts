@@ -121,6 +121,14 @@ const listSkills: FastifyPluginAsync = async (fastify) => {
                       license: { type: "string", nullable: true },
                     },
                   },
+                  owner: {
+                    type: "object",
+                    nullable: true,
+                    properties: {
+                      handle: { type: "string", nullable: true },
+                      displayName: { type: "string", nullable: true },
+                    },
+                  },
                 },
               },
             },
@@ -199,6 +207,7 @@ const listSkills: FastifyPluginAsync = async (fastify) => {
         createdAt: skills.createdAt,
         updatedAt: skills.updatedAt,
         latestVersionId: skills.latestVersionId,
+        ownerUserId: skills.ownerUserId,
       })
       .from(skills)
       .where(and(...conditions))
@@ -207,6 +216,13 @@ const listSkills: FastifyPluginAsync = async (fastify) => {
 
     const hasNextPage = skillRows.length > limit;
     const items = skillRows.slice(0, limit);
+
+    // Fetch owners for all skills
+    const ownerUserIds = [...new Set(items.map((s) => s.ownerUserId).filter((id): id is string => id !== null))];
+    const ownerRows = ownerUserIds.length > 0
+      ? await db.select({ id: users.id, handle: users.handle, displayName: users.displayName }).from(users).where(sql`${users.id} IN ${ownerUserIds}`)
+      : [];
+    const ownerMap = new Map(ownerRows.map((u) => [u.id, u]));
 
     const latestVersionIds = items
       .map((s) => s.latestVersionId)
@@ -230,6 +246,7 @@ const listSkills: FastifyPluginAsync = async (fastify) => {
 
     const responseItems = items.map((skill) => {
       const latestVersion = versionMap.get(skill.id);
+      const owner = skill.ownerUserId ? ownerMap.get(skill.ownerUserId) : null;
       return {
         slug: skill.slug,
         displayName: skill.displayName,
@@ -250,6 +267,9 @@ const listSkills: FastifyPluginAsync = async (fastify) => {
               license: latestVersion.license as "MIT-0" | null,
             }
           : undefined,
+        owner: owner
+          ? { handle: owner.handle, displayName: owner.displayName }
+          : null,
       };
     });
 
