@@ -20,7 +20,7 @@
       <div class="filter-actions">
         <slot name="filters" />
 
-        <a-divider v-if="$slots.filters" type="vertical" class="my-0" />
+        <!-- <a-divider v-if="$slots.filters" type="vertical" class="my-0" /> -->
 
         <!-- Sort select -->
         <a-select
@@ -123,7 +123,6 @@ watch(() => route.query, (query) => {
   align-items: center;
   flex: 1;
   min-width: 200px;
-  max-width: 480px;
   height: 48px;
   padding: 0 20px;
   background: rgba(255, 255, 255, 0.6);
@@ -164,11 +163,36 @@ watch(() => route.query, (query) => {
   transform: scale(1.05);
 }
 
-/* ─── Filter Actions ─── */
+/* ─── Filter Actions — glassmorphism frame ─── */
 .filter-actions {
   display: flex;
   align-items: center;
+  height: 48px;
+  padding: 0 6px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 99999px;
+  box-shadow:
+    0 2px 8px rgba(43, 127, 255, 0.06),
+    0 1px 3px rgba(43, 127, 255, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
   gap: 0.5rem;
+  flex-shrink: 0;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    background 0.3s ease;
+}
+
+.filter-actions:focus-within {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(43, 127, 255, 0.25);
+  box-shadow:
+    0 4px 12px rgba(43, 127, 255, 0.1),
+    0 2px 6px rgba(43, 127, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 /* Slot 按钮（精选等）统一为玻璃态药丸尺寸 */
@@ -257,7 +281,7 @@ watch(() => route.query, (query) => {
   border: 1px solid rgba(228, 228, 231, 0.5);
   border-radius: 99999px;
   padding: 3px;
-  gap: 2px;
+  gap: 0.5rem;
   box-shadow:
     0 1px 3px rgba(0, 0, 0, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
@@ -408,27 +432,42 @@ watch(() => route.query, (query) => {
   line-height: 36px !important;
 }
 
-[data-theme="dark"] .filter-actions :deep(.ant-btn) {
+[data-theme="dark"] .filter-actions {
   background: rgba(30, 35, 60, 0.5) !important;
   border-color: rgba(99, 102, 241, 0.15) !important;
   box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.2),
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    0 1px 3px rgba(0, 0, 0, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+[data-theme="dark"] .filter-actions:focus-within {
+  background: rgba(40, 45, 80, 0.6) !important;
+  border-color: rgba(43, 127, 255, 0.3) !important;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.25),
+    0 2px 6px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+
+[data-theme="dark"] .filter-actions :deep(.ant-btn) {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
   color: #94a3b8 !important;
 }
 
 [data-theme="dark"] .filter-actions :deep(.ant-btn:hover) {
-  border-color: rgba(43, 127, 255, 0.35) !important;
+  border-color: rgba(43, 127, 255, 0.25) !important;
   color: #60a5fa !important;
+  background: rgba(255, 255, 255, 0.04) !important;
 }
 
 [data-theme="dark"] .filter-actions :deep(.ant-btn.ant-btn-primary) {
-  background: rgba(40, 45, 80, 0.6) !important;
-  border-color: rgba(43, 127, 255, 0.35) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(43, 127, 255, 0.25) !important;
   color: #60a5fa !important;
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  box-shadow: none !important;
 }
 
 [data-theme="dark"] :deep(.ant-select-arrow) {

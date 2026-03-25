@@ -40,12 +40,14 @@
     </div>
 
     <!-- Skills List -->
-    <SkillsList
-      :skills="skills"
-      :view-mode="viewMode"
-      :pending="pending"
-      :error="error"
-    />
+    <div class="skills-list-wrap">
+      <SkillsList
+        :skills="skills"
+        :view-mode="viewMode"
+        :pending="pending"
+        :error="error"
+      />
+    </div>
   </div>
 </template>
 
@@ -197,8 +199,7 @@ const total = computed(() => data.value?.total || 0);
 .page-hero {
   position: relative;
   z-index: 1;
-  text-align: center;
-  max-width: 640px;
+  max-width: 1024px;
   margin: 0 auto 2rem;
   padding-top: 1rem;
 }
@@ -256,6 +257,14 @@ const total = computed(() => data.value?.total || 0);
   transform: translateY(8px);
   transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   transition-delay: 0.18s;
+}
+
+/* ─── Skills List ─── */
+.skills-list-wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 1024px;
+  margin: 0 auto;
 }
 
 .filters-in {

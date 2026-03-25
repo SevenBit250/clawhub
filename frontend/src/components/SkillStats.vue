@@ -5,7 +5,7 @@
       <span class="stat-value">{{ formatCount(stats.downloads) }}</span>
     </div>
     <div class="stat-item" title="Stars">
-      <StarFilled style="color: #faad14" />
+      <StarFilled class="star-icon" />
       <span class="stat-value">{{ formatCount(stats.stars) }}</span>
     </div>
     <div class="stat-item" title="Installs">
@@ -33,31 +33,44 @@ function formatCount(num: number): string {
 .skill-stats {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.875rem;
+  flex-shrink: 0;
 }
 
 .stat-item {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  color: #6b7280;
-  font-size: 0.875rem;
+  gap: 0.2rem;
+  color: #9ca3af;
+  font-size: 0.8125rem;
+  font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-weight: 500;
+  transition: color 0.2s ease;
 }
 
 .stat-item .anticon {
-  font-size: 1rem;
+  font-size: 0.875rem;
+}
+
+.star-icon {
+  color: #fbbf24;
 }
 
 .stat-value {
-  font-weight: 500;
-  color: #374151;
+  color: #6b7280;
+  font-weight: 600;
 }
 
-:deep(.dark) .stat-item {
-  color: #9ca3af;
+/* ─── Dark Theme ─── */
+[data-theme="dark"] .stat-item {
+  color: #64748b;
 }
 
-:deep(.dark) .stat-value {
-  color: #e5e7eb;
+[data-theme="dark"] .stat-value {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .skill-stats .anticon {
+  opacity: 0.8;
 }
 </style>

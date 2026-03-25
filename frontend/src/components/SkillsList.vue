@@ -8,20 +8,24 @@
   />
   <template v-else-if="skills.length">
     <!-- List View -->
-    <div v-if="viewMode === 'list'" class="space-y-3">
+    <div v-if="viewMode === 'list'" class="list-container">
       <SkillListItem
-        v-for="skill in skills"
+        v-for="(skill, index) in skills"
         :key="skill.slug"
         :skill="skill"
+        :style="{ animationDelay: `${index * 60}ms` }"
+        class="list-item-enter"
       />
     </div>
 
     <!-- Card View -->
-    <div v-else class="grid grid-cols-3 gap-6">
+    <div v-else class="card-grid">
       <SkillCard
-        v-for="skill in skills"
+        v-for="(skill, index) in skills"
         :key="skill.slug"
         :skill="skill"
+        :style="{ animationDelay: `${index * 60}ms` }"
+        class="card-item-enter"
       />
     </div>
   </template>
@@ -53,3 +57,55 @@ defineProps<{
 
 const { t } = useI18n();
 </script>
+
+<style scoped>
+/* ─── Card Grid ─── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .card-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+/* ─── List Container ─── */
+.list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ─── Staggered Enter Animations ─── */
+.card-item-enter {
+  opacity: 0;
+  animation: card-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.list-item-enter {
+  opacity: 0;
+  animation: card-enter 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
