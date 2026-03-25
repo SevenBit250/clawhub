@@ -153,8 +153,8 @@ const { t } = useI18n();
 /* ─── Footer ─── */
 .card-footer {
   display: flex;
-  flex-direction: row-reverse;
   align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
   padding-top: 1rem;
   border-top: 1px solid rgba(0, 0, 0, 0.05);
