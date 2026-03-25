@@ -114,6 +114,10 @@
     "badge": {
       "highlighted": "Highlighted"
     },
+    "view": {
+      "list": "List view",
+      "card": "Card view"
+    },
     "no_skills": "No skills found"
   },
   "skill": {

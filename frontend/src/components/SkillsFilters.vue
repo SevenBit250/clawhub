@@ -65,6 +65,8 @@ import { ref, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { SearchOutlined, UnorderedListOutlined, AppstoreOutlined } from "@ant-design/icons-vue";
 
+const { t } = useI18n();
+
 const props = defineProps<{
   viewMode: "list" | "card";
   sortOptions: Array<{ value: string; label: string }>;
