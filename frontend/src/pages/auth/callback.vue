@@ -15,6 +15,23 @@ const redirectUri =
   (import.meta.env.VITE_AUTHING_REDIRECT_URI as string) ||
   `${window.location.origin}/auth/callback`;
 
+// 手动解析 URL 参数（支持 hash fragment 和 query string）
+function getQueryParam(param: string): string | null {
+  // 先尝试从 query string 解析 (?code=xxx)
+  let params = new URLSearchParams(window.location.search);
+  let value = params.get(param);
+
+  // 如果 query string 没有，尝试从 hash fragment 解析 (#code=xxx)
+  if (!value && window.location.hash) {
+    // 移除 # 号
+    const hash = window.location.hash.substring(1);
+    params = new URLSearchParams(hash);
+    value = params.get(param);
+  }
+
+  return value;
+}
+
 const sdk = new Authing({
   domain,
   appId,
@@ -27,16 +44,23 @@ const REDIRECT_KEY = "auth_redirect_uri";
 onMounted(async () => {
   // 如果是 Authing 回调，处理 code
   if (sdk.isRedirectCallback()) {
+    // 优先使用手动解析，其次使用 route.query
+    const code = getQueryParam('code') || route.query.code as string;
+
+    if (!code) {
+      console.error('[Authing] No code found in URL');
+      message.error("登录失败：未获取到授权码");
+      setTimeout(() => router.push('/'), 2000);
+      return;
+    }
+
     try {
       // handleRedirectCallback 会自动用 code 换 token并存入 SDK 内部存储
       await sdk.handleRedirectCallback();
       const state = await sdk.getLoginState();
       if (state) {
-        // 从 SDK 获取 code，通过后端换 JWT token
-        const code = route.query.code as string;
-        if (code) {
-          await login(code);
-        }
+        // 通过后端换 JWT token
+        await login(code);
       }
       // 优先从 URL 读取 redirect，兜底从 sessionStorage 读取
       const redirect =
@@ -45,9 +69,10 @@ onMounted(async () => {
         "/";
       sessionStorage.removeItem(REDIRECT_KEY);
       window.location.replace(redirect);
-    } catch {
-      message.error("登录失败，请重试");
-      window.location.replace("/");
+    } catch (err) {
+      console.error('[Authing] Login failed:', err);
+      message.error("登录失败：" + (err as any)?.message || "未知错误");
+      setTimeout(() => router.push('/'), 2000);
     }
     return;
   }
