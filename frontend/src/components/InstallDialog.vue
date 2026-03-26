@@ -78,6 +78,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: [];
+  download: [];
 }>();
 
 const copied = ref(false);
@@ -125,6 +126,7 @@ async function copyToClipboard(text: string) {
 
 function handleDownload() {
   window.open(props.downloadUrl, "_blank");
+  emit("download");
 }
 
 function handleClose() {

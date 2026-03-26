@@ -154,6 +154,7 @@
       :install-command="cliInstallCommand"
       :download-url="cliDownloadUrl"
       @close="showInstallDialog = false"
+      @download="fetchSkill"
     />
 
     <!-- Changelog Dialog -->
@@ -268,13 +269,7 @@ onMounted(async () => {
     mounted.value = true;
   });
 
-  try {
-    data.value = await api.get(`/api/v1/skills/${slug}`, { token: token.value });
-  } catch (e) {
-    error.value = e instanceof Error ? e.message : "Failed to load skill";
-  } finally {
-    pending.value = false;
-  }
+  await fetchSkill();
 
   // Check star status (only if authenticated and slug is valid)
   if (isAuthenticated.value && slug && slug !== 'new-slug') {
@@ -310,6 +305,17 @@ onMounted(async () => {
     contentReady.value = true;
   });
 });
+
+async function fetchSkill() {
+  pending.value = true;
+  try {
+    data.value = await api.get(`/api/v1/skills/${slug}`, { token: token.value });
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : "Failed to load skill";
+  } finally {
+    pending.value = false;
+  }
+}
 
 async function toggleStar() {
   if (!isAuthenticated.value) {
