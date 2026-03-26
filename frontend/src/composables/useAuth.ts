@@ -1,3 +1,5 @@
+import { Authing } from "@authing/web";
+
 interface User {
   id: string;
   name: string | null;
@@ -30,6 +32,21 @@ if (savedToken) {
   authState.isAuthenticated = true;
 }
 
+// Authing SDK instance
+const authingDomain = import.meta.env.VITE_AUTHING_DOMAIN as string;
+const authingAppId = import.meta.env.VITE_AUTHING_APP_ID as string;
+const authingUserPoolId = import.meta.env.VITE_AUTHING_USER_POOL_ID as string;
+const authingRedirectUri =
+  (import.meta.env.VITE_AUTHING_REDIRECT_URI as string) ||
+  `${window.location.origin}/auth/callback`;
+
+const authingSdk = new Authing({
+  domain: authingDomain,
+  appId: authingAppId,
+  userPoolId: authingUserPoolId,
+  redirectUri: authingRedirectUri,
+});
+
 export function useAuth() {
   const api = useApi();
 
@@ -59,6 +76,8 @@ export function useAuth() {
     authState.user = null;
     authState.isAuthenticated = false;
     localStorage.removeItem("auth_token");
+    // 调用 Authing 登出并跳转
+    authingSdk.logoutWithRedirect();
   }
 
   async function fetchSession() {

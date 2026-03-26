@@ -90,8 +90,20 @@ onMounted(async () => {
       sessionStorage.removeItem(REDIRECT_KEY);
       window.location.replace(redirect);
     } catch (err) {
+      const errorMsg = (err as any)?.message || '';
+      // 检测到 sessionStorage 状态丢失，自动重试登录
+      if (errorMsg.includes('获取登录流程会话失败') || errorMsg.includes('sessionStorage')) {
+        console.warn('[Authing] Session lost, retrying login...');
+        message.warning("登录会话丢失，正在重新发起登录...");
+        // 清除可能损坏的 state，重新发起登录
+        sessionStorage.removeItem('oidc_auth_state');
+        sessionStorage.removeItem('oidc_code_verifier');
+        await new Promise(r => setTimeout(r, 1000));
+        sdk.loginWithRedirect({ originalUri: redirect });
+        return;
+      }
       console.error('[Authing] Login failed:', err);
-      message.error("登录失败：" + (err as any)?.message || "未知错误");
+      message.error("登录失败：" + errorMsg || "未知错误");
       setTimeout(() => router.push('/'), 2000);
     }
     return;
