@@ -7,7 +7,7 @@
           {{ t('dashboard.title') }}
         </h1>
         <p v-if="isAuthenticated" class="page-subtitle motion-up-16 motion-delay-1" :class="{ 'in': mounted }">
-          {{ t('dashboard.welcome_back') || '欢迎回来' }}
+          {{ t('dashboard.welcome_back') }}
         </p>
       </div>
 
@@ -16,7 +16,7 @@
         <div class="login-card motion-up-12" :class="{ 'in': mounted }">
           <div class="login-icon">🔐</div>
           <h2 class="login-title">{{ t('dashboard.login_required') }}</h2>
-          <p class="login-description">{{ t('dashboard.login_hint') || '请登录以查看您的控制台' }}</p>
+          <p class="login-description">{{ t('dashboard.login_hint') }}</p>
           <a-button type="primary" size="large" class="login-button" @click="handleLogin">
             {{ t('dashboard.login') }}
           </a-button>
@@ -73,11 +73,11 @@
                 <p class="pending-slug">/ {{ s.slug }}</p>
                 <div class="pending-author">
                   <UserOutlined />
-                  <span>{{ s.ownerDisplayName || s.ownerHandle || 'Unknown' }}</span>
+                  <span>{{ s.ownerDisplayName || s.ownerHandle || t('dashboard.unknown_author') }}</span>
                 </div>
               </div>
               <a-button type="primary" class="review-button" @click="openModeration(s)">
-                {{ t('dashboard.review') || '审核' }}
+                {{ t('dashboard.review') }}
               </a-button>
             </div>
           </div>
@@ -100,10 +100,10 @@
           <div v-if="!mySkills?.length" class="empty-state motion-up-12" :class="{ 'in': contentMounted }">
             <div class="empty-icon">📦</div>
             <h3 class="empty-title">{{ t('dashboard.no_skills') }}</h3>
-            <p class="empty-description">{{ t('dashboard.no_skills_hint') || '创建您的第一个技能包开始吧' }}</p>
+            <p class="empty-description">{{ t('dashboard.no_skills_hint') }}</p>
             <router-link to="/skills/create">
               <a-button type="primary" size="large">
-                {{ t('dashboard.create_first_skill') || '创建第一个技能' }}
+                {{ t('dashboard.create_first_skill') }}
               </a-button>
             </router-link>
           </div>
@@ -297,29 +297,29 @@ async function openModeration(skill: typeof pendingSkills.value[number]) {
     };
     showModerationDialog.value = true;
   } catch {
-    message.error("Failed to load skill details");
+    message.error(t("dashboard.skill_load_failed"));
   }
 }
 
 async function handleModerationApprove(id: string) {
   try {
     await api.post(`/api/v1/admin/skills/${id}/approve`, {}, { token: token.value });
-    message.success("Skill approved");
+    message.success(t("dashboard.skill_approved"));
     showModerationDialog.value = false;
     pendingSkills.value = pendingSkills.value.filter(s => s.id !== id);
   } catch {
-    message.error("Failed to approve skill");
+    message.error(t("dashboard.skill_approve_failed"));
   }
 }
 
 async function handleModerationReject(id: string) {
   try {
     await api.post(`/api/v1/admin/skills/${id}/reject`, {}, { token: token.value });
-    message.success("Skill rejected");
+    message.success(t("dashboard.skill_rejected"));
     showModerationDialog.value = false;
     pendingSkills.value = pendingSkills.value.filter(s => s.id !== id);
   } catch {
-    message.error("Failed to reject skill");
+    message.error(t("dashboard.skill_reject_failed"));
   }
 }
 
