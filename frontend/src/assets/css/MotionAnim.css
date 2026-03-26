@@ -1,0 +1,77 @@
+/* ───────────────────────────────────────────────────────────
+   Motion Light Design System - Animation Utilities
+   可复用的弹性入场动画工具类
+   ─────────────────────────────────────────────────────────── */
+
+/* ─── Base Motion Enter Animation ─── */
+.motion-enter {
+  opacity: 0;
+  transform: translateY(24px) scale(0.96);
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.motion-enter-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* ─── Variants by Distance ─── */
+.motion-in-up-24 {
+  transform: translateY(24px) scale(0.96);
+}
+
+.motion-in-up-20 {
+  transform: translateY(20px) scale(0.96);
+}
+
+.motion-in-up-16 {
+  transform: translateY(16px) scale(0.96);
+}
+
+.motion-in-up-12 {
+  transform: translateY(12px) scale(0.96);
+}
+
+.motion-in-up-8 {
+  transform: translateY(8px) scale(0.96);
+}
+
+/* ─── Active States (combine with .motion-enter-active) ─── */
+.motion-in-up-24.motion-enter-active,
+.motion-in-up-20.motion-enter-active,
+.motion-in-up-16.motion-enter-active,
+.motion-in-up-12.motion-enter-active,
+.motion-in-up-8.motion-enter-active {
+  transform: translateY(0) scale(1);
+}
+
+/* ─── Delays ─── */
+.motion-delay-0 { transition-delay: 0s; }
+.motion-delay-1 { transition-delay: 0.08s; }
+.motion-delay-2 { transition-delay: 0.1s; }
+.motion-delay-3 { transition-delay: 0.18s; }
+.motion-delay-4 { transition-delay: 0.22s; }
+
+/* ─── Quick Utility Combos �─┐ */
+/* Just add class, no need for separate active state */
+.motion-up-24 { opacity: 0; transform: translateY(24px) scale(0.96); transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.motion-up-20 { opacity: 0; transform: translateY(20px) scale(0.96); transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.motion-up-16 { opacity: 0; transform: translateY(16px) scale(0.96); transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.motion-up-12 { opacity: 0; transform: translateY(12px) scale(0.96); transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+.motion-up-24.in,
+.motion-up-20.in,
+.motion-up-16.in,
+.motion-up-12.in { opacity: 1; transform: translateY(0) scale(1); }
+
+/* ─── Timing Easing Helpers ─── */
+.motion-ease-out { transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+.motion-spring { transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); }
+.motion-spring-gentle { transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+
+/* ─── Duration Helpers ─── */
+.motion-fast { transition-duration: 0.5s; }
+.motion-base { transition-duration: 0.7s; }
+.motion-slow { transition-duration: 1s; }

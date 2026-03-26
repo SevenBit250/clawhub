@@ -4,17 +4,17 @@
       <!-- Hero Content -->
       <div class="hero-content">
         <!-- Title -->
-        <h1 class="hero-title" :class="{ 'title-in': mounted }">
+        <h1 class="hero-title motion-up-24" :class="{ 'in': mounted }">
           {{ $t('home.hero.title') }}
         </h1>
 
         <!-- Subtitle -->
-        <p class="hero-subtitle" :class="{ 'subtitle-in': mounted }">
+        <p class="hero-subtitle motion-up-20 motion-delay-2" :class="{ 'in': mounted }">
           {{ $t('home.hero.subtitle') }}
         </p>
 
         <!-- Search pill (glassmorphism) -->
-        <div class="search-pill-wrap" :class="{ 'search-in': mounted }">
+        <div class="search-pill-wrap motion-up-16 motion-delay-3" :class="{ 'in': mounted }">
           <div class="search-pill" :class="{ 'focused': searchFocused }">
             <SearchOutlined class="search-icon" :class="{ 'icon-active': searchFocused }" />
             <a-input
@@ -96,7 +96,7 @@ function handleSearch(value: string) {
   gap: 0;
 }
 
-/* ─── Entrance Animations ─── */
+/* ─── Hero Title ─── */
 .hero-title {
   font-family: 'Archivo', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   font-size: clamp(2.5rem, 8vw, 4.5rem);
@@ -105,16 +105,9 @@ function handleSearch(value: string) {
   line-height: 1;
   color: #27272a;
   margin: 0 0 1.25rem;
-  opacity: 0;
-  transform: translateY(24px) scale(0.96);
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.title-in {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
+/* ─── Hero Subtitle ─── */
 .hero-subtitle {
   font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   font-size: clamp(1rem, 2.5vw, 1.25rem);
@@ -122,30 +115,12 @@ function handleSearch(value: string) {
   line-height: 1.5;
   color: #52525c;
   margin: 0 0 2.5rem;
-  opacity: 0;
-  transform: translateY(20px) scale(0.96);
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.subtitle-in {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  transition-delay: 0.1s;
 }
 
 /* ─── Search Pill (Glassmorphism) ─── */
 .search-pill-wrap {
   width: 100%;
   max-width: 672px;
-  opacity: 0;
-  transform: translateY(16px) scale(0.96);
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.search-in {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  transition-delay: 0.18s;
 }
 
 .search-pill {

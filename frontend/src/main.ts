@@ -5,6 +5,7 @@ import { i18n } from "./plugins/i18n";
 import antdvPlugin from "./plugins/antdv";
 import { message } from "ant-design-vue";
 import "@/assets/css/main.css";
+import "@/assets/css/MotionAnim.css";
 
 const app = createApp(App);
 

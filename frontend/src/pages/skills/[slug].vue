@@ -10,7 +10,7 @@
     </div>
     <div v-else class="page-content">
       <!-- Header Card -->
-      <div class="header-card glass-card" :class="{ 'slide-in': contentReady }">
+      <div class="header-card glass-card motion-up-24" :class="{ 'in': contentReady }">
         <div class="header-top">
           <div class="title-section">
             <h1 class="skill-title">{{ skill.displayName }}</h1>
@@ -81,7 +81,7 @@
       </div>
 
       <!-- Comments Card -->
-      <div class="comments-card glass-card" :class="{ 'slide-in': contentReady }">
+      <div class="comments-card glass-card motion-delay-1" :class="{ 'in': contentReady }">
         <div class="card-header">
           <h2 class="card-title">
             <MessageOutlined />
@@ -447,17 +447,6 @@ function getInitials(commentUser: CommentUser | null): string {
     0 4px 16px rgba(43, 127, 255, 0.06),
     0 2px 8px rgba(43, 127, 255, 0.04),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  opacity: 0;
-  transform: translateY(24px) scale(0.96);
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.header-card { transition-delay: 0s; }
-.comments-card { transition-delay: 0.12s; }
-
-.slide-in {
-  opacity: 1;
-  transform: translateY(0) scale(1);
 }
 
 /* ─── Header Card ─── */

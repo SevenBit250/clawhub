@@ -8,10 +8,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AButton: typeof import('ant-design-vue/es')['Button']
-    AButtonGroup: typeof import('ant-design-vue/es')['ButtonGroup']
-    ACard: typeof import('ant-design-vue/es')['Card']
     AConfigProvider: typeof import('ant-design-vue/es')['ConfigProvider']
-    ADivider: typeof import('ant-design-vue/es')['Divider']
     ADropdown: typeof import('ant-design-vue/es')['Dropdown']
     AInput: typeof import('ant-design-vue/es')['Input']
     AMenu: typeof import('ant-design-vue/es')['Menu']
@@ -26,6 +23,7 @@ declare module 'vue' {
     DashboardSkillItem: typeof import('./components/DashboardSkillItem.vue')['default']
     InstallDialog: typeof import('./components/InstallDialog.vue')['default']
     ModerationDialog: typeof import('./components/ModerationDialog.vue')['default']
+    MotionBackground: typeof import('./components/MotionBackground.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SkillCard: typeof import('./components/SkillCard.vue')['default']

@@ -163,6 +163,18 @@ src/
 - 主要表：users, skills, skill_versions, souls, soul_versions, skill_embeddings, auth_sessions, stars, comments
 - 文件存储：`POST /storage/upload`，存储在 `STORAGE_DIR`，路径格式 `{id[:2]}/{id}`
 
+**JSON 列序列化注意事项**：以下列存储 JSON 数据为文本，需要手动序列化：
+- `skill_versions.files` — 文件对象数组
+- `skill_versions.frontmatter` — 对象
+- `skill_versions.metadata` — 混合对象
+- `skill_versions.clawdis` — 对象
+- `soul_versions.files` — 文件对象数组
+- `soul_versions.frontmatter` — 对象
+- `soul_versions.metadata` — 混合对象
+- `soul_versions.clawdis` — 对象
+
+插入时使用 `JSON.stringify()`，读取时使用 `JSON.parse()`。
+
 ### 技能 (Skills) 和灵魂 (Souls)
 - 技能：包含 `SKILL.md` 的文件夹，支持多版本管理、标签（latest + 自定义标签）
 - 灵魂：类似技能，入口文件为 `SOUL.md`，用于 Agent 灵魂市场

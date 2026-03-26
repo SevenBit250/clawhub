@@ -3,17 +3,17 @@
     <div class="skills-page">
       <!-- Page hero header -->
       <div class="page-hero">
-        <h1 class="page-title" :class="{ 'title-in': mounted }">
+        <h1 class="page-title motion-up-24" :class="{ 'in': mounted }">
           {{ t('skills.title') }}
           <span class="title-count">({{ total }})</span>
         </h1>
-        <p class="page-subtitle" :class="{ 'subtitle-in': mounted }">
+        <p class="page-subtitle motion-up-16 motion-delay-1" :class="{ 'in': mounted }">
           {{ t('skills.subtitle') }}
         </p>
       </div>
 
     <!-- Search & Filters -->
-    <div class="filters-wrap" :class="{ 'filters-in': mounted }">
+    <div class="filters-wrap motion-up-12" :class="{ 'in': mounted }">
       <SkillsFilters
         v-model:view-mode="viewMode"
         :sort-options="sortOptions"
@@ -169,14 +169,6 @@ const total = computed(() => data.value?.total || 0);
   line-height: 1;
   color: #27272a;
   margin: 0 0 0.75rem;
-  opacity: 0;
-  transform: translateY(24px) scale(0.96);
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.title-in {
-  opacity: 1;
-  transform: translateY(0) scale(1);
 }
 
 .title-count {
@@ -193,15 +185,6 @@ const total = computed(() => data.value?.total || 0);
   line-height: 1.5;
   color: #6b7280;
   margin: 0;
-  opacity: 0;
-  transform: translateY(16px) scale(0.96);
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.subtitle-in {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  transition-delay: 0.08s;
 }
 
 /* ─── Filters ─── */
@@ -210,9 +193,6 @@ const total = computed(() => data.value?.total || 0);
   z-index: 1;
   max-width: 1024px;
   margin: 0 auto 2rem;
-  opacity: 0;
-  transform: translateY(12px) scale(0.96);
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* ─── Skills List ─── */
