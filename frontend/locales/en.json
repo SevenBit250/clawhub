@@ -230,6 +230,39 @@
       "title": "Edit Skill",
       "resubmit": "Update & Resubmit",
       "success": "Skill updated and resubmitted for review"
+    },
+    "publish": {
+      "title": "Publish a Skill",
+      "desc": "Upload your skill folder to share",
+      "slug": "Slug",
+      "slug_placeholder": "github",
+      "display_name": "Display Name",
+      "display_name_placeholder": "My Skill",
+      "version": "Version",
+      "tags": "Tags",
+      "tags_placeholder": "latest, ai, tool",
+      "drop_folder": "Drop a folder",
+      "files": "files",
+      "hint": "We keep folder paths and flatten the outer wrapper automatically",
+      "choose_folder": "Choose folder",
+      "no_files": "No files selected",
+      "validation": "Validation",
+      "slug_hint": "Slug must be lowercase and use dashes only",
+      "is_required": "required",
+      "add_file": "Add at least one file",
+      "changelog": "Changelog",
+      "changelog_placeholder": "Enter the changelog for this version...",
+      "cancel": "Cancel",
+      "publish": "Publish",
+      "errors": {
+        "slug_required": "Slug is required",
+        "display_name_required": "Display name is required",
+        "files_required": "Add at least one file",
+        "skill_md_required": "SKILL.md is required",
+        "login_required": "Please login first",
+        "publish_failed": "Failed to publish skill"
+      },
+      "success": "Skill published successfully!"
     }
   },
   "souls": {

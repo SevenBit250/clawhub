@@ -230,6 +230,39 @@
       "title": "审核技能",
       "approve": "通过",
       "reject": "拒绝"
+    },
+    "publish": {
+      "title": "发布技能",
+      "desc": "上传您的技能文件夹来分享",
+      "slug": "Slug",
+      "slug_placeholder": "使用英文小写、下划线或数字",
+      "display_name": "显示名称",
+      "display_name_placeholder": "在市场中的名字",
+      "version": "版本",
+      "tags": "标签",
+      "tags_placeholder": "latest, ai, tool",
+      "drop_folder": "拖放文件夹",
+      "files": "个文件",
+      "hint": "我们会自动扁平化文件夹结构",
+      "choose_folder": "选择文件夹",
+      "no_files": "未选择文件",
+      "validation": "验证",
+      "slug_hint": "Slug 必须是小写字母并使用连字符",
+      "is_required": "必填",
+      "add_file": "至少添加一个文件",
+      "changelog": "更新日志",
+      "changelog_placeholder": "输入此版本的更新内容...",
+      "cancel": "取消",
+      "publish": "发布技能",
+      "errors": {
+        "slug_required": "Slug 不能为空",
+        "display_name_required": "显示名称不能为空",
+        "files_required": "请至少添加一个文件",
+        "skill_md_required": "必须包含 SKILL.md",
+        "login_required": "请先登录",
+        "publish_failed": "发布技能失败"
+      },
+      "success": "技能发布成功！"
     }
   },
   "souls": {
