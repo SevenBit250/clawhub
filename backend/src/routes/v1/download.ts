@@ -19,7 +19,7 @@ export async function registerDownloadV1(fastify: FastifyInstance) {
     }
 
     const [skill] = await db
-      .select({ id: skills.id, slug: skills.slug })
+      .select({ id: skills.id, slug: skills.slug, statsDownloads: skills.statsDownloads })
       .from(skills)
       .where(and(eq(skills.slug, slug), isNull(skills.softDeletedAt)))
       .limit(1);
@@ -27,6 +27,12 @@ export async function registerDownloadV1(fastify: FastifyInstance) {
     if (!skill) {
       throw { statusCode: 404, message: "Skill not found" };
     }
+
+    // Increment download count
+    await db
+      .update(skills)
+      .set({ statsDownloads: (skill.statsDownloads || 0) + 1 })
+      .where(eq(skills.id, skill.id));
 
     let versionRow;
     if (version) {
