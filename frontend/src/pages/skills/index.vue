@@ -224,13 +224,13 @@ const total = computed(() => data.value?.total || 0);
   color: #27272a;
   margin: 0 0 0.75rem;
   opacity: 0;
-  transform: translateY(14px);
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(24px) scale(0.96);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .title-in {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
 }
 
 .title-count {
@@ -248,14 +248,14 @@ const total = computed(() => data.value?.total || 0);
   color: #6b7280;
   margin: 0;
   opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  transition-delay: 0.1s;
+  transform: translateY(16px) scale(0.96);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .subtitle-in {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
+  transition-delay: 0.08s;
 }
 
 /* ─── Filters ─── */
@@ -265,9 +265,8 @@ const total = computed(() => data.value?.total || 0);
   max-width: 1024px;
   margin: 0 auto 2rem;
   opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  transition-delay: 0.18s;
+  transform: translateY(12px) scale(0.96);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* ─── Skills List ─── */
@@ -280,7 +279,7 @@ const total = computed(() => data.value?.total || 0);
 
 .filters-in {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
 }
 
 /* ─── Dark Theme ─── */

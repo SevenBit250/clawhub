@@ -172,13 +172,13 @@ function handleSearch(value: string) {
   color: #27272a;
   margin: 0 0 1.25rem;
   opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(24px) scale(0.96);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .title-in {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
 }
 
 .hero-subtitle {
@@ -189,14 +189,14 @@ function handleSearch(value: string) {
   color: #52525c;
   margin: 0 0 2.5rem;
   opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(20px) scale(0.96);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .subtitle-in {
   opacity: 1;
-  transform: translateY(0);
-  transition-delay: 0.12s;
+  transform: translateY(0) scale(1);
+  transition-delay: 0.1s;
 }
 
 /* ─── Search Pill (Glassmorphism) ─── */
@@ -204,14 +204,14 @@ function handleSearch(value: string) {
   width: 100%;
   max-width: 672px;
   opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(16px) scale(0.96);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .search-in {
   opacity: 1;
-  transform: translateY(0);
-  transition-delay: 0.22s;
+  transform: translateY(0) scale(1);
+  transition-delay: 0.18s;
 }
 
 .search-pill {
