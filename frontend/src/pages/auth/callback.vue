@@ -53,7 +53,6 @@ onMounted(async () => {
       if (state) {
         // 获取用户信息并调用后端 checkUser
         const userInfo = await sdk.getUserInfo() as any;
-        console.log('[Authing] User info:', userInfo);
 
         // 检查是否获取到用户信息
         if (!userInfo || userInfo.code) {

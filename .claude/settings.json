@@ -14,7 +14,9 @@
       "mcp__figma__get_metadata",
       "mcp__figma__get_screenshot",
       "mcp__zread__search_doc",
-      "WebSearch"
+      "WebSearch",
+      "mcp__zread__get_repo_structure",
+      "mcp__zread__read_file"
     ],
     "defaultMode": "acceptEdits"
   }
