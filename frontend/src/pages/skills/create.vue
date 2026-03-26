@@ -323,7 +323,6 @@ async function handlePublish() {
       let prefixToStrip = "";
 
       if (allPaths.length > 0) {
-        // Find the common prefix by checking if all paths share the same first segment
         const firstSlash = allPaths[0].indexOf('/');
         if (firstSlash > 0) {
           const firstSegment = allPaths[0].substring(0, firstSlash);
@@ -341,11 +340,26 @@ async function handlePublish() {
       }
     } else {
       const fileArray = Array.from(files.value || []);
+      const rawPaths = fileArray.map(f => (f as any).webkitRelativePath || f.name);
+
+      // Strip common prefix directory (e.g., "admapix-1.0.28/" from all files)
+      let prefixToStrip = "";
+      if (rawPaths.length > 0) {
+        const firstSlash = rawPaths[0].indexOf('/');
+        if (firstSlash > 0) {
+          const firstSegment = rawPaths[0].substring(0, firstSlash);
+          if (rawPaths.every(p => p.startsWith(firstSegment + '/'))) {
+            prefixToStrip = firstSegment + '/';
+          }
+        }
+      }
+
       for (const file of fileArray) {
-        const path = (file as any).webkitRelativePath || file.name;
+        const rawPath = (file as any).webkitRelativePath || file.name;
+        const finalPath = prefixToStrip ? rawPath.substring(prefixToStrip.length) : rawPath;
         const buffer = await file.arrayBuffer();
         const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
-        filesData.push({ path, content: base64, contentType: file.type || 'application/octet-stream' });
+        filesData.push({ path: finalPath, content: base64, contentType: file.type || 'application/octet-stream' });
       }
     }
 
