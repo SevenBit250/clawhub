@@ -13,8 +13,8 @@
         v-for="(skill, index) in skills"
         :key="skill.slug"
         :skill="skill"
-        :style="{ animationDelay: `${index * 60}ms` }"
-        class="list-item-enter"
+        :class="['motion-up-12', { 'in': contentMounted }]"
+        :style="{ transitionDelay: `${index * 0.02}s` }"
       />
     </div>
 
@@ -24,8 +24,8 @@
         v-for="(skill, index) in skills"
         :key="skill.slug"
         :skill="skill"
-        :style="{ animationDelay: `${index * 60}ms` }"
-        class="card-item-enter"
+        :class="['motion-up-12', { 'in': contentMounted }]"
+        :style="{ transitionDelay: `${index * 0.02}s` }"
       />
     </div>
   </template>
@@ -38,10 +38,11 @@
 </template>
 
 <script setup lang="ts">
+import { ref, watch, nextTick } from "vue";
 import SkillListItem from "./SkillListItem.vue";
 import SkillCard from "./SkillCard.vue";
 
-defineProps<{
+const props = defineProps<{
   skills: Array<{
     slug: string;
     displayName: string;
@@ -56,6 +57,26 @@ defineProps<{
 }>();
 
 const { t } = useI18n();
+
+const contentMounted = ref(false);
+
+// Trigger animation when skills are loaded
+watch(
+  () => props.skills,
+  (newSkills) => {
+    if (newSkills && newSkills.length > 0) {
+      // Reset first
+      contentMounted.value = false;
+      // Then trigger after next tick
+      nextTick(() => {
+        requestAnimationFrame(() => {
+          contentMounted.value = true;
+        });
+      });
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped>
@@ -85,27 +106,5 @@ const { t } = useI18n();
   display: flex;
   flex-direction: column;
   gap: 1rem;
-}
-
-/* ─── Staggered Enter Animations ─── */
-.card-item-enter {
-  opacity: 0;
-  animation: card-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.list-item-enter {
-  opacity: 0;
-  animation: card-enter 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes card-enter {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 </style>
