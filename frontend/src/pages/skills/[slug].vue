@@ -385,9 +385,7 @@ function getInitials(commentUser: CommentUser | null): string {
 <style scoped>
 .skill-detail-page {
   position: relative;
-  min-height: calc(100vh - 120px);
   padding: 2rem 1.5rem 4rem;
-  overflow: hidden;
 }
 
 /* ─── Loading/Error States ─── */

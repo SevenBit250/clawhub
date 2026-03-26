@@ -1,5 +1,5 @@
 <template>
-  <MotionBackground>
+  <MotionBackground class="home-page-wrapper">
     <section class="hero">
       <!-- Hero Content -->
       <div class="hero-content">
@@ -68,8 +68,12 @@ function handleSearch(value: string) {
 </script>
 
 <style scoped>
-.home-page {
-  height: 100%;
+/* ─── Home Page Wrapper ─── */
+.home-page-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 /* ─── Hero ─── */
@@ -78,9 +82,11 @@ function handleSearch(value: string) {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 120px);
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
   padding: 2rem 1.5rem;
+  box-sizing: border-box;
 }
 
 /* ─── Hero Content ─── */

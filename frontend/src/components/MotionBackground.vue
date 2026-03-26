@@ -27,7 +27,7 @@ defineProps<{
 .bg-gradient {
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: -1;
   background: linear-gradient(
     154deg,
     #eef6ff 0%,
@@ -42,7 +42,7 @@ defineProps<{
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 0;
+  z-index: -1;
   overflow: hidden;
 }
 

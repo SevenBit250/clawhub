@@ -95,15 +95,16 @@
         </nav>
       </header>
 
-      <main class="flex-1">
-        <slot />
-      </main>
-
-      <footer class="footer py-1.5">
-        <div class="container text-center text-gray-500">
-          {{ $t("footer.brand") }}
+      <main class="main-scroll">
+        <div class="main-content">
+          <slot />
+          <footer class="page-footer">
+            <div class="container text-center text-gray-500">
+              {{ $t("footer.brand") }}
+            </div>
+          </footer>
         </div>
-      </footer>
+      </main>
     </div>
   </a-config-provider>
 </template>
@@ -153,6 +154,59 @@ async function handleLogout() {
 </script>
 
 <style scoped>
+/* ─── Global Scroll Layout ─── */
+.min-h-screen {
+  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.main-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Custom scrollbar styles */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(159, 159, 169, 0.3) transparent;
+  scroll-behavior: smooth;
+}
+
+/* Webkit scrollbar (Chrome, Safari, Edge) */
+.main-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.main-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.main-scroll::-webkit-scrollbar-thumb {
+  background: rgba(159, 159, 169, 0.3);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.main-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(159, 159, 169, 0.5);
+  background-clip: content-box;
+}
+
+/* Dark theme scrollbar */
+[data-theme="dark"] .main-scroll {
+  scrollbar-color: rgba(100, 116, 139, 0.4) transparent;
+}
+
+[data-theme="dark"] .main-scroll::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.4);
+  background-clip: content-box;
+}
+
+[data-theme="dark"] .main-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
+  background-clip: content-box;
+}
+
 /* ─── Nav Group ─── */
 .nav-group {
   display: flex;
@@ -309,5 +363,22 @@ async function handleLogout() {
   box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.3),
     0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* ─── Page Footer (inside main scroll) ─── */
+.main-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.page-footer {
+  margin-top: auto;
+  padding: 0.5rem 0;
+  border-top: 1px solid rgba(237, 237, 237, 0.4);
+}
+
+[data-theme="dark"] .page-footer {
+  border-top-color: rgba(99, 102, 241, 0.12);
 }
 </style>

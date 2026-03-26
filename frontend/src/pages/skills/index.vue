@@ -147,9 +147,7 @@ const total = computed(() => data.value?.total || 0);
 <style scoped>
 .skills-page {
   position: relative;
-  min-height: calc(100vh - 120px);
   padding: 2rem 1.5rem 4rem;
-  overflow: hidden;
 }
 
 /* ─── Page Hero Header ─── */
