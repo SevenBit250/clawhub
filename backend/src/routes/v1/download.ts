@@ -69,7 +69,6 @@ export async function registerDownloadV1(fastify: FastifyInstance) {
         parsedFiles = versionRow.files as Array<{ path: string; storageId: string }>;
       }
     }
-
     const fileBuffers: Record<string, Uint8Array> = {};
 
     for (const file of parsedFiles) {

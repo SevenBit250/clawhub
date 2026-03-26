@@ -541,101 +541,75 @@ const registerPublishSkillV1: FastifyPluginAsync = async (fastify) => {
     },
     async handler(request) {
     const session = await requireAuth(request);
-    
-    let payload: {
-      slug: string;
-      displayName: string;
-      version: string;
-      changelog: string;
-      tags?: string[];
-      forkOf?: { slug: string; version?: string };
-    } | null = null;
 
-    const files: Array<{ path: string; size: number; storageId: string; sha256: string; contentType?: string }> = [];
+    interface FileItem {
+      path: string;
+      content: string;
+      contentType?: string;
+    }
+
+    interface UploadBody {
+      payload: {
+        slug: string;
+        displayName: string;
+        version: string;
+        changelog: string;
+        tags?: string[];
+        forkOf?: { slug: string; version?: string };
+      };
+      files: FileItem[];
+    }
+
+    const body = request.body as UploadBody;
+    const { payload, files: filesData } = body;
+
+    if (!payload || !filesData || !Array.isArray(filesData)) {
+      throw { statusCode: 400, message: "Invalid request body" };
+    }
+
     const { generateUploadId, storeFile } = await import("../../lib/storage.js");
 
-    return new Promise((resolve, reject) => {
-      const busboy = import("busboy").then(({ default: BB }) => {
-        const bb = BB({ headers: request.headers as Record<string, string> });
-        
-        bb.on("field", (name: string, value: string) => {
-          if (name === "payload") {
-            try {
-              payload = JSON.parse(value);
-            } catch {
-              reject({ statusCode: 400, message: "Invalid payload JSON" });
-            }
-          }
-        });
+    const files: Array<{ path: string; size: number; storageId: string; sha256: string; contentType?: string }> = [];
 
-        bb.on("file", async (name: string, stream: any, info: any) => {
-          const { filename, mimeType } = info;
-          const chunks: Buffer[] = [];
-          
-          stream.on("data", (chunk: Buffer) => {
-            chunks.push(chunk);
-          });
-          
-          stream.on("end", async () => {
-            try {
-              const buffer = Buffer.concat(chunks);
-              const id = await generateUploadId();
-              const file = await storeFile(id, buffer, mimeType || "application/octet-stream");
-              files.push({
-                path: filename,
-                size: buffer.length,
-                storageId: id,
-                sha256: file.sha256,
-                contentType: mimeType,
-              });
-            } catch (err) {
-              reject(err);
-            }
-          });
-          
-          stream.on("error", reject);
-        });
-
-        bb.on("close", async () => {
-          if (!payload) {
-            reject({ statusCode: 400, message: "Missing payload" });
-            return;
-          }
-
-          const existing = await db.query.skills.findFirst({
-            where: eq(skills.slug, payload.slug),
-          });
-
-          if (existing) {
-            reject({ statusCode: 409, message: "Slug already exists" });
-            return;
-          }
-
-          const skill = await createSkill(session.userId, {
-            slug: payload.slug,
-            displayName: payload.displayName,
-            moderationStatus: session.user.role === "admin" ? "active" : "pending",
-          });
-
-          const version = await createSkillVersion(session.userId, skill.id, {
-            skillId: skill.id,
-            version: payload.version,
-            changelog: payload.changelog,
-            files,
-          });
-
-          resolve({
-            ok: true as const,
-            skillId: skill.id,
-            versionId: version.id,
-          });
-        });
-
-        bb.on("error", reject);
-
-        (request.raw as any).pipe(bb);
+    for (const fileData of filesData) {
+      const buffer = Buffer.from(fileData.content, 'base64');
+      const id = await generateUploadId();
+      const file = await storeFile(id, buffer, fileData.contentType || 'application/octet-stream');
+      files.push({
+        path: fileData.path,
+        size: buffer.length,
+        storageId: id,
+        sha256: file.sha256,
+        contentType: fileData.contentType,
       });
+    }
+
+    const existing = await db.query.skills.findFirst({
+      where: eq(skills.slug, payload.slug),
     });
+
+    if (existing) {
+      throw { statusCode: 409, message: "Slug already exists" };
+    }
+
+    const skill = await createSkill(session.userId, {
+      slug: payload.slug,
+      displayName: payload.displayName,
+      moderationStatus: session.user.role === "admin" ? "active" : "pending",
+    });
+
+    const version = await createSkillVersion(session.userId, skill.id, {
+      skillId: skill.id,
+      version: payload.version,
+      changelog: payload.changelog,
+      files,
+    });
+
+    return {
+      ok: true as const,
+      skillId: skill.id,
+      versionId: version.id,
+    };
     },
   });
 };

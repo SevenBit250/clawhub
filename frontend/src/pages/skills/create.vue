@@ -176,16 +176,26 @@ const form = ref({
 });
 
 const files = ref<FileList | null>(null);
+// Store files with their relative paths for drag-and-drop
+const filesWithPaths = ref<Array<{ file: File; path: string }>>([]);
 const publishing = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
 
-const fileCount = computed(() => files.value?.length || 0);
+const fileCount = computed(() => filesWithPaths.value.length || files.value?.length || 0);
 const hasFiles = computed(() => fileCount.value > 0);
-const hasSkillMd = computed(() =>
-  Array.from(files.value || []).some((f) => f.name === "SKILL.md")
-);
+const hasSkillMd = computed(() => {
+  if (filesWithPaths.value.length > 0) {
+    // Check if any file's path ends with SKILL.md
+    return filesWithPaths.value.some(f => f.path.endsWith("SKILL.md") || f.path === "SKILL.md");
+  }
+  const allFiles = Array.from(files.value || []);
+  return allFiles.some((f) => f.name === "SKILL.md");
+});
 
 const totalSize = computed(() => {
+  if (filesWithPaths.value.length > 0) {
+    return filesWithPaths.value.reduce((sum, f) => sum + f.file.size, 0);
+  }
   if (!files.value) return 0;
   let total = 0;
   for (let i = 0; i < files.value.length; i++) {
@@ -226,34 +236,43 @@ function handleDrop(e: DragEvent) {
 
   if (entries.length === 0) return;
 
-  const allFiles: File[] = [];
+  // Store files with their relative paths
+  filesWithPaths.value = [];
 
-  function readEntry(entry: FileSystemEntry): Promise<void> {
-    return new Promise((resolve) => {
-      if (entry.isFile) {
+  function readEntry(entry: FileSystemEntry, basePath: string = ""): Promise<void> {
+    const relativePath = basePath ? `${basePath}/${entry.name}` : entry.name;
+
+    if (entry.isFile) {
+      return new Promise((resolve) => {
         (entry as FileSystemFileEntry).file((file: File) => {
-          allFiles.push(file);
+          // Create a new File with the relative path preserved
+          const fileWithPath = new File([file], relativePath, { type: file.type });
+          filesWithPaths.value.push({ file: fileWithPath, path: relativePath });
           resolve();
         });
-      } else if (entry.isDirectory) {
-        const dirReader = (entry as FileSystemDirectoryEntry).createReader();
-        dirReader.readEntries(async (subEntries: FileSystemEntry[]) => {
-          await Promise.all(subEntries.map(sub => readEntry(sub)));
-          resolve();
-        });
-      } else {
-        resolve();
-      }
-    });
+      });
+    } else if (entry.isDirectory) {
+      const dirReader = (entry as FileSystemDirectoryEntry).createReader();
+      // readEntries may need to be called multiple times to get all entries
+      return new Promise((resolve) => {
+        function readBatch(): void {
+          dirReader.readEntries((subEntries: FileSystemEntry[]) => {
+            if (subEntries.length === 0) {
+              resolve();
+              return;
+            }
+            Promise.all(subEntries.map(sub => readEntry(sub, relativePath)))
+              .then(() => readBatch())
+              .catch(() => resolve());
+          });
+        }
+        readBatch();
+      });
+    }
+    return Promise.resolve();
   }
 
-  Promise.all(entries.map(e => readEntry(e))).then(() => {
-    if (allFiles.length > 0) {
-      const dt = new DataTransfer();
-      allFiles.forEach(f => dt.items.add(f));
-      files.value = dt.files;
-    }
-  });
+  Promise.all(entries.map(e => readEntry(e)));
 }
 
 async function handlePublish() {
@@ -265,12 +284,17 @@ async function handlePublish() {
     message.error(t("skill.publish.errors.display_name_required"));
     return;
   }
-  if (!files.value || files.value.length === 0) {
+  const actualFileCount = filesWithPaths.value.length > 0
+    ? filesWithPaths.value.length
+    : (files.value?.length || 0);
+  if (actualFileCount === 0) {
     message.error(t("skill.publish.errors.files_required"));
     return;
   }
-  const skillMdExists = Array.from(files.value).some((f) => f.name === "SKILL.md");
-  if (!skillMdExists) {
+  const hasSkillMdFile = filesWithPaths.value.length > 0
+    ? filesWithPaths.value.some(f => f.path.endsWith("SKILL.md") || f.path === "SKILL.md")
+    : Array.from(files.value || []).some((f) => f.name === "SKILL.md");
+  if (!hasSkillMdFile) {
     message.error(t("skill.publish.errors.skill_md_required"));
     return;
   }
@@ -290,21 +314,37 @@ async function handlePublish() {
       tags: form.value.tags ? form.value.tags.split(",").map((t) => t.trim()) : [],
     };
 
-    const formData = new FormData();
-    formData.append("payload", JSON.stringify(payload));
+    // Convert files to base64 to preserve paths without encoding issues
+    const filesData: Array<{ path: string; content: string; contentType: string }> = [];
 
-    const fileArray = Array.from(files.value);
-    for (const file of fileArray) {
-      const path = (file as any).webkitRelativePath || file.name;
-      formData.append("files", file, path);
+    if (filesWithPaths.value.length > 0) {
+      for (const { file, path } of filesWithPaths.value) {
+        const buffer = await file.arrayBuffer();
+        const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+        filesData.push({ path, content: base64, contentType: file.type || 'application/octet-stream' });
+      }
+    } else {
+      const fileArray = Array.from(files.value || []);
+      for (const file of fileArray) {
+        const path = (file as any).webkitRelativePath || file.name;
+        const buffer = await file.arrayBuffer();
+        const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+        filesData.push({ path, content: base64, contentType: file.type || 'application/octet-stream' });
+      }
     }
+
+    const requestBody = {
+      payload,
+      files: filesData,
+    };
 
     const response = await fetch(`${API_BASE}/api/v1/skills`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token.value}`,
+        "Content-Type": "application/json",
       },
-      body: formData,
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
