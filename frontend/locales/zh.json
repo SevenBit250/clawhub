@@ -200,7 +200,11 @@
       "download_zip": "下载 ZIP",
       "download_url": "下载链接",
       "copy": "复制",
-      "download": "下载"
+      "copied": "已复制!",
+      "download": "下载",
+      "cli_hint": "在终端中运行此命令来安装技能",
+      "zip_hint": "下载并手动解压技能包",
+      "or": "或"
     },
     "download_zip": "下载 ZIP",
     "resubmit": "重新提交",

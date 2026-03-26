@@ -205,7 +205,11 @@
       "download_zip": "Download ZIP",
       "download_url": "Download URL",
       "copy": "Copy",
-      "download": "Download"
+      "copied": "Copied!",
+      "download": "Download",
+      "cli_hint": "Run this command in your terminal to install the skill",
+      "zip_hint": "Download and manually extract the skill package",
+      "or": "or"
     },
     "download_zip": "Download ZIP",
     "resubmit": "Resubmit",
