@@ -81,7 +81,7 @@
       </div>
 
       <!-- Comments Card -->
-      <div class="comments-card glass-card motion-delay-1" :class="{ 'in': contentReady }">
+      <div class="comments-card glass-card motion-up-24 motion-delay-1" :class="{ 'in': contentReady }">
         <div class="card-header">
           <h2 class="card-title">
             <MessageOutlined />
