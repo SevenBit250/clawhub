@@ -80,9 +80,19 @@
                     </a-menu-item>
                   </a-menu>
                 </template>
-                <button type="button" class="nav-btn user-dropdown">
-                  <UserOutlined />
-                  {{ userDisplayName }}
+                <button type="button" class="user-pill">
+                  <div class="user-avatar-wrapper">
+                    <img
+                      v-if="user?.image"
+                      :src="user.image"
+                      :alt="userDisplayName"
+                      class="user-avatar"
+                    />
+                    <div v-else class="user-avatar user-avatar-default">
+                      <UserOutlined />
+                    </div>
+                  </div>
+                  <span class="user-name">{{ userDisplayName }}</span>
                 </button>
               </a-dropdown>
             </template>
@@ -290,6 +300,74 @@ async function handleLogout() {
   color: #27272a;
 }
 
+/* ─── User Pill ─── */
+.user-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem 0.375rem 0.375rem;
+  border-radius: 99999px;
+  font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #27272a;
+  border: 1px solid rgba(228, 228, 231, 0.6);
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.user-pill:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(43, 127, 255, 0.3);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.user-pill:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.user-avatar-wrapper {
+  position: relative;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+}
+
+.user-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 99999px;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.12),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.user-avatar-default {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 0.875rem;
+}
+
+.user-name {
+  max-width: 8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ─── Login Button ─── */
 .login-btn {
   display: inline-flex;
@@ -363,6 +441,31 @@ async function handleLogout() {
   box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.3),
     0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* ─── User Pill Dark Theme ─── */
+[data-theme="dark"] .user-pill {
+  color: #f1f5f9;
+  border-color: rgba(99, 102, 241, 0.2);
+  background: rgba(30, 35, 60, 0.6);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.3),
+    0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .user-pill:hover {
+  background: rgba(40, 45, 80, 0.7);
+  border-color: rgba(43, 127, 255, 0.35);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.35),
+    0 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="dark"] .user-avatar {
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.4),
+    0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 /* ─── Page Footer (inside main scroll) ─── */
