@@ -1,16 +1,6 @@
 <template>
-  <div class="home-page">
+  <MotionBackground>
     <section class="hero">
-      <!-- Full-page gradient background -->
-      <div class="bg-gradient"></div>
-
-      <!-- Decorative azure rings -->
-      <div class="rings" aria-hidden="true">
-        <div class="ring ring-1"></div>
-        <div class="ring ring-2"></div>
-        <div class="ring ring-3"></div>
-      </div>
-
       <!-- Hero Content -->
       <div class="hero-content">
         <!-- Title -->
@@ -49,13 +39,14 @@
         </div> -->
       </div>
     </section>
-  </div>
+  </MotionBackground>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { SearchOutlined } from "@ant-design/icons-vue";
+import MotionBackground from "@/components/MotionBackground.vue";
 
 const api = useApi();
 const router = useRouter();
@@ -90,63 +81,6 @@ function handleSearch(value: string) {
   min-height: calc(100vh - 120px);
   overflow: hidden;
   padding: 2rem 1.5rem;
-}
-
-/* ─── Background Gradient ─── */
-.bg-gradient {
-  position: fixed;
-  inset: 0;
-  background: linear-gradient(
-    154deg,
-    #eef6ff 0%,
-    rgba(238, 242, 255, 0.3) 50%,
-    #faf5ff 100%
-  );
-  z-index: 0;
-}
-
-/* ─── Azure Decorative Rings ─── */
-.rings {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.ring {
-  position: absolute;
-  border-radius: 99999px;
-  border: 1.5px solid rgba(190, 219, 255, 0.5);
-}
-
-.ring-1 {
-  width: 300px;
-  height: 300px;
-  right: 5%;
-  top: 30%;
-  animation: ring-float 10s ease-in-out infinite;
-}
-
-.ring-2 {
-  width: 500px;
-  height: 500px;
-  right: 0%;
-  top: 20%;
-  animation: ring-float 10s ease-in-out infinite 2s;
-}
-
-.ring-3 {
-  width: 700px;
-  height: 700px;
-  right: -5%;
-  top: 10%;
-  animation: ring-float 10s ease-in-out infinite 4s;
-}
-
-@keyframes ring-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
 }
 
 /* ─── Hero Content ─── */
@@ -350,19 +284,6 @@ function handleSearch(value: string) {
 }
 
 /* ─── Dark Theme ─── */
-[data-theme="dark"] .bg-gradient {
-  background: linear-gradient(
-    154deg,
-    #0f1729 0%,
-    rgba(15, 15, 45, 0.6) 50%,
-    #1a0f2e 100%
-  );
-}
-
-[data-theme="dark"] .ring {
-  border-color: rgba(43, 127, 255, 0.15);
-}
-
 [data-theme="dark"] .hero-title {
   color: #f1f5f9;
 }

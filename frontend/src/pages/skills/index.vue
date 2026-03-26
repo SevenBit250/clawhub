@@ -1,22 +1,16 @@
 <template>
-  <div class="skills-page">
-    <!-- Page background -->
-    <div class="bg-gradient"></div>
-    <div class="rings" aria-hidden="true">
-      <div class="ring ring-1"></div>
-      <div class="ring ring-2"></div>
-    </div>
-
-    <!-- Page hero header -->
-    <div class="page-hero">
-      <h1 class="page-title" :class="{ 'title-in': mounted }">
-        {{ t('skills.title') }}
-        <span class="title-count">({{ total }})</span>
-      </h1>
-      <p class="page-subtitle" :class="{ 'subtitle-in': mounted }">
-        {{ t('skills.subtitle') }}
-      </p>
-    </div>
+  <MotionBackground>
+    <div class="skills-page">
+      <!-- Page hero header -->
+      <div class="page-hero">
+        <h1 class="page-title" :class="{ 'title-in': mounted }">
+          {{ t('skills.title') }}
+          <span class="title-count">({{ total }})</span>
+        </h1>
+        <p class="page-subtitle" :class="{ 'subtitle-in': mounted }">
+          {{ t('skills.subtitle') }}
+        </p>
+      </div>
 
     <!-- Search & Filters -->
     <div class="filters-wrap" :class="{ 'filters-in': mounted }">
@@ -49,6 +43,7 @@
       />
     </div>
   </div>
+</MotionBackground>
 </template>
 
 <script setup lang="ts">
@@ -56,6 +51,7 @@ import { ref, computed, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import SkillsFilters from "@/components/SkillsFilters.vue";
 import SkillsList from "@/components/SkillsList.vue";
+import MotionBackground from "@/components/MotionBackground.vue";
 
 const { t } = useI18n();
 
@@ -156,56 +152,6 @@ const total = computed(() => data.value?.total || 0);
   overflow: hidden;
 }
 
-/* ─── Background Gradient ─── */
-.bg-gradient {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  background: linear-gradient(
-    154deg,
-    #eef6ff 0%,
-    rgba(238, 242, 255, 0.3) 50%,
-    #faf5ff 100%
-  );
-  pointer-events: none;
-}
-
-/* ─── Decorative Rings ─── */
-.rings {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.ring {
-  position: absolute;
-  border-radius: 99999px;
-  border: 1.5px solid rgba(190, 219, 255, 0.5);
-}
-
-.ring-1 {
-  width: 400px;
-  height: 400px;
-  left: -5%;
-  top: 10%;
-  animation: ring-float 12s ease-in-out infinite;
-}
-
-.ring-2 {
-  width: 600px;
-  height: 600px;
-  right: -8%;
-  top: 30%;
-  animation: ring-float 12s ease-in-out infinite 3s;
-}
-
-@keyframes ring-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-16px); }
-}
-
 /* ─── Page Hero Header ─── */
 .page-hero {
   position: relative;
@@ -283,19 +229,6 @@ const total = computed(() => data.value?.total || 0);
 }
 
 /* ─── Dark Theme ─── */
-[data-theme="dark"] .bg-gradient {
-  background: linear-gradient(
-    154deg,
-    #0f1729 0%,
-    rgba(15, 15, 45, 0.6) 50%,
-    #1a0f2e 100%
-  );
-}
-
-[data-theme="dark"] .ring {
-  border-color: rgba(43, 127, 255, 0.12);
-}
-
 [data-theme="dark"] .page-title {
   color: #f1f5f9;
 }
