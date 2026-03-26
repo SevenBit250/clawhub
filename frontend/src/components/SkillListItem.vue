@@ -18,7 +18,7 @@
         </p>
         <div class="item-meta">
           <UserOutlined />
-          <span>{{ skill.owner?.handle || skill.owner?.displayName || t('skills.unknown_author') }}</span>
+          <span>{{ skill.owner?.displayName || skill.owner?.handle || t('skills.unknown_author') }}</span>
         </div>
       </div>
 

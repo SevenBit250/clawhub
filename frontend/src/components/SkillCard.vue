@@ -18,7 +18,7 @@
       <div class="card-footer">
         <span class="card-author">
           <UserOutlined class="author-icon" />
-          {{ skill.owner?.handle || skill.owner?.displayName || t('skills.unknown_author') }}
+          {{ skill.owner?.displayName || skill.owner?.handle || t('skills.unknown_author') }}
         </span>
         <SkillStats :stats="skill.stats" />
       </div>
