@@ -318,10 +318,26 @@ async function handlePublish() {
     const filesData: Array<{ path: string; content: string; contentType: string }> = [];
 
     if (filesWithPaths.value.length > 0) {
+      // Find common prefix directory to strip (e.g., "admapix-1.0.28/" from all files)
+      const allPaths = filesWithPaths.value.map(f => f.path);
+      let prefixToStrip = "";
+
+      if (allPaths.length > 0) {
+        // Find the common prefix by checking if all paths share the same first segment
+        const firstSlash = allPaths[0].indexOf('/');
+        if (firstSlash > 0) {
+          const firstSegment = allPaths[0].substring(0, firstSlash);
+          if (allPaths.every(p => p.startsWith(firstSegment + '/'))) {
+            prefixToStrip = firstSegment + '/';
+          }
+        }
+      }
+
       for (const { file, path } of filesWithPaths.value) {
         const buffer = await file.arrayBuffer();
         const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
-        filesData.push({ path, content: base64, contentType: file.type || 'application/octet-stream' });
+        const finalPath = prefixToStrip ? path.substring(prefixToStrip.length) : path;
+        filesData.push({ path: finalPath, content: base64, contentType: file.type || 'application/octet-stream' });
       }
     } else {
       const fileArray = Array.from(files.value || []);
