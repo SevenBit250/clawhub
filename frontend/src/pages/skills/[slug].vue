@@ -17,7 +17,7 @@
             <div class="skill-meta">
               <span class="meta-item">
                 <UserOutlined class="meta-icon" />
-                {{ owner?.handle || owner?.displayName || t('souls.unknown_author') }}
+                {{ owner?.displayName || owner?.handle || t('souls.unknown_author') }}
               </span>
               <span v-if="version" class="meta-item">
                 <TagOutlined class="meta-icon" />
