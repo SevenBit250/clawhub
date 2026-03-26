@@ -170,12 +170,11 @@ async function handleLogout() {
 /* ─── Global Scroll Layout ─── */
 .min-h-screen {
   min-height: 100vh;
-  height: 100vh;
-  overflow: hidden;
 }
 
 .main-scroll {
-  flex: 1;
+  padding-top: 4.5rem;
+  height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
   /* Custom scrollbar styles */
@@ -486,7 +485,7 @@ async function handleLogout() {
 .main-content {
   display: flex;
   flex-direction: column;
-  min-height: 100%;
+  min-height: calc(100vh - 4.5rem);
 }
 
 .page-footer {
