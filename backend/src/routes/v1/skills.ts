@@ -516,6 +516,37 @@ const getSkillBySlug: FastifyPluginAsync = async (fastify) => {
   });
 };
 
+// Extract summary from SKILL.md content
+function extractSummaryFromSkillMd(content: string): string | null {
+  if (!content) return null;
+
+  // Check for YAML frontmatter description
+  const frontmatterMatch = content.match(/^---\s*\n([\s\S]*?)\n---/);
+  if (frontmatterMatch) {
+    const frontmatter = frontmatterMatch[1];
+    const descMatch = frontmatter.match(/description:\s*["']?([^"'\n]+)["']?/i);
+    if (descMatch) {
+      return descMatch[1].trim();
+    }
+  }
+
+  // Fallback: extract first paragraph (non-empty lines after frontmatter)
+  const withoutFrontmatter = content.replace(/^---\s*\n[\s\S]*?\n---\s*\n?/, '');
+  const paragraphs = withoutFrontmatter.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+  if (paragraphs.length > 0) {
+    // Strip markdown formatting and truncate
+    const firstPara = paragraphs[0]
+      .replace(/[#*_`~\[\]]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (firstPara.length > 0) {
+      return firstPara.slice(0, 500);
+    }
+  }
+
+  return null;
+}
+
 const registerPublishSkillV1: FastifyPluginAsync = async (fastify) => {
   fastify.post("/skills", {
     schema: {
@@ -569,6 +600,22 @@ const registerPublishSkillV1: FastifyPluginAsync = async (fastify) => {
 
     const { generateUploadId, storeFile } = await import("../../lib/storage.js");
 
+    // Extract summary from SKILL.md before encoding files
+    let summary: string | null = null;
+    const skillMdFile = filesData.find(f => {
+      const pathLower = f.path.toLowerCase();
+      const filename = pathLower.split('/').pop()!.split('\\').pop()!;
+      return filename === 'skill.md';
+    });
+    if (skillMdFile) {
+      try {
+        const skillMdContent = Buffer.from(skillMdFile.content, 'base64').toString('utf-8');
+        summary = extractSummaryFromSkillMd(skillMdContent);
+      } catch {
+        // Ignore errors
+      }
+    }
+
     const files: Array<{ path: string; size: number; storageId: string; sha256: string; contentType?: string }> = [];
 
     for (const fileData of filesData) {
@@ -595,6 +642,7 @@ const registerPublishSkillV1: FastifyPluginAsync = async (fastify) => {
     const skill = await createSkill(session.userId, {
       slug: payload.slug,
       displayName: payload.displayName,
+      summary: summary ?? undefined,
       moderationStatus: session.user.role === "admin" ? "active" : "pending",
     });
 
