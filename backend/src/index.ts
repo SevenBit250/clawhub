@@ -5,7 +5,7 @@ import multipart from "@fastify/multipart";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import { createSession, invalidateSession, requireAuth } from "./auth/session.js";
-import { MockWeComAuth, findOrCreateUser } from "./auth/wecom.js";
+import { findOrCreateUserByAuthing } from "./auth/authing.js";
 import { db } from "./db/index.js";
 import { users } from "./db/schema.js";
 import { eq } from "drizzle-orm";
@@ -51,8 +51,6 @@ await fastify.register(multipart);
 await registerV1Routes(fastify);
 await fastify.register(registerLegacyRoutes);
 
-const wecomAuth = new MockWeComAuth();
-
 fastify.get("/health", {
   schema: {
     description: "健康检查",
@@ -71,101 +69,18 @@ fastify.get("/health", {
   },
 });
 
-fastify.get("/auth/url", {
+fastify.post("/auth/checkUser", {
   schema: {
-    description: "获取 OAuth 登录 URL",
+    description: "检查并创建用户（Authing 登录后调用）",
     tags: ["auth"],
-    response: {
-      200: {
-        type: "object",
-        properties: {
-          url: { type: "string" },
-        },
-      },
-    },
-  },
-  async handler() {
-    const state = Math.random().toString(36).slice(2);
-    return { url: wecomAuth.getAuthUrl(state) };
-  },
-});
-
-fastify.get("/auth/mock", {
-  schema: {
-    description: "模拟登录页面（开发环境）",
-    tags: ["auth"],
-    querystring: {
+    body: {
       type: "object",
+      required: ["authingUserId"],
       properties: {
-        state: { type: "string" },
-        callback: { type: "string" },
-      },
-    },
-    response: {
-      200: {
-        type: "object",
-        properties: {
-          html: { type: "string" },
-        },
-      },
-    },
-  },
-  async handler(request) {
-    const { state, callback } = request.query as { state?: string; callback?: string };
-
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Mock Login - ClawHub</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; }
-    .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 320px; }
-    h1 { margin: 0 0 1.5rem; font-size: 1.5rem; text-align: center; }
-    .btn { display: block; width: 100%; padding: 0.75rem; margin: 0.5rem 0; border: 1px solid #ddd; border-radius: 4px; background: #fafafa; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
-    .btn:hover { background: #f0f0f0; }
-    .btn.primary { background: #3b82f6; color: white; border-color: #3b82f6; }
-    .btn.primary:hover { background: #2563eb; }
-    .note { margin-top: 1rem; font-size: 0.875rem; color: #666; text-align: center; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1>Mock Login</h1>
-    <p>Select a mock user to login:</p>
-    <button class="btn primary" onclick="login('mock_admin')">Login as Admin</button>
-    <button class="btn" onclick="login('mock_user')">Login as Test User</button>
-    <button class="btn" onclick="login('mock_new')">Login as New User</button>
-    <p class="note">This is a mock login for development only</p>
-  </div>
-  <script>
-    function login(code) {
-      const callback = '${callback || ''}';
-      if (callback) {
-        window.location.href = callback + '?code=' + code + '&state=${state || ''}';
-      } else {
-        window.location.href = '/auth/callback?code=' + code;
-      }
-    }
-  </script>
-</body>
-</html>
-  `;
-
-    return { html };
-  },
-});
-
-fastify.get("/auth/callback", {
-  schema: {
-    description: "OAuth 回调处理",
-    tags: ["auth"],
-    querystring: {
-      type: "object",
-      required: ["code"],
-      properties: {
-        code: { type: "string", description: "OAuth 授权码" },
-        state: { type: "string" },
+        authingUserId: { type: "string", description: "Authing 用户唯一 ID (sub)" },
+        name: { type: "string" },
+        email: { type: "string" },
+        picture: { type: "string" },
       },
     },
     response: {
@@ -187,21 +102,21 @@ fastify.get("/auth/callback", {
           },
         },
       },
-      400: {
-        type: "object",
-        properties: {
-          error: { type: "string" },
-        },
-      },
     },
   },
   async handler(request) {
-    const { code } = request.query as { code?: string };
-    if (!code) return { error: "Missing code" };
+    const body = request.body as {
+      authingUserId: string;
+      name?: string;
+      email?: string;
+      picture?: string;
+    };
 
-    const wecomUser = await wecomAuth.exchangeCode(code);
-    const user = await findOrCreateUser(wecomUser);
+    if (!body.authingUserId) {
+      throw { statusCode: 400, message: "Missing authingUserId" };
+    }
 
+    const user = await findOrCreateUserByAuthing(body);
     const { token, expiresAt } = await createSession(user.id);
 
     return {
@@ -212,7 +127,9 @@ fastify.get("/auth/callback", {
         name: user.name,
         email: user.email,
         handle: user.handle,
+        displayName: user.displayName,
         image: user.image,
+        bio: user.bio,
         role: user.role,
       },
     };

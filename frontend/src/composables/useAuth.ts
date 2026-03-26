@@ -100,6 +100,10 @@ export function useAuth() {
     return result.url;
   }
 
+  function loginWithAuthing(user: User, token: string) {
+    setAuth(user, token);
+  }
+
   return {
     user: computed(() => authState.user),
     token: computed(() => authState.token),
@@ -109,5 +113,6 @@ export function useAuth() {
     logout,
     fetchSession,
     getAuthUrl,
+    loginWithAuthing,
   };
 }

@@ -6,7 +6,8 @@ import { message } from "ant-design-vue";
 
 const router = useRouter();
 const route = useRoute();
-const { login } = useAuth();
+const { loginWithAuthing } = useAuth();
+const api = useApi();
 
 const domain = import.meta.env.VITE_AUTHING_DOMAIN as string;
 const appId = import.meta.env.VITE_AUTHING_APP_ID as string;
@@ -44,24 +45,44 @@ const REDIRECT_KEY = "auth_redirect_uri";
 onMounted(async () => {
   // 如果是 Authing 回调，处理 code
   if (sdk.isRedirectCallback()) {
-    // 优先使用手动解析，其次使用 route.query
-    const code = getQueryParam('code') || route.query.code as string;
-
-    if (!code) {
-      console.error('[Authing] No code found in URL');
-      message.error("登录失败：未获取到授权码");
-      setTimeout(() => router.push('/'), 2000);
-      return;
-    }
-
     try {
       // handleRedirectCallback 会自动用 code 换 token并存入 SDK 内部存储
       await sdk.handleRedirectCallback();
       const state = await sdk.getLoginState();
+
       if (state) {
-        // 通过后端换 JWT token
-        await login(code);
+        // 获取用户信息并调用后端 checkUser
+        const userInfo = await sdk.getUserInfo() as any;
+        console.log('[Authing] User info:', userInfo);
+
+        // 检查是否获取到用户信息
+        if (!userInfo || userInfo.code) {
+          throw new Error(userInfo?.message || '获取用户信息失败');
+        }
+
+        // 调用后端创建/获取用户并获取 JWT token
+        const result = await api.post<{
+          token: string;
+          expiresAt: string;
+          user: {
+            id: string;
+            name: string | null;
+            email: string | null;
+            handle: string | null;
+            image: string | null;
+            role: string | null;
+          };
+        }>('/auth/checkUser', {
+          authingUserId: userInfo.sub || userInfo._id || userInfo.userId, // Authing 用户唯一 ID
+          name: userInfo.nickname || userInfo.username || userInfo.name,
+          email: userInfo.email,
+          picture: userInfo.photo || userInfo.picture || userInfo.avatar,
+        });
+
+        // 保存 token 和用户信息
+        loginWithAuthing(result.user, result.token);
       }
+
       // 优先从 URL 读取 redirect，兜底从 sessionStorage 读取
       const redirect =
         (route.query.redirect as string) ||
