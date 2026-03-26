@@ -276,10 +276,11 @@ onMounted(async () => {
     pending.value = false;
   }
 
-  if (skill.value?.slug) {
+  // Check star status (only if authenticated and slug is valid)
+  if (isAuthenticated.value && slug && slug !== 'new-slug') {
     try {
       const starData = await api.get<{ ok: boolean; starred: boolean }>(
-        `/api/v1/stars/${skill.value.slug}`,
+        `/api/v1/stars/${slug}`,
         { token: token.value }
       );
       isStarred.value = starData.starred;
@@ -287,6 +288,9 @@ onMounted(async () => {
     } catch {
       // ignore
     }
+  } else {
+    // Set star count from skill data even if not authenticated
+    starCount.value = skill.value?.stats?.stars || 0;
   }
 
   if (skill.value?.id) {
@@ -312,11 +316,11 @@ async function toggleStar() {
     alert(t("skill.alerts.please_login"));
     return;
   }
-  if (!skill.value?.slug) return;
+  if (!slug || slug === 'new-slug') return;
 
   try {
     const result = await api.post<{ ok: boolean; starred: boolean }>(
-      `/api/v1/stars/${skill.value.slug}`,
+      `/api/v1/stars/${slug}`,
       {},
       { token: token.value }
     );
