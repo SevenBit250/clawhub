@@ -4,7 +4,10 @@
       <header class="header-nav">
         <nav class="container nav-inner">
           <!-- Logo -->
-          <router-link to="/" class="logo-link">{{ $t("nav.clawhub") }}</router-link>
+          <router-link to="/" class="logo-link">
+            <img src="@/assets/logo.png" alt="ClawHub" class="logo-img" />
+            <span class="logo-text">{{ $t("nav.clawhub") }}</span>
+          </router-link>
 
           <!-- Nav -->
           <div class="nav-group">
@@ -265,6 +268,23 @@ async function handleLogout() {
 
 /* ─── Logo ─── */
 .logo-link {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.logo-link:hover {
+  opacity: 0.85;
+}
+
+.logo-img {
+  height: 4rem;
+  width: auto;
+}
+
+.logo-text {
   font-family: 'Archivo', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   font-size: 1.125rem;
   font-weight: 900;
@@ -272,13 +292,7 @@ async function handleLogout() {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-decoration: none;
   letter-spacing: -0.01em;
-  transition: opacity 0.2s ease;
-}
-
-.logo-link:hover {
-  opacity: 0.85;
 }
 
 /* ─── Icon Buttons ─── */
