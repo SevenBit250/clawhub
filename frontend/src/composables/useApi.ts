@@ -8,8 +8,9 @@ export function useApi() {
   async function request<T>(path: string, options: FetchOptions = {}): Promise<T> {
     const { token, ...fetchOptions } = options;
 
+    const hasBody = options.body !== undefined && options.body !== null;
     const headers: Record<string, string> = {
-      "Content-Type": "application/json",
+      ...(hasBody ? { "Content-Type": "application/json" } : {}),
       ...(options.headers as Record<string, string> || {}),
     };
 
@@ -23,8 +24,15 @@ export function useApi() {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: "Request failed" }));
-      throw new Error(error.message || `HTTP ${response.status}`);
+      const body = await response.text();
+      let message = `HTTP ${response.status}`;
+      try {
+        const json = JSON.parse(body);
+        message = json.message || json.error || message;
+      } catch {
+        // use default message
+      }
+      throw Object.assign(new Error(message), { status: response.status, body });
     }
 
     return response.json();

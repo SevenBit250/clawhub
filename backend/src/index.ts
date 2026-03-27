@@ -593,13 +593,16 @@ fastify.delete("/comments/:id", {
       },
     },
   },
-  async handler(request) {
+  async handler(request, reply) {
     const session = await requireAuth(request);
     const { id } = request.params as { id: string };
     const { deleteComment } = await import("./lib/comments.js");
 
     const result = await deleteComment(id, session.userId);
-    if (!result) return { error: "Comment not found or not authorized" };
+    if (!result) {
+      reply.code(400);
+      return { error: "Comment not found or not authorized" };
+    }
 
     return { success: true };
   },
