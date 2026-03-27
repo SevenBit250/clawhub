@@ -28,3 +28,6 @@ test-results
 storage/
 .nuxt/
 github_token.env
+clawhub_pgdata
+clawhub_redis
+clawhub_storage

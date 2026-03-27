@@ -1,0 +1,67 @@
+# 单镜像部署：PostgreSQL + Redis + Node.js 全部打包在一个容器中
+#
+# 使用方式：
+#   1. 构建镜像
+#      docker build -t clawhub:latest .
+#
+#   2. 启动容器（数据存储在 docker volume 中）
+#      docker compose -f docker-compose.yml up -d
+#
+#   3. 查看日志
+#      docker logs -f clawhub
+#
+#   4. 停止
+#      docker compose -f docker-compose.yml down
+#
+# 数据持久化（两种方式）：
+#   - Docker volume（默认）：数据存在 Docker 管理目录下
+#   - 宿主机目录挂载：直接把宿主机目录挂进来（方便备份/迁移）
+#
+#   切换为宿主机目录示例：
+#     1. 创建宿主机目录并设置权限
+#        mkdir -p /data/clawhub/postgres /data/clawhub/storage
+#        sudo chown 999:999 /data/clawhub/postgres /data/clawhub/storage
+#     2. 修改 volumes 部分（去掉注释），然后重启
+#        - /data/clawhub/postgres:/var/lib/postgresql/data
+#        - /data/clawhub/storage:/app/backend/storage
+
+services:
+  clawhub:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: clawhub
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://clawhub:clawhub@localhost:5432/clawhub
+      JWT_SECRET: keynice
+      STORAGE_DIR: /app/backend/storage
+      REDIS_URL: redis://localhost:6379
+      # Authing SSO（可选，不配置则使用 MockAuth）
+      # AUTHING_DOMAIN: your-domain.authing.cn
+      # AUTHING_APP_ID: your-app-id
+      # AUTHING_APP_SECRET: your-app-secret
+      # AUTHING_REDIRECT_URI: https://your-domain.com/auth/callback
+      # AUTHING_USER_POOL_ID: your-user-pool-id
+    volumes:
+      # PostgreSQL 数据目录（使用 Docker volume 自动管理）
+      - clawhub_pgdata:/var/lib/postgresql/data
+      # 文件存储（上传的技能包等）
+      - ./clawhub_storage:/app/backend/storage
+      # Redis 数据（可选）
+      - clawhub_redis:/data
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  clawhub_pgdata:
+  clawhub_storage:
+  clawhub_redis:

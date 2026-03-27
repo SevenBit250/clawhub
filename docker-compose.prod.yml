@@ -1,0 +1,84 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: clawhub-app
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://clawhub:CHANGE_ME@postgres:5432/clawhub
+      JWT_SECRET: ${JWT_SECRET:?请设置 JWT_SECRET 环境变量}
+      STORAGE_DIR: /app/backend/storage
+      REDIS_URL: redis://redis:6379
+      # Authing SSO（可选，不配置则使用 MockAuth 开发模式）
+      # AUTHING_DOMAIN: your-domain.authing.cn
+      # AUTHING_APP_ID: your-app-id
+      # AUTHING_APP_SECRET: your-app-secret
+      # AUTHING_REDIRECT_URI: https://your-domain.com/auth/callback
+      # AUTHING_USER_POOL_ID: your-user-pool-id
+    volumes:
+      # 持久化文件存储（上传的技能包等）
+      - clawhub_storage:/app/backend/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - clawhub-net
+
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: clawhub-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: clawhub
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?请设置 POSTGRES_PASSWORD 环境变量}
+      POSTGRES_DB: clawhub
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # 初始化脚本（首次启动时自动执行）
+      - ./docker/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clawhub -d clawhub"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - clawhub-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: clawhub-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - clawhub-net
+
+networks:
+  clawhub-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  clawhub_storage:

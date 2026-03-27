@@ -1,0 +1,55 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Node
+node_modules
+**/node_modules
+npm-debug.log*
+
+# 构建产物（重新构建，不需要复制）
+dist
+**/dist
+*.tsbuildinfo
+
+# 环境变量文件
+.env
+.env.local
+.env.*.local
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# 数据库
+*.db
+*.sqlite
+*.sqlite3
+
+# 日志
+logs
+*.log
+**/logs
+
+# 测试
+tests
+*.test.ts
+coverage
+.nyc_output
+
+# 文档
+*.md
+docs/
+features/
+
+# 其他
+.DS_Store
+Thumbs.db
+*.bak
