@@ -4,6 +4,9 @@ import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
+import staticPlugin from "@fastify/static";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { createSession, invalidateSession, requireAuth } from "./auth/session.js";
 import { findOrCreateUserByAuthing } from "./auth/authing.js";
 import { registerMockAuthRoutes } from "./auth/mock.js";
@@ -49,6 +52,31 @@ await fastify.register(swaggerUi, {
 
 await fastify.register(cors, { origin: true });
 await fastify.register(multipart);
+
+// Serve frontend built files from frontend/dist
+// https://github.com/fastify/fastify-static (SPA example)
+// __dirname = backend/dist/ (production) or backend/src/ (dev with tsx)
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
+// __dirname = backend/dist/ (生产) 或 backend/src/ (开发 tsx)
+// 统一使用 ../../frontend/dist
+const FRONTEND_DIST = path.resolve(__dirname, "../../frontend/dist");
+
+await fastify.register(staticPlugin, {
+  root: FRONTEND_DIST,
+  maxAge: "30d",
+  immutable: true,
+});
+
+// SPA: index.html should never be cached
+fastify.get("/", (_req, reply) => {
+  reply.sendFile("index.html", FRONTEND_DIST, { maxAge: 0, immutable: false });
+});
+
+// SPA fallback: serve index.html for all unmatched GET requests (must be last)
+// https://github.com/fastify/fastify-static (Handling 404s section)
+fastify.setNotFoundHandler((_req, reply) => {
+  reply.sendFile("index.html", FRONTEND_DIST, { maxAge: 0, immutable: false });
+});
 await registerV1Routes(fastify);
 await fastify.register(registerLegacyRoutes);
 

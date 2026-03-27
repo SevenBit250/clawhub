@@ -16,7 +16,8 @@
       "mcp__zread__search_doc",
       "WebSearch",
       "mcp__zread__get_repo_structure",
-      "mcp__zread__read_file"
+      "mcp__zread__read_file",
+      "WebFetch(domain:fastify.dev)"
     ],
     "defaultMode": "acceptEdits"
   }
