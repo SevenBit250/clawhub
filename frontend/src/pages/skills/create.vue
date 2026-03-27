@@ -156,7 +156,7 @@ const router = useRouter();
 const { token } = useAuth();
 const { t } = useI18n();
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3001";
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3000";
 
 const mounted = ref(false);
 const isDragging = ref(false);

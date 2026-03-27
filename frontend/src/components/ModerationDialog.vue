@@ -114,7 +114,7 @@ const fileContent = ref("");
 const loadingFiles = ref(false);
 const actionLoading = ref(false);
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3001";
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3000";
 
 const selectedFile = computed(() =>
   selectedFileIndex.value !== null ? files.value[selectedFileIndex.value] : null

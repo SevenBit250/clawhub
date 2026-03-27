@@ -258,7 +258,7 @@ const newComment = ref("");
 const submitting = ref(false);
 
 // CLI commands
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3001";
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3000";
 const CLI_SITE = import.meta.env.VITE_CLI_SITE || "https://clawhub.ai";
 
 const cliInstallCommand = computed(() => `export CLAWHUB_REGISTRY="${CLI_SITE}" && npx clawhub@latest install ${skill.value?.slug}`);

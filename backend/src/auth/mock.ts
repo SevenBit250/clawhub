@@ -5,12 +5,12 @@ import { eq } from "drizzle-orm";
 import { createSession } from "./session.js";
 
 export function registerMockAuthRoutes(fastify: FastifyInstance) {
-  // Mock auth callback for development/testing
-  fastify.get("/auth/callback", {
+  // Mock login: POST /auth/mock-callback with code=mock_xxx handles dev login
+  fastify.post("/auth/mock-callback", {
     schema: {
       description: "模拟登录（开发环境）",
       tags: ["auth"],
-      querystring: {
+      body: {
         type: "object",
         properties: {
           code: { type: "string", description: "模拟登录码" },
@@ -38,7 +38,7 @@ export function registerMockAuthRoutes(fastify: FastifyInstance) {
       },
     },
     async handler(request) {
-      const { code } = request.query as { code?: string };
+      const { code } = request.body as { code?: string };
 
       if (!code || !code.startsWith("mock_")) {
         throw { statusCode: 400, message: "Invalid mock code" };

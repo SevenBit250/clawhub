@@ -2,7 +2,7 @@ interface FetchOptions extends RequestInit {
   token?: string | null;
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3001";
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3000";
 
 export function useApi() {
   async function request<T>(path: string, options: FetchOptions = {}): Promise<T> {
