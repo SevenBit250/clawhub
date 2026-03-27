@@ -314,6 +314,7 @@ const getSkillBySlug: FastifyPluginAsync = async (fastify) => {
               type: "object",
               nullable: true,
               properties: {
+                id: { type: "string" },
                 slug: { type: "string" },
                 displayName: { type: "string" },
                 summary: { type: "string", nullable: true },
@@ -481,6 +482,7 @@ const getSkillBySlug: FastifyPluginAsync = async (fastify) => {
 
     return {
       skill: {
+        id: skillRow.id,
         slug: skillRow.slug,
         displayName: skillRow.displayName,
         summary: skillRow.summary,

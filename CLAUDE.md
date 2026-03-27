@@ -66,13 +66,11 @@ DATABASE_URL=postgresql://clawhub:clawhub@localhost:5432/clawhub
 JWT_SECRET=your-jwt-secret
 STORAGE_DIR=./storage
 DEMANDS_SERVICE_URL=https://your-demands-service.com  # 可选
-# Auth
-WECOM_CORP_ID=
-WECOM_AGENT_ID=
-WECOM_CORP_SECRET=
-AUTHING_DOMAIN=
-AUTHING_APP_ID=
-AUTHING_USER_POOL_ID=
+# Authing SSO
+AUTHING_DOMAIN=your-domain.authing.cn
+AUTHING_APP_ID=your-app-id
+AUTHING_REDIRECT_URI=http://localhost:3000/auth/callback
+AUTHING_USER_POOL_ID=your-user-pool-id
 ```
 
 ### 前端环境变量 (`frontend/.env`)
@@ -118,7 +116,8 @@ backend/src/
 ├── index.ts              # Fastify 入口，含 auth/storage/comment 路由
 ├── auth/                 # 认证模块（与 index.ts 同级）
 │   ├── session.ts        # JWT Session 管理
-│   └── wecom.ts          # WeCom OAuth（开发环境使用 MockWeComAuth）
+│   ├── authing.ts        # Authing OAuth 集成
+│   └── mock.ts           # 开发环境模拟登录（支持 mock_admin/mock_test）
 ├── db/
 │   ├── index.ts          # Drizzle 客户端
 │   └── schema.ts         # 表结构定义
@@ -139,9 +138,10 @@ backend/scripts/
 
 ### 认证
 - **前端**：使用 Authing SSO SDK（`@authing/web`）处理登录 UI，登录成功后携带 code 回调到 `/auth/callback`
-- **后端**：使用 WeCom OAuth（`MockWeComAuth` 用于开发）兑换 code 获取用户信息并创建 Session
+- **后端**：使用 Authing OAuth 兑换 code 获取用户信息并创建 Session；开发环境使用 MockAuth（`mock.ts`）
 - JWT Session 管理，Session 存储在数据库 `auth_sessions` 表
-- 开发环境支持模拟登录（`/auth/callback?code=mock_admin`）
+- 开发环境支持模拟登录：`curl "http://localhost:3001/auth/callback?code=mock_admin"`（admin）或 `code=mock_test`（user）
+- 前端环境变量不配置 Authing 时，通过 `mock=true` 的 `/auth/url` 返回 mock 登录 URL
 
 ### CLI 结构 — `packages/clawdhub/src/`
 ```

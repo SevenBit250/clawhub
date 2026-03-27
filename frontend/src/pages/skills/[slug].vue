@@ -345,12 +345,19 @@ async function submitComment() {
 
   submitting.value = true;
   try {
-    const result = await api.post<{ comment: Comment }>(
+    await api.post(
       `/skills/${skill.value.id}/comments`,
       { body: newComment.value.trim() },
       { token: token.value }
     );
-    comments.value = [result.comment, ...comments.value];
+    try {
+      const commentsData = await api.get<{ comments: Comment[] }>(
+        `/skills/${skill.value.id}/comments`
+      );
+      comments.value = commentsData.comments;
+    } catch {
+      // ignore
+    }
     newComment.value = "";
   } catch (err) {
     console.error("Failed to post comment:", err);

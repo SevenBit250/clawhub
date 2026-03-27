@@ -1,5 +1,5 @@
 import { db } from "../db/index.js";
-import { comments, users } from "../db/schema.js";
+import { comments } from "../db/schema.js";
 import { eq, and, isNull, desc } from "drizzle-orm";
 
 export async function createComment(userId: string, skillId: string, body: string) {
