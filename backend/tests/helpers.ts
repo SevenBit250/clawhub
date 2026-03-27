@@ -1,6 +1,6 @@
 import { beforeAll } from "vitest";
 
-export const API_BASE = "http://localhost:3001";
+export const API_BASE = process.env.API_BASE || "http://localhost:3000";
 
 let _authToken: string | undefined;
 

@@ -27,6 +27,7 @@
 
 services:
   clawhub:
+    image: gitea.claws.keylights.tech:8443/ai/k-skillhub:latest
     build:
       context: .
       dockerfile: Dockerfile

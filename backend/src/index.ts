@@ -11,8 +11,8 @@ import { createSession, invalidateSession, requireAuth } from "./auth/session.js
 import { findOrCreateUserByAuthing } from "./auth/authing.js";
 import { registerMockAuthRoutes } from "./auth/mock.js";
 import { db } from "./db/index.js";
-import { users } from "./db/schema.js";
-import { eq } from "drizzle-orm";
+import { users, auditLogs } from "./db/schema.js";
+import { eq, desc } from "drizzle-orm";
 import { registerV1Routes } from "./routes/v1/index.js";
 import { registerLegacyRoutes } from "./routes/legacy/index.js";
 
@@ -27,7 +27,7 @@ await fastify.register(swagger, {
       version: "1.0.0",
     },
     servers: [
-      { url: "http://localhost:3001", description: "本地开发服务器" },
+      { url: process.env.API_BASE || "http://localhost:3000", description: "API Base" },
     ],
     tags: [
       { name: "health", description: "健康检查" },
@@ -431,6 +431,107 @@ fastify.get("/users/me/souls", {
 
     const souls = await getUserSouls(session.userId);
     return { souls };
+  },
+});
+
+// GET /users - 公开用户列表（无认证）
+fastify.get("/users", {
+  schema: {
+    description: "获取用户列表",
+    tags: ["users"],
+    response: {
+      200: {
+        type: "object",
+        properties: {
+          items: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                id: { type: "string" },
+                handle: { type: "string", nullable: true },
+                displayName: { type: "string", nullable: true },
+                email: { type: "string", nullable: true },
+                image: { type: "string", nullable: true },
+                role: { type: "string", nullable: true },
+                createdAt: { type: "string" },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  async handler() {
+    const allUsers = await db
+      .select({
+        id: users.id,
+        handle: users.handle,
+        displayName: users.displayName,
+        email: users.email,
+        image: users.image,
+        role: users.role,
+        createdAt: users.createdAt,
+      })
+      .from(users)
+      .orderBy(desc(users.createdAt));
+
+    return { items: allUsers };
+  },
+});
+
+// PATCH /users/:id/role - 设置用户权限（无认证）
+fastify.patch("/users/:id/role", {
+  schema: {
+    description: "设置用户权限",
+    tags: ["users"],
+    params: {
+      type: "object",
+      required: ["id"],
+      properties: {
+        id: { type: "string" },
+      },
+    },
+    body: {
+      type: "object",
+      required: ["role"],
+      properties: {
+        role: { type: "string", enum: ["admin", "moderator", "user"] },
+      },
+    },
+    response: {
+      200: {
+        type: "object",
+        properties: {
+          ok: { type: "boolean" },
+        },
+      },
+    },
+  },
+  async handler(request) {
+    const { id } = request.params as { id: string };
+    const body = request.body as { role: "admin" | "moderator" | "user" };
+
+    if (!["admin", "moderator", "user"].includes(body.role)) {
+      throw { statusCode: 400, message: "Invalid role" };
+    }
+
+    const [targetUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, id))
+      .limit(1);
+
+    if (!targetUser) {
+      throw { statusCode: 404, message: "User not found" };
+    }
+
+    await db
+      .update(users)
+      .set({ role: body.role, updatedAt: new Date() })
+      .where(eq(users.id, id));
+
+    return { ok: true as const };
   },
 });
 

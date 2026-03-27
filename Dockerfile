@@ -73,7 +73,7 @@ RUN mkdir -p /app/backend/storage && chown nodeapp:nodeapp /app/backend/storage
 
 # 配置环境变量
 ENV NODE_ENV=production
-ENV PORT=3001
+ENV PORT=3000
 ENV DATABASE_URL=postgresql://clawhub:clawhub@localhost:5432/clawhub
 ENV REDIS_URL=redis://localhost:6379
 ENV STORAGE_DIR=/app/backend/storage
@@ -103,6 +103,7 @@ CMD ["/bin/bash", "-c", "\
     gosu postgres psql -c \"ALTER DATABASE clawhub OWNER TO clawhub\" && \
     gosu postgres psql -c \"ALTER SCHEMA public OWNER TO clawhub\" && \
     gosu postgres psql -d clawhub -c \"CREATE EXTENSION IF NOT EXISTS vector\" && \
+    chown -R nodeapp:nodeapp $STORAGE_DIR && \
     echo 'Running database migrations...' && \
     gosu nodeapp node backend/dist/scripts/migrate.js && \
     redis-server --daemonize yes && \

@@ -51,8 +51,15 @@ docker exec clawhub-postgres psql -U clawhub -d clawhub -c "CREATE EXTENSION IF 
 cd backend && bun run scripts/seed-test-data.ts
 # 模拟 OAuth 登录：
 curl http://localhost:3001/auth/url
-curl "http://localhost:3001/auth/callback?code=mock_admin"
+curl "http://localhost:3001/auth/callback?code=mock_admin"   # admin
+curl "http://localhost:3001/auth/callback?code=mock_test"   # 普通用户
 ```
+
+### 测试工具函数
+测试中使用 `tests/helpers.ts` 提供的工具：
+- `getAuthToken()` — 获取 admin token（自动缓存）
+- `authHeaders(token)` / `jsonHeaders(token)` — 请求头
+- `fetchJson<T>(url, options)` — 带认证的 JSON 请求
 
 ### CLI 本地测试
 ```bash
@@ -63,6 +70,7 @@ CLAWHUB_REGISTRY=http://localhost:3001 CLAWHUB_SITE=http://localhost:3000 clawdh
 ### 后端环境变量 (`backend/.env`)
 ```env
 DATABASE_URL=postgresql://clawhub:clawhub@localhost:5432/clawhub
+API_BASE=http://localhost:3001          # Swagger 文档用，可覆盖
 JWT_SECRET=your-jwt-secret
 STORAGE_DIR=./storage
 DEMANDS_SERVICE_URL=https://your-demands-service.com  # 可选
@@ -266,6 +274,8 @@ import { useApi } from "@/composables/useApi";
 | `/users/me/skills` | GET | 是 | 当前用户的技能 |
 | `/users/me/stars` | GET | 是 | 当前用户收藏的技能 |
 | `/users/me/souls` | GET | 是 | 当前用户的灵魂 |
+| `/users` | GET | 否 | 用户列表（公开）|
+| `/users/:id/role` | PATCH | 否 | 设置用户权限 |
 | `/storage/upload` | POST | 是 | 上传文件 |
 | `/storage/:id` | GET | 否 | 下载文件 |
 | `/skills/:id/comments` | GET/POST | 否/是 | 获取/添加评论 |
@@ -321,6 +331,18 @@ import { useApi } from "@/composables/useApi";
 - **提交信息语言：中文** — 所有提交信息使用中文撰写
 - PR：聚焦单一变更，包含测试命令，UI 变更需截图
 - **禁止提交** `.env` 或凭据信息
+
+## NG 版本待办
+
+当前开发重点（详见 `features/ng-plan.md`）：
+
+| 优先级 | 事项 |
+|--------|------|
+| P0 | 启用 Souls 导航入口（取消 `frontend/src/layouts/default.vue` 中注释即可）|
+| P1 | Authing 后端登录（`AUTHING_APP_ID`/`AUTHING_APP_SECRET`）|
+| P1 | 技能列表计数优化（替代 `count(*)` 全表扫描）|
+| P2 | Souls 管理功能（create/edit 页面）|
+| P3 | 遗留 `/api` 兼容路由清理（`routes/legacy/`）|
 
 ## 测试规范
 
