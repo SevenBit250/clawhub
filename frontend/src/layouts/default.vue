@@ -21,11 +21,12 @@
                 {{ $t("nav.skills") }}
               </div>
             </router-link>
-            <router-link to="/souls" custom v-slot="{ isActive, navigate }">
+            <!-- TODO NG版本计划: 见 features/ng-plan.md -->
+            <!-- <router-link to="/souls" custom v-slot="{ isActive, navigate }">
               <div class="nav-pill" :class="{ 'nav-pill-active': isActive }" @click="navigate">
                 {{ $t("nav.souls") }}
               </div>
-            </router-link>
+            </router-link> -->
             <router-link to="/demands" custom v-slot="{ isActive, navigate }">
               <div class="nav-pill" :class="{ 'nav-pill-active': isActive }" @click="navigate">
                 {{ $t("nav.demands") }}
