@@ -26,15 +26,15 @@
 #        - /data/clawhub/storage:/app/backend/storage
 
 services:
-  clawhub:
+  skillhub:
     image: gitea.claws.keylights.tech:8443/ai/k-skillhub:latest
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: clawhub
+    container_name: skillhub
     restart: unless-stopped
     ports:
-      - "3000:3000"
+       - 30033:3000
     environment:
       NODE_ENV: production
       PORT: 3000
@@ -50,7 +50,7 @@ services:
       # AUTHING_USER_POOL_ID: your-user-pool-id
     volumes:
       # PostgreSQL 数据目录（使用 Docker volume 自动管理）
-      - clawhub_pgdata:/var/lib/postgresql/data
+      - ./clawhub_pgdata:/var/lib/postgresql/data
       # 文件存储（上传的技能包等）
       - ./clawhub_storage:/app/backend/storage
       # Redis 数据（可选）
@@ -63,6 +63,4 @@ services:
       start_period: 30s
 
 volumes:
-  clawhub_pgdata:
-  clawhub_storage:
   clawhub_redis:

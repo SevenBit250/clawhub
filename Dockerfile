@@ -83,7 +83,7 @@ ENV PGDATA=/var/lib/postgresql/data
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
     CMD curl -sf http://localhost:3001/health || exit 1
 
-EXPOSE 3001 5432 6379
+EXPOSE 3000 5432 6379
 
 # 启动所有服务（使用 bash 脚本管理多进程）
 # 容器以 root 身份启动（CMD 默认），使用 gosu postgres 切换到 postgres 用户启动数据库
