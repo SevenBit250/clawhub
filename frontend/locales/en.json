@@ -16,14 +16,14 @@
     }
   },
   "footer": {
-    "brand": "ClawHub - Skill Marketplace"
+    "brand": "SkillsHub - Skill Marketplace"
   },
   "messages": {
     "logged_out": "Logged out successfully"
   },
   "home": {
     "hero": {
-      "title": "Welcome to ClawHub",
+      "title": "Welcome to SkillsHub",
       "subtitle": "Discover and share amazing skills",
       "browse": "Browse Skills"
     },
@@ -37,7 +37,7 @@
     }
   },
   "login": {
-    "title": "Login to ClawHub",
+    "title": "Login to SkillsHub",
     "subtitle": "Sign in to access your account",
     "loading": "Loading...",
     "authing_login": "Sign in with SSO",
@@ -275,9 +275,12 @@
   },
   "demands": {
     "title": "Demands",
+    "subtitle": "Browse and discover AI agent demands",
     "loading": "Loading...",
     "failed": "Failed to load demands",
-    "no_demands": "No demands found"
+    "no_demands": "No demands found",
+    "search_placeholder": "Search demands...",
+    "no_description": "No description provided"
   },
   "errors": {
     "login_failed": "Login failed",

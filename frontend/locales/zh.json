@@ -16,14 +16,14 @@
     }
   },
   "footer": {
-    "brand": "Skills Hub {'@'} Keylights 2026"
+    "brand": "SkillsHub {'@'} Keylights 2026"
   },
   "messages": {
     "logged_out": "已成功退出登录"
   },
   "home": {
     "hero": {
-      "title": "欢迎来到 Skills Hub",
+      "title": "欢迎来到 SkillsHub",
       "subtitle": "发现并分享精彩的技能",
       "browse": "浏览技能"
     },
@@ -37,7 +37,7 @@
     }
   },
   "login": {
-    "title": "登录 ClawHub",
+    "title": "登录 SkillsHub",
     "subtitle": "登录以访问您的账户",
     "loading": "加载中...",
     "authing_login": "使用 SSO 登录",
@@ -275,9 +275,12 @@
   },
   "demands": {
     "title": "需求",
+    "subtitle": "浏览 AI Agent 需求",
     "loading": "加载中...",
     "failed": "加载需求失败",
-    "no_demands": "未找到需求"
+    "no_demands": "未找到需求",
+    "search_placeholder": "搜索需求...",
+    "no_description": "暂无描述"
   },
   "errors": {
     "login_failed": "登录失败",
