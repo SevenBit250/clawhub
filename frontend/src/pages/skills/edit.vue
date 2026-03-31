@@ -56,7 +56,11 @@
                 placeholder="1.0.0"
                 size="large"
                 class="glass-input"
+                :status="versionStatus.valid === false ? 'error' : undefined"
               />
+              <div v-if="versionStatus.message" class="version-hint" :class="{ error: !versionStatus.valid, ok: versionStatus.valid }">
+                {{ versionStatus.message }}
+              </div>
             </div>
 
             <div class="glass-card option-card motion-up-12 motion-delay-3" :class="{ 'in': mounted }">
@@ -168,6 +172,26 @@ const totalSize = computed(() => {
     total += files.value[i].size;
   }
   return total;
+});
+
+const versionStatus = computed(() => {
+  if (!currentVersion.value || !form.value.version.trim()) {
+    return { valid: true, message: "" };
+  }
+  const newVer = form.value.version.trim();
+  const curVer = currentVersion.value.trim();
+  if (newVer === curVer) {
+    return { valid: false, message: t("skill.publish.errors.version_same") };
+  }
+  const newParts = newVer.split(".").map(Number);
+  const curParts = curVer.split(".").map(Number);
+  for (let i = 0; i < Math.max(newParts.length, curParts.length); i++) {
+    const n = newParts[i] || 0;
+    const c = curParts[i] || 0;
+    if (n > c) return { valid: true, message: t("skill.publish.ok_version") };
+    if (n < c) return { valid: false, message: t("skill.publish.errors.version_lower") };
+  }
+  return { valid: false, message: t("skill.publish.errors.version_lower") };
 });
 
 function formatSize(bytes: number): string {
@@ -514,6 +538,21 @@ function goBack() {
   margin: 0 0 1.25rem;
 }
 
+.version-hint {
+  font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 0.8125rem;
+  margin: 0.5rem 0 0;
+  transition: color 0.2s ease;
+}
+
+.version-hint.error {
+  color: #ef4444;
+}
+
+.version-hint.ok {
+  color: #16a34a;
+}
+
 .upload-btn {
   display: inline-flex;
   align-items: center;
@@ -755,6 +794,14 @@ function goBack() {
 [data-theme="dark"] .upload-hint,
 [data-theme="dark"] .upload-status {
   color: #64748b;
+}
+
+[data-theme="dark"] .version-hint.error {
+  color: #f87171;
+}
+
+[data-theme="dark"] .version-hint.ok {
+  color: #4ade80;
 }
 
 [data-theme="dark"] .upload-btn {

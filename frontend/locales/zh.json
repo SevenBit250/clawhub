@@ -259,6 +259,7 @@
       "changelog_placeholder": "输入此版本的更新内容...",
       "cancel": "取消",
       "publish": "发布技能",
+      "ok_version": "版本号有效",
       "errors": {
         "slug_required": "Slug 不能为空",
         "display_name_required": "显示名称不能为空",

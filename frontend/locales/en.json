@@ -259,6 +259,7 @@
       "changelog_placeholder": "Enter the changelog for this version...",
       "cancel": "Cancel",
       "publish": "Publish",
+      "ok_version": "Version is valid",
       "errors": {
         "slug_required": "Slug is required",
         "display_name_required": "Display name is required",
