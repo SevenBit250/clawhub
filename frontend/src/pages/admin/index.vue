@@ -71,25 +71,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Quick Actions -->
-    <div class="actions-section motion-up-12 motion-delay-4" :class="{ 'in': mounted }">
-      <h3 class="actions-title">快捷操作</h3>
-      <div class="actions-grid">
-        <router-link to="/admin/skills?status=pending" class="action-btn action-btn--primary">
-          <AppstoreOutlined />
-          <span>审核技能</span>
-        </router-link>
-        <router-link to="/admin/users" class="action-btn action-btn--secondary">
-          <TeamOutlined />
-          <span>管理用户</span>
-        </router-link>
-        <router-link to="/dashboard" class="action-btn action-btn--neutral">
-          <DashboardOutlined />
-          <span>我的仪表盘</span>
-        </router-link>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -100,8 +81,6 @@ import {
   TeamOutlined,
   ArrowRightOutlined,
   HistoryOutlined,
-  AppstoreOutlined,
-  DashboardOutlined,
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 import { useApi } from "@/composables/useApi";
@@ -459,115 +438,9 @@ function formatTime(date: Date): string {
   font-size: 0.9375rem;
 }
 
-/* ─── Actions Section ─── */
-.actions-section {
-  padding: 1rem 0;
-}
-
-.actions-title {
-  font-family: 'Archivo', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
-  color: #27272a;
-  margin: 0 0 1rem 0;
-}
-
-[data-theme="dark"] .actions-title {
-  color: #f1f5f9;
-}
-
-.actions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 0.75rem;
-}
-
-.action-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.875rem 1.25rem;
-  border-radius: 99999px;
-  font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.action-btn--primary {
-  background: linear-gradient(135deg, #155dfc 0%, #4f39f6 100%);
-  color: #fff;
-  box-shadow:
-    0 8px 16px rgba(43, 127, 255, 0.25),
-    0 2px 4px rgba(43, 127, 255, 0.15);
-}
-
-.action-btn--primary:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow:
-    0 12px 24px rgba(43, 127, 255, 0.3),
-    0 4px 8px rgba(43, 127, 255, 0.2);
-}
-
-.action-btn--secondary {
-  background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
-  color: #fff;
-  box-shadow:
-    0 8px 16px rgba(147, 51, 234, 0.25),
-    0 2px 4px rgba(147, 51, 234, 0.15);
-}
-
-.action-btn--secondary:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow:
-    0 12px 24px rgba(147, 51, 234, 0.3),
-    0 4px 8px rgba(147, 51, 234, 0.2);
-}
-
-.action-btn--neutral {
-  background: rgba(255, 255, 255, 0.8);
-  color: #52525c;
-  border: 1px solid rgba(228, 228, 231, 0.6);
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.04),
-    0 1px 2px rgba(0, 0, 0, 0.02);
-}
-
-.action-btn--neutral:hover {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(43, 127, 255, 0.3);
-  transform: translateY(-2px);
-  box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.08),
-    0 2px 4px rgba(0, 0, 0, 0.04);
-}
-
-[data-theme="dark"] .action-btn--neutral {
-  background: rgba(30, 35, 60, 0.6);
-  color: #94a3b8;
-  border-color: rgba(99, 102, 241, 0.2);
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.2),
-    0 1px 2px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme="dark"] .action-btn--neutral:hover {
-  background: rgba(40, 45, 80, 0.7);
-  border-color: rgba(43, 127, 255, 0.35);
-  box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.3),
-    0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
 /* ─── Responsive ─── */
 @media (max-width: 640px) {
   .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .actions-grid {
     grid-template-columns: 1fr;
   }
 }
