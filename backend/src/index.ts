@@ -27,7 +27,7 @@ await fastify.register(swagger, {
       version: "1.0.0",
     },
     servers: [
-      { url: process.env.API_BASE || "http://localhost:3000", description: "API Base" },
+      { url: process.env.API_BASE || "http://localhost:3001", description: "API Base" },
     ],
     tags: [
       { name: "health", description: "健康检查" },
