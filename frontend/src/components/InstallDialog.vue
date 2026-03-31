@@ -9,7 +9,39 @@
     class="install-dialog-modal"
   >
     <div class="install-dialog-content">
-      <!-- Method 1: CLI Install -->
+      <!-- Method 1: AI Self-Install -->
+      <div class="install-method ai-method">
+        <div class="method-header">
+          <div class="method-icon method-icon--ai">
+            <RobotOutlined />
+          </div>
+          <div class="method-info">
+            <h3 class="method-title">
+              <span class="method-badge method-badge--ai">{{ $t('skill.install_dialog.method1') }}</span>
+              {{ $t('skill.install_dialog.ai_self_install') }}
+            </h3>
+            <p class="method-desc">{{ $t('skill.install_dialog.ai_hint') }}</p>
+          </div>
+        </div>
+        <div class="command-block">
+          <div class="command-header">
+            <span class="command-label">AI Prompt</span>
+            <button class="copy-btn" @click="copyAiPrompt" :class="{ 'copied': copiedAi }">
+              <CheckOutlined v-if="copiedAi" />
+              <CopyOutlined v-else />
+              <span>{{ copiedAi ? $t('skill.install_dialog.copied') : $t('skill.install_dialog.copy') }}</span>
+            </button>
+          </div>
+          <pre class="command-code"><code>{{ $t('skill.install_dialog.ai_prompt', { slug }) }}</code></pre>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="divider">
+        <span>{{ $t('skill.install_dialog.or') }}</span>
+      </div>
+
+      <!-- Method 2: CLI Install -->
       <div class="install-method">
         <div class="method-header">
           <div class="method-icon">
@@ -17,7 +49,7 @@
           </div>
           <div class="method-info">
             <h3 class="method-title">
-              <span class="method-badge">{{ $t('skill.install_dialog.method1') }}</span>
+              <span class="method-badge">{{ $t('skill.install_dialog.method2') }}</span>
               {{ $t('skill.install_dialog.install_command') }}
             </h3>
             <p class="method-desc">{{ $t('skill.install_dialog.cli_hint') }}</p>
@@ -41,7 +73,7 @@
         <span>{{ $t('skill.install_dialog.or') }}</span>
       </div>
 
-      <!-- Method 2: Download ZIP -->
+      <!-- Method 3: Download ZIP -->
       <div class="download-method">
         <div class="method-header">
           <div class="method-icon method-icon--download">
@@ -49,7 +81,7 @@
           </div>
           <div class="method-info">
             <h3 class="method-title">
-              <span class="method-badge method-badge--secondary">{{ $t('skill.install_dialog.method2') }}</span>
+              <span class="method-badge method-badge--secondary">{{ $t('skill.install_dialog.method3') }}</span>
               {{ $t('skill.install_dialog.download_zip') }}
             </h3>
             <p class="method-desc">{{ $t('skill.install_dialog.zip_hint') }}</p>
@@ -66,7 +98,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { CopyOutlined, CheckOutlined, DownloadOutlined, ConsoleSqlOutlined } from "@ant-design/icons-vue";
+import { CopyOutlined, CheckOutlined, DownloadOutlined, ConsoleSqlOutlined, RobotOutlined } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 
 const props = defineProps<{
@@ -82,6 +114,7 @@ const emit = defineEmits<{
 }>();
 
 const copied = ref(false);
+const copiedAi = ref(false);
 
 // Syntax highlighting for shell commands
 function highlightCommand(cmd: string): string {
@@ -91,17 +124,8 @@ function highlightCommand(cmd: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
-  // Highlight commands (first word before space or at start)
-  escaped = escaped.replace(/^(\s*)(export\s+)?(\S+)/gm, (match, leadingSpace, exp, cmd) => {
-    return `${leadingSpace || ''}${exp || ''}<span class="hl-command">${cmd}</span>`;
-  });
-
   // Highlight environment variables: export VAR=...
   escaped = escaped.replace(/(export\s+)(\w+)(=)/g, '$1<span class="hl-var">$2</span><span class="hl-operator">$3</span>');
-
-  // Highlight quoted strings
-  escaped = escaped.replace(/"([^"\\]*(\\.[^"\\]*)*)"/g, '<span class="hl-string">"$1"</span>');
-  escaped = escaped.replace(/'([^'\\]*(\\.[^'\\]*)*)'/g, "<span class='hl-string'>'$1'</span>");
 
   // Highlight special characters like &&, |, >
   escaped = escaped.replace(/(&&|\|\||\|)/g, '<span class="hl-operator">$1</span>');
@@ -118,6 +142,20 @@ async function copyToClipboard(text: string) {
     message.success("Copied to clipboard!");
     setTimeout(() => {
       copied.value = false;
+    }, 2000);
+  } catch {
+    message.error("Failed to copy");
+  }
+}
+
+async function copyAiPrompt() {
+  try {
+    const text = `使用clawhub cli从内部技能市场安装技能: ${props.slug}`;
+    await navigator.clipboard.writeText(text);
+    copiedAi.value = true;
+    message.success("Copied to clipboard!");
+    setTimeout(() => {
+      copiedAi.value = false;
     }, 2000);
   } catch {
     message.error("Failed to copy");
@@ -170,6 +208,11 @@ function handleClose() {
   color: #a855f7;
 }
 
+.method-icon--ai {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  color: #16a34a;
+}
+
 .method-info {
   flex: 1;
   min-width: 0;
@@ -203,6 +246,11 @@ function handleClose() {
 .method-badge--secondary {
   background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
   color: #7c3aed;
+}
+
+.method-badge--ai {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  color: #16a34a;
 }
 
 .method-desc {
@@ -424,6 +472,16 @@ function handleClose() {
   box-shadow:
     0 12px 28px rgba(43, 127, 255, 0.5),
     0 6px 14px rgba(43, 127, 255, 0.35);
+}
+
+[data-theme="dark"] .method-icon--ai {
+  background: linear-gradient(135deg, #14532d 0%, #166534 100%);
+  color: #4ade80;
+}
+
+[data-theme="dark"] .method-badge--ai {
+  background: linear-gradient(135deg, #14532d 0%, #166534 100%);
+  color: #4ade80;
 }
 
 /* ─── Responsive ─── */

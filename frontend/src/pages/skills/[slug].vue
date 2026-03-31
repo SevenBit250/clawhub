@@ -259,9 +259,9 @@ const submitting = ref(false);
 
 // CLI commands
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3000";
-const CLI_SITE = import.meta.env.VITE_CLI_SITE || "https://clawhub.ai";
+const CLI_SITE = window.location.origin;
 
-const cliInstallCommand = computed(() => `export CLAWHUB_REGISTRY="${CLI_SITE}" && npx clawhub@latest install ${skill.value?.slug}`);
+const cliInstallCommand = computed(() => `export CLAWHUB_REGISTRY=${CLI_SITE} && clawhub install ${skill.value?.slug}`);
 const cliDownloadUrl = computed(() => `${API_BASE}/api/v1/download?slug=${skill.value?.slug}`);
 
 onMounted(async () => {
