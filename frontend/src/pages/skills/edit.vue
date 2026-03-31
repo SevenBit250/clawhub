@@ -125,6 +125,7 @@ const skill = ref<{
   tags: Record<string, string>;
   moderationStatus: string;
 } | null>(null);
+const currentVersion = ref<string | null>(null);
 const loading = ref(true);
 const error = ref<string | null>(null);
 const mounted = ref(false);
@@ -252,6 +253,7 @@ onMounted(async () => {
 
       // Prefill version and changelog from latest version
       if (data.latestVersion) {
+        currentVersion.value = data.latestVersion.version;
         form.value.version = data.latestVersion.version;
         form.value.changelog = data.latestVersion.changelog || "";
       } else {
@@ -273,11 +275,37 @@ async function handleResubmit() {
     return;
   }
 
+  // Version must be higher than current
+  if (currentVersion.value && form.value.version) {
+    const newVer = form.value.version.trim();
+    const curVer = currentVersion.value.trim();
+    if (newVer === curVer) {
+      message.error(t("skill.publish.errors.version_same"));
+      return;
+    }
+    const newParts = newVer.split(".").map(Number);
+    const curParts = curVer.split(".").map(Number);
+    let higher = false;
+    for (let i = 0; i < Math.max(newParts.length, curParts.length); i++) {
+      const n = newParts[i] || 0;
+      const c = curParts[i] || 0;
+      if (n > c) { higher = true; break; }
+      if (n < c) {
+        message.error(t("skill.publish.errors.version_lower"));
+        return;
+      }
+    }
+    if (!higher && newParts.length <= curParts.length) {
+      message.error(t("skill.publish.errors.version_lower"));
+      return;
+    }
+  }
+
   // Check for SKILL.md
-  const hasSkillMd = filesWithPaths.value.length > 0
+  const hasSkillMdFile = filesWithPaths.value.length > 0
     ? filesWithPaths.value.some(f => f.path.endsWith("SKILL.md") || f.path === "SKILL.md")
     : Array.from(files.value || []).some((f) => f.name === "SKILL.md");
-  if (!hasSkillMd) {
+  if (!hasSkillMdFile) {
     message.error(t("skill.publish.errors.skill_md_required"));
     return;
   }

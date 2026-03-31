@@ -265,7 +265,9 @@
         "files_required": "请至少添加一个文件",
         "skill_md_required": "必须包含 SKILL.md",
         "login_required": "请先登录",
-        "publish_failed": "发布技能失败"
+        "publish_failed": "发布技能失败",
+        "version_same": "版本号不能与当前版本相同",
+        "version_lower": "新版本号必须高于当前版本"
       },
       "success": "技能发布成功！"
     }

@@ -230,7 +230,7 @@
     "resubmit": "Resubmit",
     "resubmit_success": "Skill resubmitted for review",
     "resubmit_failed": "Failed to resubmit skill",
-    "update": "Update Skill",
+    "update": "Update",
     "edit": {
       "title": "Edit Skill",
       "resubmit": "Update & Resubmit",
@@ -265,7 +265,9 @@
         "files_required": "Add at least one file",
         "skill_md_required": "SKILL.md is required",
         "login_required": "Please login first",
-        "publish_failed": "Failed to publish skill"
+        "publish_failed": "Failed to publish skill",
+        "version_same": "Version must be different from current version",
+        "version_lower": "New version must be higher than current version"
       },
       "success": "Skill published successfully!"
     }
