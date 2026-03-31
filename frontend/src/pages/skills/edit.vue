@@ -2,8 +2,7 @@
   <div class="publish-page">
     <div class="container">
       <div class="page-header">
-        <h1 class="page-title">{{ $t("skill.edit.title") }}</h1>
-        <p class="page-desc">{{ skill?.displayName }}</p>
+        <h1 class="page-title">{{ $t("skill.update") }}</h1>
       </div>
 
       <div v-if="loading" class="text-center py-20">{{ t('skill.loading') }}</div>
@@ -13,18 +12,8 @@
           <!-- Left: Form Fields -->
           <div class="form-section">
             <div class="form-group">
-              <label class="form-label">{{ $t("skill.publish.display_name") }}</label>
-              <a-input v-model:value="form.displayName" size="large" />
-            </div>
-
-            <div class="form-group">
               <label class="form-label">{{ $t("skill.publish.version") }}</label>
               <a-input v-model:value="form.version" placeholder="1.0.0" size="large" />
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">{{ $t("skill.publish.tags") }}</label>
-              <a-input v-model:value="form.tags" :placeholder="$t('skill.publish.tags_placeholder')" size="large" />
             </div>
           </div>
 
