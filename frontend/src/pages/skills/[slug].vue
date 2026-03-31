@@ -68,12 +68,12 @@
                 {{ t('skill.install') }}
               </a-button>
               <a-button
-                v-if="isOwner && skill.moderationStatus === 'removed'"
+                v-if="isOwner"
                 class="action-btn edit-btn"
                 @click="$router.push(`/skills/${skill.slug}/edit`)"
               >
                 <EditOutlined />
-                {{ t('skill.edit.title') }}
+                {{ t('skill.update') }}
               </a-button>
             </div>
           </div>

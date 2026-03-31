@@ -225,6 +225,7 @@
     "resubmit": "重新提交",
     "resubmit_success": "技能已重新提交审核",
     "resubmit_failed": "重新提交失败",
+    "update": "更新",
     "edit": {
       "title": "编辑技能",
       "resubmit": "更新并重新提交",

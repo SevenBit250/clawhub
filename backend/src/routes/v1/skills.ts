@@ -1288,9 +1288,7 @@ const registerSkillManageV1: FastifyPluginAsync = async (fastify) => {
       throw { statusCode: 403, message: "Not skill owner" };
     }
 
-    if (skill.moderationStatus !== "removed" && skill.moderationStatus !== "pending") {
-      throw { statusCode: 400, message: "Only rejected or pending skills can be updated" };
-    }
+    // Allow update for any skill owned by the user
 
     // Parse multipart form data
     const files: Array<{ path: string; size: number; storageId: string; sha256: string; contentType?: string }> = [];
