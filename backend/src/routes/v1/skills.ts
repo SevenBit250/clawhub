@@ -1364,15 +1364,24 @@ const registerSkillManageV1: FastifyPluginAsync = async (fastify) => {
           await Promise.all(filePromises);
 
           // Update skill metadata
+          // Admin users can update skills without triggering moderation
+          const isAdmin = session.user.role === "admin" || session.user.role === "moderator";
           const updateData: Record<string, any> = {
             updatedAt: new Date(),
-            moderationStatus: "pending",
           };
           if (payload.displayName) {
             updateData.displayName = payload.displayName;
           }
           if (payload.tags) {
             updateData.tags = payload.tags;
+          }
+          // Only set moderation status to pending for non-admin users
+          // Admin/moderator updates keep the current status or set to active
+          if (!isAdmin) {
+            updateData.moderationStatus = "pending";
+          } else if (skill.moderationStatus === "pending" || skill.moderationStatus === "removed") {
+            // Admin updating a pending or removed skill approves it
+            updateData.moderationStatus = "active";
           }
 
           await db.update(skills)
