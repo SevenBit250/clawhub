@@ -10,33 +10,31 @@
 
         <!-- Subtitle -->
         <p class="hero-subtitle motion-up-20 motion-delay-2" :class="{ 'in': mounted }">
-          {{ $t('home.hero.subtitle') }}
+          <!-- {{ $t('home.hero.subtitle') }} -->
         </p>
 
-        <!-- Search pill (glassmorphism) -->
-        <div class="search-pill-wrap motion-up-16 motion-delay-3" :class="{ 'in': mounted }">
-          <div class="search-pill" :class="{ 'focused': searchFocused }">
-            <SearchOutlined class="search-icon" :class="{ 'icon-active': searchFocused }" />
-            <a-input
-              v-model:value="searchQuery"
-              :placeholder="$t('nav.search_placeholder')"
-              class="hero-search"
-              @focus="searchFocused = true"
-              @blur="searchFocused = false"
-              @keyup.enter="handleSearch(searchQuery)"
-            />
+        <!-- Usage Instructions (Terminal Style) -->
+        <div class="command-box-wrap motion-up-16 motion-delay-3" :class="{ 'in': mounted }">
+          <div class="command-header">
+            <div class="header-dots">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+            </div>
+            <span class="header-title">复制这段话到AI中来配置技能市场</span>
+            <button class="copy-btn" @click="copyCommand" :class="{ 'copied': copied }">
+              <CheckOutlined v-if="copied" />
+              <CopyOutlined v-else />
+              <span class="copy-text">{{ copied ? '已复制' : '点击复制' }}</span>
+            </button>
+          </div>
+          <div class="command-content">
+            <div class="command-line">
+              <span class="command">{{ terminalContent }}</span>
+            </div>
           </div>
         </div>
 
-        <!-- CTA pill button (gradient) -->
-        <!-- <div class="cta-wrap" :class="{ 'cta-in': mounted }">
-          <router-link to="/skills" class="cta-btn">
-            {{ $t('home.hero.browse') }}
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
-          </router-link>
-        </div> -->
       </div>
     </section>
   </MotionBackground>
@@ -44,15 +42,21 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
-import { SearchOutlined } from "@ant-design/icons-vue";
+import { CopyOutlined, CheckOutlined } from "@ant-design/icons-vue";
+import { message } from "ant-design-vue";
 import MotionBackground from "@/components/MotionBackground.vue";
 
-const api = useApi();
-const router = useRouter();
-const searchQuery = ref("");
 const mounted = ref(false);
-const searchFocused = ref(false);
+const copied = ref(false);
+
+// TODO: Add terminal content
+const terminalContent = " \
+使用 clawhub --version 命令检查一下clawhub工具是否安装了, 若未安装则使用 npm install clawhub@latest 命令安装它； \
+安装完成后，使用 clawhub --version 命令检查安装是否成功； \
+若安装失败，则告知用户，若成功则进行下一步；\
+使用 export CLAWHUB_REGISTRY=https://skillhub.claws.keylights.tech:8443 && clawhub install kls-skill-manager 命令安装这个技能 \
+安装完成后告知用户并说明使用方法。\
+";
 
 onMounted(() => {
   requestAnimationFrame(() => {
@@ -60,9 +64,16 @@ onMounted(() => {
   });
 });
 
-function handleSearch(value: string) {
-  if (value.trim()) {
-    router.push(`/skills?q=${encodeURIComponent(value.trim())}`);
+async function copyCommand() {
+  try {
+    await navigator.clipboard.writeText(terminalContent);
+    copied.value = true;
+    message.success("Copied to clipboard!");
+    setTimeout(() => {
+      copied.value = false;
+    }, 2000);
+  } catch {
+    message.error("Failed to copy");
   }
 }
 </script>
@@ -94,7 +105,7 @@ function handleSearch(value: string) {
   position: relative;
   z-index: 1;
   text-align: center;
-  max-width: 720px;
+  max-width: 800px;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -123,98 +134,126 @@ function handleSearch(value: string) {
   margin: 0 0 2.5rem;
 }
 
-/* ─── Search Pill (Glassmorphism) ─── */
-.search-pill-wrap {
+/* ─── Command Box (Terminal Style) ─── */
+.command-box-wrap {
   width: 100%;
-  max-width: 672px;
+  max-width: 800px;
+  margin-bottom: 2rem;
 }
 
-.search-pill {
-  position: relative;
+.command-header {
   display: flex;
   align-items: center;
-  width: 100%;
-  padding: 0 24px;
-  height: 64px;
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(237, 237, 237, 0.8);
-  border-radius: 99999px;
-  box-shadow:
-    0 10px 15px -3px rgba(43, 127, 255, 0.1),
-    0 4px 6px -4px rgba(43, 127, 255, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  gap: 0.75rem;
-  transition:
-    border-color 0.3s ease,
-    box-shadow 0.3s ease,
-    background 0.3s ease,
-    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: #1e1e2e;
+  border-radius: 12px 12px 0 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.search-pill:hover {
-  transform: translateY(-2px);
+.header-dots {
+  display: flex;
+  gap: 0.5rem;
 }
 
-.search-pill.focused {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: rgba(43, 127, 255, 0.4);
-  box-shadow:
-    0 10px 15px -3px rgba(43, 127, 255, 0.15),
-    0 4px 6px -4px rgba(43, 127, 255, 0.12);
-  transform: translateY(-2px);
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
 }
 
-.search-icon {
-  font-size: 1.25rem;
-  color: #9f9fa9;
-  flex-shrink: 0;
-  transition: color 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+.dot-red {
+  background: #ff5f56;
 }
 
-.search-icon.icon-active {
-  color: #2b7fff;
-  transform: scale(1.1);
+.dot-yellow {
+  background: #ffbd2e;
 }
 
-.hero-search {
-  flex: 1;
+.dot-green {
+  background: #27c93f;
 }
 
-:deep(.ant-input) {
+.header-title {
   font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  font-size: 1rem;
-  font-weight: 400;
-  background: transparent;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
   border: none;
-  outline: none;
-  border-radius: 0;
-  box-shadow: none;
-  color: #525257;
-  padding: 0;
-  line-height: 1;
-  caret-color: #9f9fa9;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-:deep(.ant-input)::placeholder {
-  color: #9f9fa9;
+.copy-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
 }
 
-/* 抑制 Ant Design 默认聚焦边框/阴影，由外层 search-pill 统一处理 */
-:deep(.ant-input-affix-wrapper) {
-  border: none !important;
-  box-shadow: none !important;
-  background: transparent !important;
+.copy-btn.copied {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
 }
 
-:deep(.ant-input-affix-wrapper):focus-within {
-  background: rgba(255, 255, 255, 0.8) !important;
+.copy-btn .anticon {
+  font-size: 0.8125rem;
+}
+
+.copy-text {
+  font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.command-content {
+  background: #1e1e2e;
+  border-radius: 0 0 12px 12px;
+  padding: 1rem 1.25rem;
+  overflow: hidden;
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.2),
+    0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.command-line {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  min-height: 1.6rem;
+}
+
+.command-line--blank {
+  min-height: 0.5rem;
+}
+
+.prompt {
+  color: #22c55e;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.command {
+  color: #cdd6f4;
+  text-align: left;
 }
 
 /* ─── CTA Pill Button (Gradient) ─── */
 .cta-wrap {
-  margin-top: 2rem;
+  margin-top: 0;
   opacity: 0;
   transform: translateY(8px);
   transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
@@ -273,40 +312,15 @@ function handleSearch(value: string) {
   color: #94a3b8;
 }
 
-[data-theme="dark"] .search-pill {
-  background: rgba(30, 35, 60, 0.6);
-  border-color: rgba(99, 102, 241, 0.2);
+[data-theme="dark"] .command-header {
+  background: #181825;
+}
+
+[data-theme="dark"] .command-content {
+  background: #181825;
   box-shadow:
-    0 8px 16px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-[data-theme="dark"] .search-pill.focused {
-  background: rgba(40, 45, 80, 0.7);
-  border-color: rgba(43, 127, 255, 0.5);
-}
-
-[data-theme="dark"] :deep(.ant-input) {
-  color: #f1f5f9;
-  caret-color: #64748b;
-}
-
-[data-theme="dark"] :deep(.ant-input)::placeholder {
-  color: #64748b;
-}
-
-[data-theme="dark"] :deep(.ant-input-affix-wrapper) {
-  border: none !important;
-  box-shadow: none !important;
-  background: transparent !important;
-}
-
-[data-theme="dark"] :deep(.ant-input-affix-wrapper):focus-within {
-  background: rgba(255, 255, 255, 0.08) !important;
-}
-
-[data-theme="dark"] .search-icon {
-  color: #64748b;
+    0 10px 40px rgba(0, 0, 0, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 [data-theme="dark"] .cta-btn {
@@ -328,14 +342,17 @@ function handleSearch(value: string) {
     padding: 1.5rem 1rem;
   }
 
-  .search-pill {
-    height: 56px;
-    padding: 0 20px;
-  }
-
   .cta-btn {
     padding: 0.875rem 2rem;
     font-size: 1rem;
+  }
+
+  .command-content {
+    padding: 0.875rem 1rem;
+  }
+
+  .command-line {
+    font-size: 0.8125rem;
   }
 
   .rings .ring-3 {
