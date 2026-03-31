@@ -52,6 +52,39 @@ const routes: RouteRecordRaw[] = [
     name: "demands",
     component: () => import("@/pages/demands/index.vue"),
   },
+  {
+    path: "/admin",
+    name: "admin",
+    component: () => import("@/layouts/admin.vue"),
+    meta: { requiresAuth: true, requiresAdmin: true },
+    children: [
+      {
+        path: "",
+        name: "admin-dashboard",
+        component: () => import("@/pages/admin/index.vue"),
+      },
+      {
+        path: "skills",
+        name: "admin-skills",
+        component: () => import("@/pages/admin/skills/index.vue"),
+      },
+      {
+        path: "skills/:slug",
+        name: "admin-skill-detail",
+        component: () => import("@/pages/admin/skills/[slug].vue"),
+      },
+      {
+        path: "users",
+        name: "admin-users",
+        component: () => import("@/pages/admin/users/index.vue"),
+      },
+      {
+        path: "users/:id",
+        name: "admin-user-detail",
+        component: () => import("@/pages/admin/users/[id].vue"),
+      },
+    ],
+  },
 ];
 
 const router = createRouter({
