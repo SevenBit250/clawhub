@@ -67,15 +67,15 @@
                 <DownloadOutlined />
                 {{ t('skill.install') }}
               </a-button>
-              <a-button
-                v-if="isOwner"
-                class="action-btn edit-btn"
-                @click="$router.push(`/skills/${skill.slug}/edit`)"
-              >
-                <EditOutlined />
-                {{ t('skill.update') }}
-              </a-button>
             </div>
+            <a-button
+              v-if="isOwner"
+              class="action-btn edit-btn"
+              @click="$router.push(`/skills/${skill.slug}/edit`)"
+            >
+              <EditOutlined />
+              {{ t('skill.update') }}
+            </a-button>
           </div>
         </div>
       </div>
