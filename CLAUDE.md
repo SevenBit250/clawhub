@@ -392,5 +392,5 @@ import { useApi } from "@/composables/useApi";
 | **所有提交前** | `bun run build && bun run test:run` |
 
 ### 测试通过标准
-- `bun run test:run` exit code 0（**90 个测试全部通过**）
+- `bun run test:run` exit code 0（**92 个测试全部通过**）
 - TypeScript 编译通过（`bun run build`）

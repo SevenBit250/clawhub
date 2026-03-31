@@ -1301,6 +1301,9 @@ const registerSkillManageV1: FastifyPluginAsync = async (fastify) => {
       tags?: string[];
     } | null = null;
 
+    // Track all file storage promises to ensure they complete before processing
+    const filePromises: Promise<void>[] = [];
+
     return new Promise((resolve, reject) => {
       const busboy = import("busboy").then(({ default: BB }) => {
         const bb = BB({ headers: request.headers as Record<string, string> });
@@ -1323,8 +1326,16 @@ const registerSkillManageV1: FastifyPluginAsync = async (fastify) => {
             chunks.push(chunk);
           });
 
-          stream.on("end", async () => {
+          // Create a promise for each file and track it
+          const filePromise = (async () => {
             try {
+              // Wait for stream to complete
+              await new Promise<void>((resolve, reject) => {
+                stream.on("error", reject);
+                stream.on("end", resolve);
+              });
+
+              // Now process the file
               const buffer = Buffer.concat(chunks);
               const id = await generateUploadId();
               const file = await storeFile(id, buffer, mimeType || "application/octet-stream");
@@ -1338,9 +1349,9 @@ const registerSkillManageV1: FastifyPluginAsync = async (fastify) => {
             } catch (err) {
               reject(err);
             }
-          });
+          })();
 
-          stream.on("error", reject);
+          filePromises.push(filePromise);
         });
 
         bb.on("close", async () => {
@@ -1348,6 +1359,9 @@ const registerSkillManageV1: FastifyPluginAsync = async (fastify) => {
             reject({ statusCode: 400, message: "Missing payload" });
             return;
           }
+
+          // Wait for all file storage operations to complete before processing
+          await Promise.all(filePromises);
 
           // Update skill metadata
           const updateData: Record<string, any> = {
