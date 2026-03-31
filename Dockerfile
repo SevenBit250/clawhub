@@ -81,7 +81,7 @@ ENV PGDATA=/var/lib/postgresql/data
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
-    CMD curl -sf http://localhost:3001/health || exit 1
+    CMD curl -sf http://localhost:3000/health || exit 1
 
 EXPOSE 3000 5432 6379
 

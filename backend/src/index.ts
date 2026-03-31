@@ -22,7 +22,7 @@ const fastify = Fastify({ logger: true });
 await fastify.register(swagger, {
   openapi: {
     info: {
-      title: "ClawHub API",
+      title: "SkillsHub API",
       description: "AI Agent 技能市场的私有化部署版本 API",
       version: "1.0.0",
     },
