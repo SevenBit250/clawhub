@@ -2,7 +2,7 @@
   <a-config-provider :theme="antdTheme">
     <div class="min-h-screen flex flex-col" :data-theme="effectiveTheme">
       <!-- Admin Header -->
-      <header class="admin-header motion-up-12" :class="{ 'in': mounted }">
+      <header class="admin-header">
         <div class="admin-header-inner">
           <!-- Logo & Back -->
           <div class="header-left">
@@ -72,7 +72,7 @@
       <!-- Admin Layout -->
       <div class="admin-layout">
         <!-- Sidebar Navigation -->
-        <aside class="admin-sidebar motion-up-16 motion-delay-1" :class="{ 'in': mounted }">
+        <aside class="admin-sidebar">
           <nav class="sidebar-nav">
             <router-link to="/admin" class="nav-item" :class="{ 'nav-item-active': route.path === '/admin' || route.path === '/admin/' }">
               <DashboardOutlined />
@@ -99,7 +99,7 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="admin-main motion-up-20 motion-delay-2" :class="{ 'in': mounted }">
+        <main class="admin-main">
           <div class="admin-content">
             <router-view />
           </div>
