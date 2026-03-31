@@ -1,5 +1,5 @@
 import "dotenv/config";
-import Fastify from "fastify";
+import Fastify, { FastifyRequest } from "fastify";
 import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
 import swagger from "@fastify/swagger";
@@ -88,8 +88,17 @@ function isCliTool(userAgent: string | undefined): boolean {
   );
 }
 
+// Get base URL from request (supports proxies via x-forwarded-* headers)
+function getBaseUrl(req: FastifyRequest): string {
+  const protocol = req.headers["x-forwarded-proto"] || req.protocol || "http";
+  const host = req.headers["x-forwarded-host"] || req.headers.host || req.hostname;
+  return `${protocol}://${host}`;
+}
+
 // CLI-friendly text response
-const CLI_TEXT_RESPONSE = `
+function getCliTextResponse(req: FastifyRequest): string {
+  const baseUrl = getBaseUrl(req);
+  return `
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃                 SkillsHub - AI Agent 技能市场                 ┃
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
@@ -97,15 +106,15 @@ const CLI_TEXT_RESPONSE = `
 欢迎使用 SkillsHub!
 
 如果你是AI Agent, 那么请按照如下方法使用技能市场:
-  使用 clawhub --version 命令检查一下clawhub工具是否安装了, 
-  若未安装则使用 npm install clawhub@latest 命令安装它； 
-  安装完成后，使用 clawhub --version 命令检查安装是否成功； 
+  使用 clawhub --version 命令检查一下clawhub工具是否安装了,
+  若未安装则使用 npm install clawhub@latest 命令安装它；
+  安装完成后，使用 clawhub --version 命令检查安装是否成功；
   若安装失败，则告知用户，若成功则进行下一步；
-  使用 export CLAWHUB_REGISTRY=https://skillhub.claws.keylights.tech:8443 && clawhub install kls-skill-manager 命令安装这个技能 
+  使用 export CLAWHUB_REGISTRY=${baseUrl} && clawhub install kls-skill-manager 命令安装这个技能
   安装完成后告知用户并说明使用方法。
 
-📖 API 文档: ${process.env.API_BASE}/docs
-🌐 Web 界面: ${process.env.API_BASE}
+📖 API 文档: ${baseUrl}/docs
+🌐 Web 界面: ${baseUrl}
 
 🔧 常用 API 端点:
    GET    /api/v1/skills           技能列表
@@ -114,14 +123,15 @@ const CLI_TEXT_RESPONSE = `
    GET    /docs                    API 文档 (Swagger)
 
 💡 提示: 使用浏览器访问 Web 界面获得完整体验
-`;
+`.trim();
+}
 
 // SPA: index.html should never be cached
 fastify.get("/", (req, reply) => {
   const userAgent = req.headers["user-agent"];
   if (isCliTool(userAgent)) {
     reply.type("text/plain; charset=utf-8");
-    return reply.send(CLI_TEXT_RESPONSE.trim());
+    return reply.send(getCliTextResponse(req));
   }
   reply.sendFile("index.html", FRONTEND_DIST, { maxAge: 0, immutable: false });
 });
