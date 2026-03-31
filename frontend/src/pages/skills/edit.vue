@@ -144,16 +144,23 @@ const form = ref({
 });
 
 const files = ref<FileList | null>(null);
+const filesWithPaths = ref<Array<{ file: File; path: string }>>([]);
 const publishing = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
 
-const fileCount = computed(() => files.value?.length || 0);
+const fileCount = computed(() => filesWithPaths.value.length || files.value?.length || 0);
 const hasFiles = computed(() => fileCount.value > 0);
-const hasSkillMd = computed(() =>
-  Array.from(files.value || []).some((f) => f.name === "SKILL.md")
-);
+const hasSkillMd = computed(() => {
+  if (filesWithPaths.value.length > 0) {
+    return filesWithPaths.value.some(f => f.path.endsWith("SKILL.md") || f.path === "SKILL.md");
+  }
+  return Array.from(files.value || []).some((f) => f.name === "SKILL.md");
+});
 
 const totalSize = computed(() => {
+  if (filesWithPaths.value.length > 0) {
+    return filesWithPaths.value.reduce((sum, f) => sum + f.file.size, 0);
+  }
   if (!files.value) return 0;
   let total = 0;
   for (let i = 0; i < files.value.length; i++) {
@@ -181,7 +188,56 @@ function handleFileSelect(e: Event) {
 
 function handleDrop(e: DragEvent) {
   isDragging.value = false;
-  files.value = e.dataTransfer?.files || null;
+
+  // Always use webkitGetAsEntry to properly handle folders
+  const items = e.dataTransfer?.items;
+  if (!items || items.length === 0) return;
+
+  const entries: FileSystemEntry[] = [];
+  for (let i = 0; i < items.length; i++) {
+    const entry = items[i].webkitGetAsEntry?.();
+    if (entry) entries.push(entry);
+  }
+
+  if (entries.length === 0) return;
+
+  // Store files with their relative paths
+  filesWithPaths.value = [];
+
+  function readEntry(entry: FileSystemEntry, basePath: string = ""): Promise<void> {
+    const relativePath = basePath ? `${basePath}/${entry.name}` : entry.name;
+
+    if (entry.isFile) {
+      return new Promise((resolve) => {
+        (entry as FileSystemFileEntry).file((file: File) => {
+          // Create a new File with the relative path preserved
+          const fileWithPath = new File([file], relativePath, { type: file.type });
+          filesWithPaths.value.push({ file: fileWithPath, path: relativePath });
+          resolve();
+        });
+      });
+    } else if (entry.isDirectory) {
+      const dirReader = (entry as FileSystemDirectoryEntry).createReader();
+      // readEntries may need to be called multiple times to get all entries
+      return new Promise((resolve) => {
+        function readBatch(): void {
+          dirReader.readEntries((subEntries: FileSystemEntry[]) => {
+            if (subEntries.length === 0) {
+              resolve();
+              return;
+            }
+            Promise.all(subEntries.map(sub => readEntry(sub, relativePath)))
+              .then(() => readBatch())
+              .catch(() => resolve());
+          });
+        }
+        readBatch();
+      });
+    }
+    return Promise.resolve();
+  }
+
+  Promise.all(entries.map(e => readEntry(e)));
 }
 
 onMounted(async () => {
@@ -210,17 +266,23 @@ onMounted(async () => {
 });
 
 async function handleResubmit() {
-  if (!files.value || files.value.length === 0) {
-    message.error("Add at least one file");
+  // Check files from both sources
+  const fileCount = filesWithPaths.value.length || files.value?.length || 0;
+  if (fileCount === 0) {
+    message.error(t("skill.publish.errors.files_required"));
     return;
   }
-  const hasSkillMdFile = Array.from(files.value).some((f) => f.name === "SKILL.md");
-  if (!hasSkillMdFile) {
-    message.error("SKILL.md is required");
+
+  // Check for SKILL.md
+  const hasSkillMd = filesWithPaths.value.length > 0
+    ? filesWithPaths.value.some(f => f.path.endsWith("SKILL.md") || f.path === "SKILL.md")
+    : Array.from(files.value || []).some((f) => f.name === "SKILL.md");
+  if (!hasSkillMd) {
+    message.error(t("skill.publish.errors.skill_md_required"));
     return;
   }
   if (!token.value) {
-    message.error("Please login first");
+    message.error(t("skill.publish.errors.login_required"));
     return;
   }
 
@@ -237,25 +299,46 @@ async function handleResubmit() {
     const formData = new FormData();
     formData.append("payload", JSON.stringify(payload));
 
-    const fileArray = Array.from(files.value);
-    const rawPaths = fileArray.map(f => (f as any).webkitRelativePath || f.name);
+    if (filesWithPaths.value.length > 0) {
+      // Find common prefix directory to strip (e.g., "skill-folder/" from all files)
+      const allPaths = filesWithPaths.value.map(f => f.path);
+      let prefixToStrip = "";
 
-    // Strip common prefix directory (e.g., "skill-folder/" from all files)
-    let prefixToStrip = "";
-    if (rawPaths.length > 0) {
-      const firstSlash = rawPaths[0].indexOf('/');
-      if (firstSlash > 0) {
-        const firstSegment = rawPaths[0].substring(0, firstSlash);
-        if (rawPaths.every(p => p.startsWith(firstSegment + '/'))) {
-          prefixToStrip = firstSegment + '/';
+      if (allPaths.length > 0) {
+        const firstSlash = allPaths[0].indexOf('/');
+        if (firstSlash > 0) {
+          const firstSegment = allPaths[0].substring(0, firstSlash);
+          if (allPaths.every(p => p.startsWith(firstSegment + '/'))) {
+            prefixToStrip = firstSegment + '/';
+          }
         }
       }
-    }
 
-    for (const file of fileArray) {
-      const rawPath = (file as any).webkitRelativePath || file.name;
-      const finalPath = prefixToStrip ? rawPath.substring(prefixToStrip.length) : rawPath;
-      formData.append("files", file, finalPath);
+      for (const { file, path } of filesWithPaths.value) {
+        const finalPath = prefixToStrip ? path.substring(prefixToStrip.length) : path;
+        formData.append("files", file, finalPath);
+      }
+    } else {
+      const fileArray = Array.from(files.value || []);
+      const rawPaths = fileArray.map(f => (f as any).webkitRelativePath || f.name);
+
+      // Strip common prefix directory
+      let prefixToStrip = "";
+      if (rawPaths.length > 0) {
+        const firstSlash = rawPaths[0].indexOf('/');
+        if (firstSlash > 0) {
+          const firstSegment = rawPaths[0].substring(0, firstSlash);
+          if (rawPaths.every(p => p.startsWith(firstSegment + '/'))) {
+            prefixToStrip = firstSegment + '/';
+          }
+        }
+      }
+
+      for (const file of fileArray) {
+        const rawPath = (file as any).webkitRelativePath || file.name;
+        const finalPath = prefixToStrip ? rawPath.substring(prefixToStrip.length) : rawPath;
+        formData.append("files", file, finalPath);
+      }
     }
 
     const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3000";
