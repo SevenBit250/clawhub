@@ -49,6 +49,55 @@
           </div>
         </section>
 
+        <!-- API Tokens Section -->
+        <section class="tokens-section motion-up-12" :class="{ 'in': contentMounted }">
+          <div class="section-header">
+            <h2 class="section-title">
+              <KeyOutlined />
+              API Tokens
+            </h2>
+            <a-button type="primary" @click="openCreateTokenModal">
+              <template #icon><PlusOutlined /></template>
+              创建 Token
+            </a-button>
+          </div>
+
+          <div v-if="!apiTokens?.length" class="empty-state">
+            <div class="empty-icon">🔑</div>
+            <h3 class="empty-title">暂无 API Tokens</h3>
+            <p class="empty-description">API Tokens 用于 CLI 工具访问，创建后请妥善保管</p>
+          </div>
+
+          <div v-else class="tokens-list">
+            <div
+              v-for="(tokenItem, index) in apiTokens"
+              :key="tokenItem.id"
+              class="token-card motion-up-12"
+              :class="{ 'in': contentMounted }"
+              :style="{ transitionDelay: `${index * 0.05}s` }"
+            >
+              <div class="token-info">
+                <div class="token-label">{{ tokenItem.label }}</div>
+                <div class="token-prefix">{{ tokenItem.prefix }}***</div>
+                <div class="token-meta">
+                  <span>创建于 {{ formatDate(tokenItem.createdAt) }}</span>
+                  <span>{{ formatDate(tokenItem.lastUsedAt) }}</span>
+                </div>
+              </div>
+              <div class="token-actions">
+                <a-button size="small" @click="copyToken(tokenItem)">
+                  <template #icon><CopyOutlined /></template>
+                  复制前缀
+                </a-button>
+                <a-button size="small" danger @click="handleRevokeToken(tokenItem.id)">
+                  <template #icon><DeleteOutlined /></template>
+                  撤销
+                </a-button>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- Pending Review Section (Admin/Moderator only) -->
         <section v-if="isModerator && pendingSkills.length" class="pending-section">
           <div class="section-header motion-up-12" :class="{ 'in': contentMounted }">
@@ -130,6 +179,50 @@
       @approve="handleModerationApprove"
       @reject="handleModerationReject"
     />
+
+    <!-- Create Token Modal -->
+    <a-modal
+      v-model:open="showTokenModal"
+      title="创建 API Token"
+      :footer="null"
+      @cancel="closeTokenModal"
+      width="500px"
+    >
+      <div v-if="!createdToken" class="create-token-form">
+        <a-form layout="vertical">
+          <a-form-item label="Token 标签">
+            <a-input
+              v-model:value="newTokenLabel"
+              placeholder="如: CLI Token, My Laptop"
+              maxlength="100"
+              show-count
+            />
+          </a-form-item>
+        </a-form>
+        <div class="modal-actions">
+          <a-button @click="closeTokenModal">取消</a-button>
+          <a-button type="primary" @click="handleCreateToken">创建</a-button>
+        </div>
+      </div>
+
+      <div v-else class="token-created">
+        <a-alert type="success" message="Token 创建成功" show-icon style="margin-bottom: 1rem;">
+          <template #description>
+            <p style="margin-bottom: 0.5rem;">完整 Token 仅显示一次，请立即复制保存</p>
+            <div class="created-token-display">
+              <code>{{ createdToken.token }}</code>
+            </div>
+            <a-button type="primary" block @click="copyCreatedToken">
+              <template #icon><CopyOutlined /></template>
+              复制完整 Token
+            </a-button>
+          </template>
+        </a-alert>
+        <div class="modal-actions">
+          <a-button type="primary" @click="closeTokenModal">完成</a-button>
+        </div>
+      </div>
+    </a-modal>
   </MotionBackground>
 </template>
 
@@ -137,7 +230,7 @@
 import { ref, computed, onMounted, watch, nextTick } from "vue";
 import { message } from "ant-design-vue";
 import { UserOutlined, PlusOutlined } from "@ant-design/icons-vue";
-import { ToolOutlined, ClusterOutlined, StarFilled } from "@ant-design/icons-vue";
+import { ToolOutlined, ClusterOutlined, StarFilled, KeyOutlined, CopyOutlined, DeleteOutlined } from "@ant-design/icons-vue";
 import ModerationDialog from "@/components/ModerationDialog.vue";
 import DashboardSkillItem from "@/components/DashboardSkillItem.vue";
 import MotionBackground from "@/components/MotionBackground.vue";
@@ -166,6 +259,20 @@ const pendingSkills = ref<Array<{
   ownerHandle: string | null;
   ownerDisplayName: string | null;
 }>>([]);
+
+// API Tokens state
+type ApiToken = {
+  id: string;
+  label: string;
+  prefix: string;
+  createdAt: string;
+  lastUsedAt: string | null;
+};
+
+const apiTokens = ref<ApiToken[]>([]);
+const showTokenModal = ref(false);
+const newTokenLabel = ref("");
+const createdToken = ref<{ token: string; prefix: string } | null>(null);
 
 const showModerationDialog = ref(false);
 const selectedSkillForModeration = ref<{
@@ -213,6 +320,7 @@ async function fetchData() {
     mySkills.value = [];
     mySouls.value = [];
     pendingSkills.value = [];
+    apiTokens.value = [];
     return;
   }
 
@@ -230,6 +338,14 @@ async function fetchData() {
     mySouls.value = [];
   }
 
+  // Fetch API tokens
+  try {
+    const res = await api.get<{ tokens: ApiToken[] }>("/api/v1/tokens", { token: token.value });
+    apiTokens.value = res?.tokens || [];
+  } catch {
+    apiTokens.value = [];
+  }
+
   if (isModerator.value) {
     try {
       const res = await api.get<{ items: typeof pendingSkills.value }>("/api/v1/admin/skills/pending", { token: token.value });
@@ -238,6 +354,76 @@ async function fetchData() {
       pendingSkills.value = [];
     }
   }
+}
+
+// Token management functions
+async function openCreateTokenModal() {
+  newTokenLabel.value = `CLI Token ${new Date().toLocaleDateString()}`;
+  createdToken.value = null;
+  showTokenModal.value = true;
+}
+
+async function handleCreateToken() {
+  if (!newTokenLabel.value.trim()) {
+    message.error("请输入 Token 标签");
+    return;
+  }
+
+  try {
+    const res = await api.post<{ id: string; token: string; prefix: string; label: string }>(
+      "/api/v1/tokens",
+      { label: newTokenLabel.value.trim() },
+      { token: token.value }
+    );
+    createdToken.value = { token: res.token, prefix: res.prefix };
+    // Refresh token list
+    const tokensRes = await api.get<{ tokens: ApiToken[] }>("/api/v1/tokens", { token: token.value });
+    apiTokens.value = tokensRes?.tokens || [];
+    message.success("Token 创建成功");
+  } catch (error: any) {
+    message.error(error?.message || "Token 创建失败");
+  }
+}
+
+function copyToken(token: ApiToken) {
+  // 用户只能复制前缀，完整 token 只在创建时显示
+  const text = `Token 前缀: ${token.prefix}\n请使用创建时显示的完整 token`;
+  navigator.clipboard.writeText(text).then(() => {
+    message.success("Token 前缀已复制");
+  }).catch(() => {
+    message.error("复制失败");
+  });
+}
+
+function copyCreatedToken() {
+  if (createdToken.value?.token) {
+    navigator.clipboard.writeText(createdToken.value.token).then(() => {
+      message.success("完整 Token 已复制到剪贴板");
+    }).catch(() => {
+      message.error("复制失败");
+    });
+  }
+}
+
+async function handleRevokeToken(id: string) {
+  try {
+    await api.delete(`/api/v1/tokens/${id}`, { token: token.value });
+    apiTokens.value = apiTokens.value.filter(t => t.id !== id);
+    message.success("Token 已撤销");
+  } catch {
+    message.error("撤销失败");
+  }
+}
+
+function closeTokenModal() {
+  showTokenModal.value = false;
+  createdToken.value = null;
+  newTokenLabel.value = "";
+}
+
+function formatDate(dateStr: string | null) {
+  if (!dateStr) return "未使用";
+  return new Date(dateStr).toLocaleString("zh-CN");
 }
 
 function triggerAnimations() {
@@ -465,6 +651,132 @@ async function handleModerationReject(id: string) {
     grid-template-columns: 1fr;
   }
 }
+
+/* ─── API Tokens Section ─── */
+.tokens-section {
+  margin-bottom: 2.5rem;
+}
+
+.tokens-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.token-card {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 2px 8px rgba(43, 127, 255, 0.04),
+    0 1px 3px rgba(43, 127, 255, 0.03);
+  transition: all 0.3s ease;
+}
+
+.token-card:hover {
+  transform: translateX(4px);
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(43, 127, 255, 0.2);
+}
+
+.token-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.token-label {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: #27272a;
+  margin-bottom: 0.25rem;
+}
+
+.token-prefix {
+  font-family: 'SF Mono', 'Consolas', monospace;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  background: rgba(43, 127, 255, 0.08);
+  padding: 0.125rem 0.375rem;
+  border-radius: 6px;
+  display: inline-block;
+  margin-bottom: 0.375rem;
+}
+
+.token-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.token-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.token-actions .ant-btn {
+  font-size: 0.8125rem;
+}
+
+/* Modal Styles */
+.create-token-form {
+  padding: 0.5rem 0;
+}
+
+.token-created {
+  padding: 0.5rem 0;
+}
+
+.created-token-display {
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin: 0.75rem 0;
+  word-break: break-all;
+}
+
+.created-token-display code {
+  font-family: 'SF Mono', 'Consolas', monospace;
+  font-size: 0.8125rem;
+  color: #27272a;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+/* ─── Section Header ─── */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.section-title {
+  font-family: 'Archivo', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #27272a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ─── Pending Review Section (Admin/Moderator only) -->
 
 .stat-card {
   background: rgba(255, 255, 255, 0.6);
@@ -846,6 +1158,30 @@ async function handleModerationReject(id: string) {
 
 [data-theme="dark"] .stat-card--stars .stat-icon {
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(250, 204, 21, 0.15) 100%);
+}
+
+/* Dark Theme - Token Section */
+[data-theme="dark"] .token-card {
+  background: rgba(30, 35, 60, 0.5);
+  border-color: rgba(99, 102, 241, 0.15);
+}
+
+[data-theme="dark"] .token-card:hover {
+  background: rgba(40, 45, 80, 0.6);
+  border-color: rgba(43, 127, 255, 0.3);
+}
+
+[data-theme="dark"] .token-label {
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .token-prefix {
+  background: rgba(43, 127, 255, 0.15);
+  color: #93c5fd;
+}
+
+[data-theme="dark"] .created-token-display {
+  background: rgba(30, 35, 60, 0.6);
 }
 
 /* ─── Responsive ─── */

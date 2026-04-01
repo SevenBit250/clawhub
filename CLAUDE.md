@@ -98,8 +98,11 @@ VITE_AUTHING_DOMAIN=your-domain.authing.cn
 VITE_AUTHING_APP_ID=your-app-id
 VITE_AUTHING_USER_POOL_ID=your-user-pool-id
 VITE_AUTHING_REDIRECT_URI=http://localhost:3000/auth/callback
+VITE_API_BASE=http://localhost:3001  # 可选，默认通过 Vite proxy
 ```
-API 请求默认发往 `http://localhost:3001`，可通过 `VITE_API_BASE` 覆盖。
+
+### Vite 开发代理
+前端开发时，`/api` 请求通过 Vite proxy 自动转发到后端 `http://localhost:3001`（见 `vite.config.ts`）。这是默认行为，无需配置 `VITE_API_BASE`。
 
 ## 架构
 
@@ -122,9 +125,9 @@ frontend/
 │   ├── router/          # Vue Router 配置
 │   ├── layouts/         # default.vue
 │   ├── assets/css/      # main.css
+│   ├── auto-imports.d.ts # 自动生成，不要手动编辑
+│   ├── components.d.ts   # 自动生成，不要手动编辑
 │   └── main.ts          # Vite 入口
-├── auto-imports.d.ts    # unplugin-auto-import 自动生成的类型
-├── components.d.ts       # unplugin-vue-components 自动生成的类型
 ├── vite.config.ts
 └── index.html
 ```
@@ -258,8 +261,7 @@ import Fastify from "fastify";
 
 // Frontend - Composables 自动导入（无需手动 import）
 // useApi, useAuth, useSearch, useTheme 等直接在组件中使用
-// 其他手动导入：
-import { useApi } from "@/composables/useApi";
+// 注意：auto-imports.d.ts 和 components.d.ts 是自动生成的类型声明，删除后会自动重建
 ```
 
 ### 错误处理
@@ -393,5 +395,5 @@ import { useApi } from "@/composables/useApi";
 | **所有提交前** | `bun run build && bun run test:run` |
 
 ### 测试通过标准
-- `bun run test:run` exit code 0（**92 个测试全部通过**）
+- `bun run test:run` exit code 0（**所有测试通过**）
 - TypeScript 编译通过（`bun run build`）

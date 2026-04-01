@@ -10,11 +10,13 @@ import { registerTransfersV1 } from "./transfers.js";
 import { registerSoulsV1 } from "./souls.js";
 import { registerDemandsV1 } from "./demands.js";
 import { registerAdminSkillsV1, registerAdminUsersV1 } from "./admin.js";
+import { registerTokenRoutes } from "./tokens.js";
 
 export async function registerV1Routes(fastify: FastifyInstance) {
   await fastify.register(async (f) => {
     await registerWhoamiV1(f);
     await registerUsersV1(f);
+    await registerTokenRoutes(f);
     await registerSearchV1(f);
     await registerResolveV1(f);
     await registerDownloadV1(f);
