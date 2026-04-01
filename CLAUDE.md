@@ -32,7 +32,8 @@ bun run test:coverage    # 覆盖率报告
 ```bash
 cd frontend
 bun install && bun run dev   # 启动开发服务器 http://localhost:3000
-bun run build                 # 生产构建
+bun run build                # 生产构建
+bun run typecheck            # TypeScript 类型检查
 ```
 
 ### TypeScript 类型检查
@@ -86,10 +87,13 @@ JWT_SECRET=your-jwt-secret
 STORAGE_DIR=./storage
 DEMANDS_SERVICE_URL=https://your-demands-service.com  # 可选
 # Authing SSO
+AUTHING_APP_SECRET=your-app-secret     # OAuth 后端认证
 AUTHING_DOMAIN=your-domain.authing.cn
 AUTHING_APP_ID=your-app-id
 AUTHING_REDIRECT_URI=http://localhost:3000/auth/callback
 AUTHING_USER_POOL_ID=your-user-pool-id
+# CLI Token 验证模式（仅开发环境）
+CLI_ALLOW_ANY_TOKEN=false              # true: 跳过 token 验证（内网模式）
 ```
 
 ### 前端环境变量 (`frontend/.env`)

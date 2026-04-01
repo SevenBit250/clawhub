@@ -2,6 +2,7 @@ import { db } from "../db/index.js";
 import { authSessions, users } from "../db/schema.js";
 import { eq, and, gt } from "drizzle-orm";
 import { randomBytes, createHmac } from "crypto";
+import { validateApiToken } from "../lib/apiTokens.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-in-production";
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
@@ -73,6 +74,19 @@ export async function requireAuth(request: any) {
   const token = getTokenFromRequest(request);
   if (!token) throw { statusCode: 401, message: "Unauthorized" };
 
+  // 首先尝试验证 API token (clh_ 前缀)
+  if (token.startsWith("clh_")) {
+    const apiTokenSession = await validateApiToken(token);
+    if (apiTokenSession) {
+      const [user] = await db.select({
+        id: users.id,
+        role: users.role,
+      }).from(users).where(eq(users.id, apiTokenSession.userId)).limit(1);
+      return { ...apiTokenSession, user };
+    }
+  }
+
+  // 然后尝试验证 session token
   const session = await validateSession(token);
   if (!session) throw { statusCode: 401, message: "Invalid or expired session" };
 

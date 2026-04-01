@@ -575,91 +575,145 @@ const registerPublishSkillV1: FastifyPluginAsync = async (fastify) => {
     async handler(request) {
     const session = await requireAuth(request);
 
-    interface FileItem {
-      path: string;
-      content: string;
-      contentType?: string;
-    }
-
-    interface UploadBody {
-      payload: {
-        slug: string;
-        displayName: string;
-        version: string;
-        changelog: string;
-        tags?: string[];
-        forkOf?: { slug: string; version?: string };
-      };
-      files: FileItem[];
-    }
-
-    const body = request.body as UploadBody;
-    const { payload, files: filesData } = body;
-
-    if (!payload || !filesData || !Array.isArray(filesData)) {
-      throw { statusCode: 400, message: "Invalid request body" };
-    }
-
+    // Parse multipart form data
+    const files: Array<{ path: string; size: number; storageId: string; sha256: string; contentType?: string }> = [];
     const { generateUploadId, storeFile } = await import("../../lib/storage.js");
 
-    // Extract summary from SKILL.md before encoding files
-    let summary: string | null = null;
-    const skillMdFile = filesData.find(f => {
-      const pathLower = f.path.toLowerCase();
-      const filename = pathLower.split('/').pop()!.split('\\').pop()!;
-      return filename === 'skill.md';
-    });
-    if (skillMdFile) {
-      try {
-        const skillMdContent = Buffer.from(skillMdFile.content, 'base64').toString('utf-8');
-        summary = extractSummaryFromSkillMd(skillMdContent);
-      } catch {
-        // Ignore errors
-      }
+    interface Payload {
+      slug: string;
+      displayName: string;
+      version: string;
+      changelog: string;
+      tags?: string[];
+      forkOf?: { slug: string; version?: string };
     }
 
-    const files: Array<{ path: string; size: number; storageId: string; sha256: string; contentType?: string }> = [];
+    let payload: Payload | null = null;
+    const filePromises: Promise<void>[] = [];
 
-    for (const fileData of filesData) {
-      const buffer = Buffer.from(fileData.content, 'base64');
-      const id = await generateUploadId();
-      const file = await storeFile(id, buffer, fileData.contentType || 'application/octet-stream');
-      files.push({
-        path: fileData.path,
-        size: buffer.length,
-        storageId: id,
-        sha256: file.sha256,
-        contentType: fileData.contentType,
+    return new Promise((resolve, reject) => {
+      const busboy = import("busboy").then(({ default: BB }) => {
+        const bb = BB({
+          headers: request.headers as Record<string, string>,
+          preservePath: true, // 保留文件路径，如 "src/utils/helper.ts"
+        });
+
+        bb.on("field", (name: string, value: string) => {
+          if (name === "payload") {
+            try {
+              payload = JSON.parse(value);
+            } catch {
+              reject({ statusCode: 400, message: "Invalid payload JSON" });
+            }
+          }
+        });
+
+        bb.on("file", async (name: string, stream: any, info: any) => {
+          const { filename, mimeType } = info;
+          const chunks: Buffer[] = [];
+
+          stream.on("data", (chunk: Buffer) => {
+            chunks.push(chunk);
+          });
+
+          const filePromise = (async () => {
+            try {
+              await new Promise<void>((resolve, reject) => {
+                stream.on("error", reject);
+                stream.on("end", resolve);
+              });
+
+              const buffer = Buffer.concat(chunks);
+              const id = await generateUploadId();
+              const file = await storeFile(id, buffer, mimeType || "application/octet-stream");
+              files.push({
+                path: filename,
+                size: buffer.length,
+                storageId: id,
+                sha256: file.sha256,
+                contentType: mimeType,
+              });
+            } catch (err) {
+              reject(err);
+            }
+          })();
+
+          filePromises.push(filePromise);
+        });
+
+        bb.on("close", async () => {
+          if (!payload) {
+            reject({ statusCode: 400, message: "Missing payload" });
+            return;
+          }
+
+          // Wait for all file storage operations to complete
+          await Promise.all(filePromises);
+
+          // Validate required fields
+          if (!payload.slug || !payload.displayName || !payload.version) {
+            reject({ statusCode: 400, message: "Missing required fields: slug, displayName, version" });
+            return;
+          }
+
+          // Check if slug already exists
+          const existing = await db.query.skills.findFirst({
+            where: eq(skills.slug, payload.slug),
+          });
+
+          if (existing) {
+            reject({ statusCode: 409, message: "Slug already exists" });
+            return;
+          }
+
+          // Extract summary from SKILL.md
+          let summary: string | null = null;
+          const skillMdFile = files.find(f => {
+            const pathLower = f.path.toLowerCase();
+            const filename = pathLower.split('/').pop()!.split('\\').pop()!;
+            return filename === 'skill.md';
+          });
+
+          if (skillMdFile) {
+            try {
+              const { getFile } = await import("../../lib/storage.js");
+              const result = await getFile(skillMdFile.storageId);
+              if (result) {
+                const skillMdContent = result.data.toString('utf-8');
+                summary = extractSummaryFromSkillMd(skillMdContent);
+              }
+            } catch {
+              // Ignore errors
+            }
+          }
+
+          // Create skill
+          const skill = await createSkill(session.userId, {
+            slug: payload.slug,
+            displayName: payload.displayName,
+            summary: summary ?? undefined,
+            moderationStatus: session.user.role === "admin" ? "active" : "pending",
+          });
+
+          // Create version
+          const version = await createSkillVersion(session.userId, skill.id, {
+            skillId: skill.id,
+            version: payload.version,
+            changelog: payload.changelog || "",
+            files,
+          });
+
+          resolve({
+            ok: true as const,
+            skillId: skill.id,
+            versionId: version.id,
+          });
+        });
+
+        bb.on("error", reject);
+        (request.raw as any).pipe(bb);
       });
-    }
-
-    const existing = await db.query.skills.findFirst({
-      where: eq(skills.slug, payload.slug),
     });
-
-    if (existing) {
-      throw { statusCode: 409, message: "Slug already exists" };
-    }
-
-    const skill = await createSkill(session.userId, {
-      slug: payload.slug,
-      displayName: payload.displayName,
-      summary: summary ?? undefined,
-      moderationStatus: session.user.role === "admin" ? "active" : "pending",
-    });
-
-    const version = await createSkillVersion(session.userId, skill.id, {
-      skillId: skill.id,
-      version: payload.version,
-      changelog: payload.changelog,
-      files,
-    });
-
-    return {
-      ok: true as const,
-      skillId: skill.id,
-      versionId: version.id,
-    };
     },
   });
 };
@@ -1306,7 +1360,10 @@ const registerSkillManageV1: FastifyPluginAsync = async (fastify) => {
 
     return new Promise((resolve, reject) => {
       const busboy = import("busboy").then(({ default: BB }) => {
-        const bb = BB({ headers: request.headers as Record<string, string> });
+        const bb = BB({
+          headers: request.headers as Record<string, string>,
+          preservePath: true, // 保留文件路径，如 "src/utils/helper.ts"
+        });
 
         bb.on("field", (name: string, value: string) => {
           if (name === "payload") {
