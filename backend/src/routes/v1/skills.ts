@@ -524,13 +524,34 @@ const getSkillBySlug: FastifyPluginAsync = async (fastify) => {
 function extractSummaryFromSkillMd(content: string): string | null {
   if (!content) return null;
 
-  // Check for YAML frontmatter description
+  // Parse YAML frontmatter (between --- markers)
   const frontmatterMatch = content.match(/^---\s*\n([\s\S]*?)\n---/);
   if (frontmatterMatch) {
-    const frontmatter = frontmatterMatch[1];
-    const descMatch = frontmatter.match(/description:\s*["']?([^"'\n]+)["']?/i);
-    if (descMatch) {
-      return descMatch[1].trim();
+    try {
+      // Parse each line as key:value pairs
+      const frontmatter = frontmatterMatch[1];
+      const lines = frontmatter.split('\n');
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        if (!trimmedLine || trimmedLine.startsWith('#')) continue;
+
+        // Match key: value format (with or without quotes)
+        const match = trimmedLine.match(/^(\w+):\s*(.+)$/);
+        if (match) {
+          const [, key, value] = match;
+          if (key === 'description') {
+            // Remove quotes if present
+            let desc = value.trim();
+            if ((desc.startsWith('"') && desc.endsWith('"')) ||
+                (desc.startsWith("'") && desc.endsWith("'"))) {
+              desc = desc.slice(1, -1);
+            }
+            return desc;
+          }
+        }
+      }
+    } catch {
+      // Fall through to fallback
     }
   }
 
@@ -1455,6 +1476,27 @@ const registerSkillManageV1: FastifyPluginAsync = async (fastify) => {
 
           // Create new version if files provided
           if (files.length > 0) {
+            // Extract summary from SKILL.md if present
+            let summary: string | null = null;
+            const skillMdFile = files.find(f => {
+              const pathLower = f.path.toLowerCase();
+              const filename = pathLower.split('/').pop()!.split('\\').pop()!;
+              return filename === 'skill.md';
+            });
+
+            if (skillMdFile) {
+              try {
+                const { getFile } = await import("../../lib/storage.js");
+                const result = await getFile(skillMdFile.storageId);
+                if (result) {
+                  const skillMdContent = result.data.toString('utf-8');
+                  summary = extractSummaryFromSkillMd(skillMdContent);
+                }
+              } catch {
+                // Ignore errors
+              }
+            }
+
             const version = await createSkillVersion(session.userId, skill.id, {
               skillId: skill.id,
               version: payload.version || "1.0.0",
@@ -1462,8 +1504,17 @@ const registerSkillManageV1: FastifyPluginAsync = async (fastify) => {
               files,
             });
 
+            // Update skill summary if extracted
+            const versionUpdateData: Record<string, any> = {
+              latestVersionId: version.id,
+              updatedAt: new Date(),
+            };
+            if (summary !== null) {
+              versionUpdateData.summary = summary;
+            }
+
             await db.update(skills)
-              .set({ latestVersionId: version.id, updatedAt: new Date() })
+              .set(versionUpdateData)
               .where(eq(skills.id, skill.id));
           }
 
