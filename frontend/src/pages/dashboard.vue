@@ -590,33 +590,62 @@ async function handleModerationReject(id: string) {
   margin-bottom: 2.5rem;
 }
 
+.tokens-section .ant-btn-primary {
+  height: 40px;
+  padding: 0 1.25rem;
+  border-radius: 99999px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #155dfc 0%, #4f39f6 100%);
+  border: none;
+  box-shadow:
+    0 4px 12px rgba(43, 127, 255, 0.2),
+    0 2px 6px rgba(43, 127, 255, 0.12);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tokens-section .ant-btn-primary:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow:
+    0 8px 20px rgba(43, 127, 255, 0.3),
+    0 4px 10px rgba(43, 127, 255, 0.18);
+}
+
 .tokens-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .token-card {
   background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-radius: 16px;
-  padding: 1rem 1.25rem;
+  border-radius: 20px;
+  padding: 1.25rem 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 1.5rem;
   border: 1px solid rgba(255, 255, 255, 0.8);
   box-shadow:
     0 2px 8px rgba(43, 127, 255, 0.04),
-    0 1px 3px rgba(43, 127, 255, 0.03);
-  transition: all 0.3s ease;
+    0 1px 3px rgba(43, 127, 255, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transition:
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background 0.3s ease,
+    border-color 0.3s ease;
 }
 
 .token-card:hover {
-  transform: translateX(4px);
+  transform: translateX(6px);
   background: rgba(255, 255, 255, 0.75);
-  border-color: rgba(43, 127, 255, 0.2);
+  border-color: rgba(43, 127, 255, 0.25);
+  box-shadow:
+    0 6px 16px rgba(43, 127, 255, 0.1),
+    0 3px 8px rgba(43, 127, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .token-info {
@@ -625,28 +654,29 @@ async function handleModerationReject(id: string) {
 }
 
 .token-label {
-  font-family: 'Manrope', sans-serif;
+  font-family: 'Archivo', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   font-weight: 600;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   color: #27272a;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.375rem;
 }
 
 .token-prefix {
   font-family: 'SF Mono', 'Consolas', monospace;
   font-size: 0.8125rem;
-  color: #6b7280;
-  background: rgba(43, 127, 255, 0.08);
-  padding: 0.125rem 0.375rem;
-  border-radius: 6px;
+  color: #4b5563;
+  background: linear-gradient(135deg, rgba(219, 234, 254, 0.6) 0%, rgba(191, 219, 254, 0.4) 100%);
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
   display: inline-block;
-  margin-bottom: 0.375rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid rgba(43, 127, 255, 0.1);
 }
 
 .token-meta {
   display: flex;
   gap: 1rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: #9ca3af;
 }
 
@@ -657,7 +687,40 @@ async function handleModerationReject(id: string) {
 }
 
 .token-actions .ant-btn {
+  height: 36px;
+  padding: 0 1rem;
+  border-radius: 99999px;
+  font-weight: 500;
   font-size: 0.8125rem;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.token-actions .ant-btn:not(.ant-btn-dangerous) {
+  background: linear-gradient(135deg, #155dfc 0%, #4f39f6 100%);
+  border: none;
+  color: white;
+  box-shadow:
+    0 2px 8px rgba(43, 127, 255, 0.15),
+    0 1px 4px rgba(43, 127, 255, 0.1);
+}
+
+.token-actions .ant-btn:not(.ant-btn-dangerous):hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow:
+    0 4px 12px rgba(43, 127, 255, 0.25),
+    0 2px 6px rgba(43, 127, 255, 0.15);
+}
+
+.token-actions .ant-btn-dangerous {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #dc2626;
+}
+
+.token-actions .ant-btn-dangerous:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  transform: translateY(-1px);
 }
 
 /* ─── Section Header ─── */
@@ -938,13 +1001,17 @@ async function handleModerationReject(id: string) {
 
 /* ─── Empty State ─── */
 .empty-state {
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-radius: 24px;
   padding: 4rem 3rem;
   text-align: center;
   border: 2px dashed rgba(148, 163, 184, 0.3);
+  box-shadow:
+    0 2px 8px rgba(43, 127, 255, 0.04),
+    0 1px 3px rgba(43, 127, 255, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .empty-icon {
@@ -1063,15 +1130,32 @@ async function handleModerationReject(id: string) {
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(250, 204, 21, 0.15) 100%);
 }
 
+[data-theme="dark"] .empty-state {
+  background: rgba(30, 35, 60, 0.4);
+  border-color: rgba(99, 102, 241, 0.2);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.15),
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
 /* Dark Theme - Token Section */
 [data-theme="dark"] .token-card {
   background: rgba(30, 35, 60, 0.5);
   border-color: rgba(99, 102, 241, 0.15);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    0 1px 3px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 [data-theme="dark"] .token-card:hover {
   background: rgba(40, 45, 80, 0.6);
-  border-color: rgba(43, 127, 255, 0.3);
+  border-color: rgba(43, 127, 255, 0.35);
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.3),
+    0 3px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 [data-theme="dark"] .token-label {
@@ -1079,8 +1163,21 @@ async function handleModerationReject(id: string) {
 }
 
 [data-theme="dark"] .token-prefix {
-  background: rgba(43, 127, 255, 0.15);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(96, 165, 250, 0.1) 100%);
   color: #93c5fd;
+  border-color: rgba(43, 127, 255, 0.2);
+}
+
+[data-theme="dark"] .token-actions .ant-btn:not(.ant-btn-dangerous) {
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .token-actions .ant-btn:not(.ant-btn-dangerous):hover {
+  box-shadow:
+    0 4px 12px rgba(43, 127, 255, 0.3),
+    0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
 /* ─── Responsive ─── */
@@ -1106,6 +1203,21 @@ async function handleModerationReject(id: string) {
 
   .create-button {
     width: 100%;
+  }
+
+  .token-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem;
+  }
+
+  .token-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .token-actions .ant-btn {
+    flex: 1;
   }
 }
 </style>
