@@ -742,7 +742,7 @@ async function handleModerationReject(id: string) {
   gap: 0.5rem;
 }
 
-/* ─── Pending Review Section (Admin/Moderator only) -->
+/* ─── Stat Cards ─── */
 
 .stat-card {
   background: rgba(255, 255, 255, 0.6);
@@ -829,14 +829,7 @@ async function handleModerationReject(id: string) {
   letter-spacing: -0.02em;
 }
 
-/* ─── Section Header ─── */
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.25rem;
-}
-
+/* ─── Section Header Elements ─── */
 .section-title {
   font-family: 'Archivo', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   font-size: 1.25rem;
@@ -857,6 +850,7 @@ async function handleModerationReject(id: string) {
   border-radius: 99999px;
 }
 
+/* ─── Create Button Style ─── */
 .create-button {
   height: 40px;
   padding: 0 1.25rem;
