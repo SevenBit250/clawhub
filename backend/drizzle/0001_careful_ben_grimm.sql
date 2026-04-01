@@ -1,0 +1,1 @@
+ALTER TABLE "api_tokens" ADD COLUMN "token" text NOT NULL;

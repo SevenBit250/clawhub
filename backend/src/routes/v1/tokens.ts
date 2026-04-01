@@ -24,6 +24,7 @@ export async function registerTokenRoutes(fastify: FastifyInstance) {
 								properties: {
 									id: { type: "string" },
 									label: { type: "string" },
+									token: { type: "string" },
 									prefix: { type: "string" },
 									createdAt: { type: "string", format: "date-time" },
 									lastUsedAt: { type: "string", format: "date-time", nullable: true },

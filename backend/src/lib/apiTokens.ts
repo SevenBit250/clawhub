@@ -32,6 +32,7 @@ export async function createApiToken(userId: string, label: string) {
 			userId,
 			label: label.slice(0, 100), // 限制长度
 			prefix,
+			token,
 			tokenHash,
 		})
 		.returning();
@@ -91,7 +92,7 @@ export async function validateApiToken(token: string) {
 /**
  * 列出用户的 API tokens
  * @param userId 用户 ID
- * @returns API token 列表（不包含完整 token）
+ * @returns API token 列表（包含完整 token）
  */
 export async function listApiTokens(userId: string) {
 	const tokens = await db
@@ -99,6 +100,7 @@ export async function listApiTokens(userId: string) {
 			id: apiTokens.id,
 			label: apiTokens.label,
 			prefix: apiTokens.prefix,
+			token: apiTokens.token,
 			createdAt: apiTokens.createdAt,
 			lastUsedAt: apiTokens.lastUsedAt,
 			revokedAt: apiTokens.revokedAt,

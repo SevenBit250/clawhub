@@ -87,7 +87,7 @@
               <div class="token-actions">
                 <a-button size="small" @click="copyToken(tokenItem)">
                   <template #icon><CopyOutlined /></template>
-                  复制前缀
+                  复制
                 </a-button>
                 <a-button size="small" danger @click="handleRevokeToken(tokenItem.id)">
                   <template #icon><DeleteOutlined /></template>
@@ -184,44 +184,20 @@
     <a-modal
       v-model:open="showTokenModal"
       title="创建 API Token"
-      :footer="null"
-      @cancel="closeTokenModal"
+      @ok="handleCreateToken"
+      @cancel="showTokenModal = false"
       width="500px"
     >
-      <div v-if="!createdToken" class="create-token-form">
-        <a-form layout="vertical">
-          <a-form-item label="Token 标签">
-            <a-input
-              v-model:value="newTokenLabel"
-              placeholder="如: CLI Token, My Laptop"
-              maxlength="100"
-              show-count
-            />
-          </a-form-item>
-        </a-form>
-        <div class="modal-actions">
-          <a-button @click="closeTokenModal">取消</a-button>
-          <a-button type="primary" @click="handleCreateToken">创建</a-button>
-        </div>
-      </div>
-
-      <div v-else class="token-created">
-        <a-alert type="success" message="Token 创建成功" show-icon style="margin-bottom: 1rem;">
-          <template #description>
-            <p style="margin-bottom: 0.5rem;">完整 Token 仅显示一次，请立即复制保存</p>
-            <div class="created-token-display">
-              <code>{{ createdToken.token }}</code>
-            </div>
-            <a-button type="primary" block @click="copyCreatedToken">
-              <template #icon><CopyOutlined /></template>
-              复制完整 Token
-            </a-button>
-          </template>
-        </a-alert>
-        <div class="modal-actions">
-          <a-button type="primary" @click="closeTokenModal">完成</a-button>
-        </div>
-      </div>
+      <a-form layout="vertical">
+        <a-form-item label="Token 标签">
+          <a-input
+            v-model:value="newTokenLabel"
+            placeholder="如: CLI Token, My Laptop"
+            maxlength="100"
+            show-count
+          />
+        </a-form-item>
+      </a-form>
     </a-modal>
   </MotionBackground>
 </template>
@@ -264,6 +240,7 @@ const pendingSkills = ref<Array<{
 type ApiToken = {
   id: string;
   label: string;
+  token: string;
   prefix: string;
   createdAt: string;
   lastUsedAt: string | null;
@@ -272,7 +249,6 @@ type ApiToken = {
 const apiTokens = ref<ApiToken[]>([]);
 const showTokenModal = ref(false);
 const newTokenLabel = ref("");
-const createdToken = ref<{ token: string; prefix: string } | null>(null);
 
 const showModerationDialog = ref(false);
 const selectedSkillForModeration = ref<{
@@ -359,7 +335,6 @@ async function fetchData() {
 // Token management functions
 async function openCreateTokenModal() {
   newTokenLabel.value = `CLI Token ${new Date().toLocaleDateString()}`;
-  createdToken.value = null;
   showTokenModal.value = true;
 }
 
@@ -370,39 +345,28 @@ async function handleCreateToken() {
   }
 
   try {
-    const res = await api.post<{ id: string; token: string; prefix: string; label: string }>(
+    await api.post<{ id: string; token: string; prefix: string; label: string }>(
       "/api/v1/tokens",
       { label: newTokenLabel.value.trim() },
       { token: token.value }
     );
-    createdToken.value = { token: res.token, prefix: res.prefix };
     // Refresh token list
     const tokensRes = await api.get<{ tokens: ApiToken[] }>("/api/v1/tokens", { token: token.value });
     apiTokens.value = tokensRes?.tokens || [];
     message.success("Token 创建成功");
+    showTokenModal.value = false;
+    newTokenLabel.value = "";
   } catch (error: any) {
     message.error(error?.message || "Token 创建失败");
   }
 }
 
 function copyToken(token: ApiToken) {
-  // 用户只能复制前缀，完整 token 只在创建时显示
-  const text = `Token 前缀: ${token.prefix}\n请使用创建时显示的完整 token`;
-  navigator.clipboard.writeText(text).then(() => {
-    message.success("Token 前缀已复制");
+  navigator.clipboard.writeText(token.token).then(() => {
+    message.success("Token 已复制到剪贴板");
   }).catch(() => {
     message.error("复制失败");
   });
-}
-
-function copyCreatedToken() {
-  if (createdToken.value?.token) {
-    navigator.clipboard.writeText(createdToken.value.token).then(() => {
-      message.success("完整 Token 已复制到剪贴板");
-    }).catch(() => {
-      message.error("复制失败");
-    });
-  }
 }
 
 async function handleRevokeToken(id: string) {
@@ -413,12 +377,6 @@ async function handleRevokeToken(id: string) {
   } catch {
     message.error("撤销失败");
   }
-}
-
-function closeTokenModal() {
-  showTokenModal.value = false;
-  createdToken.value = null;
-  newTokenLabel.value = "";
 }
 
 function formatDate(dateStr: string | null) {
@@ -725,36 +683,6 @@ async function handleModerationReject(id: string) {
 
 .token-actions .ant-btn {
   font-size: 0.8125rem;
-}
-
-/* Modal Styles */
-.create-token-form {
-  padding: 0.5rem 0;
-}
-
-.token-created {
-  padding: 0.5rem 0;
-}
-
-.created-token-display {
-  background: #f3f4f6;
-  border-radius: 8px;
-  padding: 0.75rem;
-  margin: 0.75rem 0;
-  word-break: break-all;
-}
-
-.created-token-display code {
-  font-family: 'SF Mono', 'Consolas', monospace;
-  font-size: 0.8125rem;
-  color: #27272a;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
 }
 
 /* ─── Section Header ─── */
@@ -1178,10 +1106,6 @@ async function handleModerationReject(id: string) {
 [data-theme="dark"] .token-prefix {
   background: rgba(43, 127, 255, 0.15);
   color: #93c5fd;
-}
-
-[data-theme="dark"] .created-token-display {
-  background: rgba(30, 35, 60, 0.6);
 }
 
 /* ─── Responsive ─── */

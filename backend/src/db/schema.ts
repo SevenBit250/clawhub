@@ -570,6 +570,7 @@ export const apiTokens = pgTable("api_tokens", {
   userId: uuid("user_id").notNull().references(() => users.id),
   label: varchar("label", { length: 100 }).notNull(),
   prefix: varchar("prefix", { length: 10 }).notNull(),
+  token: text("token").notNull(),
   tokenHash: varchar("token_hash", { length: 128 }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   lastUsedAt: timestamp("last_used_at"),
