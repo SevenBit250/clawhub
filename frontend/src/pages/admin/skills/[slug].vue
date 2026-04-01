@@ -98,6 +98,11 @@
               <EyeOutlined />
               <span>查看技能</span>
             </router-link>
+
+            <button class="action-btn action-btn--delete" @click="showDeleteModal = true">
+              <DeleteOutlined />
+              <span>删除技能</span>
+            </button>
           </div>
         </div>
 
@@ -160,6 +165,32 @@
         </div>
       </a-form>
     </a-modal>
+
+    <!-- Delete Modal -->
+    <a-modal
+      v-model:open="showDeleteModal"
+      title="删除技能"
+      :footer="null"
+      width="400px"
+    >
+      <div class="delete-modal-content">
+        <p class="delete-warning">此操作将删除该技能，删除后用户将无法访问该技能。</p>
+        <div class="delete-form">
+          <label class="form-label">删除原因（可选）</label>
+          <a-textarea
+            v-model:value="deleteReason"
+            placeholder="请输入删除原因..."
+            :rows="3"
+            :maxlength="500"
+            show-count
+          />
+        </div>
+        <div class="modal-actions">
+          <a-button @click="showDeleteModal = false">取消</a-button>
+          <a-button type="primary" danger @click="confirmDelete">确认删除</a-button>
+        </div>
+      </div>
+    </a-modal>
   </div>
 </template>
 
@@ -175,6 +206,7 @@ import {
   EyeInvisibleOutlined,
   EyeOutlined,
   UndoOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 import { useApi } from "@/composables/useApi";
@@ -185,6 +217,8 @@ const loading = ref(true);
 const versionsLoading = ref(true);
 const showRejectModal = ref(false);
 const rejectReason = ref("");
+const showDeleteModal = ref(false);
+const deleteReason = ref("");
 
 const route = useRoute();
 const router = useRouter();
@@ -305,6 +339,23 @@ async function confirmReject() {
     await fetchSkill();
   } catch (error: any) {
     message.error(error.message || "操作失败");
+  }
+}
+
+async function confirmDelete() {
+  if (!skill.value) return;
+
+  try {
+    await api.delete(`/api/v1/admin/skills/${skill.value.id}`, {
+      token: token.value,
+      body: JSON.stringify({ reason: deleteReason.value }),
+    });
+    message.success("删除成功");
+    showDeleteModal.value = false;
+    deleteReason.value = "";
+    router.push("/admin/skills");
+  } catch (error: any) {
+    message.error(error.message || "删除失败");
   }
 }
 </script>
@@ -620,6 +671,16 @@ async function confirmReject() {
   border-color: rgba(43, 127, 255, 0.3);
 }
 
+.action-btn--delete {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #dc2626;
+}
+
+.action-btn--delete:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 16px rgba(220, 38, 38, 0.25);
+}
+
 [data-theme="dark"] .action-btn--view {
   background: rgba(30, 35, 60, 0.6);
   color: #94a3b8;
@@ -762,6 +823,44 @@ async function confirmReject() {
 }
 
 /* ─── Modal ─── */
+.delete-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.delete-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #27272a;
+}
+
+[data-theme="dark"] .form-label {
+  color: #f1f5f9;
+}
+
+.delete-warning {
+  font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 0.9375rem;
+  color: #dc2626;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background: rgba(220, 38, 38, 0.1);
+  border-radius: 8px;
+}
+
+[data-theme="dark"] .delete-warning {
+  color: #fca5a5;
+  background: rgba(220, 38, 38, 0.15);
+}
+
 .modal-actions {
   display: flex;
   justify-content: flex-end;

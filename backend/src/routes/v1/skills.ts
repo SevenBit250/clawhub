@@ -168,6 +168,7 @@ const listSkills: FastifyPluginAsync = async (fastify) => {
       isNull(skills.softDeletedAt),
       ne(skills.moderationStatus, "pending"),
       ne(skills.moderationStatus, "removed"),
+      ne(skills.moderationStatus, "hidden"),
     ];
 
     if (q && q.trim()) {
@@ -408,10 +409,11 @@ const getSkillBySlug: FastifyPluginAsync = async (fastify) => {
     if (!canSeePending) {
       // Moderators/admins can see all non-deleted skills
       // Owners can see their own pending/removed skills
-      // Others can only see active/hidden skills
+      // Others can only see active skills (not hidden, pending, or removed)
       if (!isOwner) {
         conditions.push(ne(skills.moderationStatus, "pending") as any);
         conditions.push(ne(skills.moderationStatus, "removed") as any);
+        conditions.push(ne(skills.moderationStatus, "hidden") as any);
       }
     }
 
@@ -656,9 +658,12 @@ const registerPublishSkillV1: FastifyPluginAsync = async (fastify) => {
             return;
           }
 
-          // Check if slug already exists
+          // Check if slug already exists (excluding soft-deleted skills)
           const existing = await db.query.skills.findFirst({
-            where: eq(skills.slug, payload.slug),
+            where: and(
+              eq(skills.slug, payload.slug),
+              isNull(skills.softDeletedAt)
+            ),
           });
 
           if (existing) {
@@ -969,7 +974,10 @@ const registerSkillManageV1: FastifyPluginAsync = async (fastify) => {
     }
 
     const existingWithNewSlug = await db.query.skills.findFirst({
-      where: eq(skills.slug, body.slug),
+      where: and(
+        eq(skills.slug, body.slug),
+        isNull(skills.softDeletedAt)
+      ),
     });
 
     if (existingWithNewSlug) {

@@ -110,6 +110,14 @@
                 </button>
               </template>
 
+              <button
+                class="action-btn action-btn--delete"
+                @click="showDeleteModal(skill.id)"
+              >
+                <DeleteOutlined />
+                <span>删除</span>
+              </button>
+
               <router-link :to="`/admin/skills/${skill.slug}`" class="action-link">
                 <SettingOutlined />
                 <span>详情</span>
@@ -160,6 +168,32 @@
         </div>
       </a-form>
     </a-modal>
+
+    <!-- Delete Modal -->
+    <a-modal
+      v-model:open="deleteModalVisible"
+      title="删除技能"
+      :footer="null"
+      width="400px"
+    >
+      <div class="delete-modal-content">
+        <p class="delete-warning">此操作将删除该技能，删除后用户将无法访问该技能。</p>
+        <div class="delete-form">
+          <label class="form-label">删除原因（可选）</label>
+          <a-textarea
+            v-model:value="deleteReason"
+            placeholder="请输入删除原因..."
+            :rows="3"
+            :maxlength="500"
+            show-count
+          />
+        </div>
+        <div class="modal-actions">
+          <a-button @click="deleteModalVisible = false">取消</a-button>
+          <a-button type="primary" danger @click="confirmDelete">确认删除</a-button>
+        </div>
+      </div>
+    </a-modal>
   </div>
 </template>
 
@@ -175,6 +209,7 @@ import {
   UndoOutlined,
   SettingOutlined,
   ExclamationCircleOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 import { useApi } from "@/composables/useApi";
@@ -190,6 +225,9 @@ const pageSize = 10;
 const rejectModalVisible = ref(false);
 const rejectReason = ref("");
 const selectedSkillId = ref<string | null>(null);
+
+const deleteModalVisible = ref(false);
+const deleteReason = ref("");
 
 const { token } = useAuth();
 const api = useApi();
@@ -298,40 +336,83 @@ async function handleAction(action: string, skillId: string) {
 
   switch (action) {
     case "approve":
-      await executeAction(`/api/v1/admin/skills/${skillId}/approve`, "POST");
+      await executeApproveAction(skillId);
       break;
     case "reject":
       rejectModalVisible.value = true;
       break;
     case "hide":
-      await executeAction(`/api/v1/admin/skills/${skillId}/hide`, "POST");
+      await executeHideAction(skillId);
       break;
     case "unhide":
-      await executeAction(`/api/v1/admin/skills/${skillId}/unhide`, "POST");
+      await executeUnhideAction(skillId);
       break;
   }
 }
 
 async function confirmReject() {
   if (!selectedSkillId.value) return;
-  await executeAction(`/api/v1/admin/skills/${selectedSkillId.value}/reject`, "POST", {
-    reason: rejectReason.value,
-  });
-  rejectModalVisible.value = false;
-  rejectReason.value = "";
+  try {
+    await api.post(`/api/v1/admin/skills/${selectedSkillId.value}/reject`, {
+      reason: rejectReason.value,
+    }, { token: token.value });
+    message.success("操作成功");
+    rejectModalVisible.value = false;
+    rejectReason.value = "";
+    await fetchSkills();
+  } catch (error: any) {
+    message.error(error.message || "操作失败");
+  }
 }
 
-async function executeAction(endpoint: string, method: string, body?: any) {
+async function executeApproveAction(skillId: string) {
   try {
-    await api.request(endpoint, {
-      method,
-      body: body ? JSON.stringify(body) : undefined,
-      token: token.value,
-    });
+    await api.post(`/api/v1/admin/skills/${skillId}/approve`, {}, { token: token.value });
     message.success("操作成功");
     await fetchSkills();
   } catch (error: any) {
     message.error(error.message || "操作失败");
+  }
+}
+
+async function executeHideAction(skillId: string) {
+  try {
+    await api.post(`/api/v1/admin/skills/${skillId}/hide`, {}, { token: token.value });
+    message.success("操作成功");
+    await fetchSkills();
+  } catch (error: any) {
+    message.error(error.message || "操作失败");
+  }
+}
+
+async function executeUnhideAction(skillId: string) {
+  try {
+    await api.post(`/api/v1/admin/skills/${skillId}/unhide`, {}, { token: token.value });
+    message.success("操作成功");
+    await fetchSkills();
+  } catch (error: any) {
+    message.error(error.message || "操作失败");
+  }
+}
+
+function showDeleteModal(skillId: string) {
+  selectedSkillId.value = skillId;
+  deleteModalVisible.value = true;
+}
+
+async function confirmDelete() {
+  if (!selectedSkillId.value) return;
+  try {
+    await api.delete(`/api/v1/admin/skills/${selectedSkillId.value}`, {
+      token: token.value,
+      body: JSON.stringify({ reason: deleteReason.value }),
+    });
+    message.success("删除成功");
+    deleteModalVisible.value = false;
+    deleteReason.value = "";
+    await fetchSkills();
+  } catch (error: any) {
+    message.error(error.message || "删除失败");
   }
 }
 
@@ -677,6 +758,16 @@ watch(activeFilter, () => {
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
 }
 
+.action-btn--delete {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #dc2626;
+}
+
+.action-btn--delete:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+}
+
 .action-link {
   display: inline-flex;
   align-items: center;
@@ -742,6 +833,44 @@ watch(activeFilter, () => {
 }
 
 /* ─── Modal ─── */
+.delete-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.delete-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #27272a;
+}
+
+[data-theme="dark"] .form-label {
+  color: #f1f5f9;
+}
+
+.delete-warning {
+  font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 0.9375rem;
+  color: #dc2626;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background: rgba(220, 38, 38, 0.1);
+  border-radius: 8px;
+}
+
+[data-theme="dark"] .delete-warning {
+  color: #fca5a5;
+  background: rgba(220, 38, 38, 0.15);
+}
+
 .modal-actions {
   display: flex;
   justify-content: flex-end;

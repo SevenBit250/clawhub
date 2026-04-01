@@ -408,6 +408,77 @@ const registerAdminSkillsV1: FastifyPluginAsync = async (fastify) => {
     },
   });
 
+  // Delete a skill (soft delete, available to moderators/admins)
+  fastify.delete("/admin/skills/:id", {
+    schema: {
+      description: "删除技能（软删除）",
+      tags: ["admin"],
+      params: {
+        type: "object",
+        required: ["id"],
+        properties: {
+          id: { type: "string" },
+        },
+      },
+      headers: {
+        type: "object",
+        required: ["authorization"],
+        properties: {
+          authorization: { type: "string" },
+        },
+      },
+      body: {
+        type: "object",
+        properties: {
+          reason: { type: "string" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            ok: { type: "boolean" },
+          },
+        },
+      },
+    },
+    async handler(request) {
+      const session = await requireModerator(request);
+      const { id } = request.params as { id: string };
+      const body = request.body as { reason?: string };
+
+      const [skill] = await db
+        .select()
+        .from(skills)
+        .where(eq(skills.id, id))
+        .limit(1);
+
+      if (!skill) {
+        throw { statusCode: 404, message: "Skill not found" };
+      }
+
+      await db
+        .update(skills)
+        .set({
+          softDeletedAt: new Date(),
+          moderationReason: body.reason || null,
+          updatedAt: new Date(),
+        })
+        .where(eq(skills.id, id));
+
+      // Log the action
+      await db.insert(auditLogs).values({
+        actorUserId: session.user.id,
+        action: "skill.delete",
+        targetType: "skill",
+        targetId: id,
+        metadata: JSON.stringify({ slug: skill.slug, reason: body.reason }),
+      });
+
+      return { ok: true as const };
+    },
+  });
+
   // Batch fetch skills by IDs
   fastify.get("/admin/skills/batch", {
     schema: {

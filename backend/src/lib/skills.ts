@@ -81,6 +81,7 @@ export async function getSkillBySlug(slug: string, options?: { includePending?: 
   const conditions = [eq(skills.slug, slug), isNull(skills.softDeletedAt)];
   if (!options?.includePending) {
     conditions.push(ne(skills.moderationStatus, "pending") as any);
+    conditions.push(ne(skills.moderationStatus, "hidden") as any);
   }
 
   return db.query.skills.findFirst({
@@ -95,6 +96,7 @@ export async function getSkillById(id: string, options?: { includePending?: bool
   const conditions = [eq(skills.id, id), isNull(skills.softDeletedAt)];
   if (!options?.includePending) {
     conditions.push(ne(skills.moderationStatus, "pending") as any);
+    conditions.push(ne(skills.moderationStatus, "hidden") as any);
   }
 
   return db.query.skills.findFirst({
@@ -146,7 +148,9 @@ export async function listSkills(options: {
   return db.query.skills.findMany({
     where: and(
       isNull(skills.softDeletedAt),
-      ne(skills.moderationStatus, "pending")
+      ne(skills.moderationStatus, "pending"),
+      ne(skills.moderationStatus, "hidden"),
+      ne(skills.moderationStatus, "removed")
     ),
     with: { owner: true },
     orderBy,
