@@ -7,7 +7,6 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    AAlert: typeof import('ant-design-vue/es')['Alert']
     AButton: typeof import('ant-design-vue/es')['Button']
     AConfigProvider: typeof import('ant-design-vue/es')['ConfigProvider']
     ADropdown: typeof import('ant-design-vue/es')['Dropdown']
@@ -23,6 +22,7 @@ declare module 'vue' {
     ASpin: typeof import('ant-design-vue/es')['Spin']
     ATag: typeof import('ant-design-vue/es')['Tag']
     ATextarea: typeof import('ant-design-vue/es')['Textarea']
+    CreateTokenModal: typeof import('./components/CreateTokenModal.vue')['default']
     DashboardSkillItem: typeof import('./components/DashboardSkillItem.vue')['default']
     DemandBadge: typeof import('./components/DemandBadge.vue')['default']
     DemandCard: typeof import('./components/DemandCard.vue')['default']

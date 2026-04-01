@@ -56,7 +56,7 @@
               <KeyOutlined />
               API Tokens
             </h2>
-            <a-button type="primary" @click="openCreateTokenModal">
+            <a-button type="primary" @click="showCreateTokenModal = true">
               <template #icon><PlusOutlined /></template>
               创建 Token
             </a-button>
@@ -181,24 +181,10 @@
     />
 
     <!-- Create Token Modal -->
-    <a-modal
-      v-model:open="showTokenModal"
-      title="创建 API Token"
-      @ok="handleCreateToken"
-      @cancel="showTokenModal = false"
-      width="500px"
-    >
-      <a-form layout="vertical">
-        <a-form-item label="Token 标签">
-          <a-input
-            v-model:value="newTokenLabel"
-            placeholder="如: CLI Token, My Laptop"
-            maxlength="100"
-            show-count
-          />
-        </a-form-item>
-      </a-form>
-    </a-modal>
+    <CreateTokenModal
+      v-model:open="showCreateTokenModal"
+      @confirm="handleCreateToken"
+    />
   </MotionBackground>
 </template>
 
@@ -210,6 +196,7 @@ import { ToolOutlined, ClusterOutlined, StarFilled, KeyOutlined, CopyOutlined, D
 import ModerationDialog from "@/components/ModerationDialog.vue";
 import DashboardSkillItem from "@/components/DashboardSkillItem.vue";
 import MotionBackground from "@/components/MotionBackground.vue";
+import CreateTokenModal from "@/components/CreateTokenModal.vue";
 
 const { t } = useI18n();
 const { isAuthenticated, token, loaded, getAuthUrl, user } = useAuth();
@@ -247,8 +234,7 @@ type ApiToken = {
 };
 
 const apiTokens = ref<ApiToken[]>([]);
-const showTokenModal = ref(false);
-const newTokenLabel = ref("");
+const showCreateTokenModal = ref(false);
 
 const showModerationDialog = ref(false);
 const selectedSkillForModeration = ref<{
@@ -333,31 +319,20 @@ async function fetchData() {
 }
 
 // Token management functions
-async function openCreateTokenModal() {
-  newTokenLabel.value = `CLI Token ${new Date().toLocaleDateString()}`;
-  showTokenModal.value = true;
-}
-
-async function handleCreateToken() {
-  if (!newTokenLabel.value.trim()) {
-    message.error("请输入 Token 标签");
-    return;
-  }
-
+async function handleCreateToken(label: string) {
   try {
     await api.post<{ id: string; token: string; prefix: string; label: string }>(
       "/api/v1/tokens",
-      { label: newTokenLabel.value.trim() },
+      { label },
       { token: token.value }
     );
     // Refresh token list
     const tokensRes = await api.get<{ tokens: ApiToken[] }>("/api/v1/tokens", { token: token.value });
     apiTokens.value = tokensRes?.tokens || [];
     message.success("Token 创建成功");
-    showTokenModal.value = false;
-    newTokenLabel.value = "";
   } catch (error: any) {
     message.error(error?.message || "Token 创建失败");
+    throw error;
   }
 }
 
