@@ -77,10 +77,13 @@
                 <template #overlay>
                   <a-menu>
                     <a-menu-item key="dashboard" @click="router.push('/dashboard')">
-                      {{ $t("nav.dashboard") }}
+                      <DashboardOutlined /> {{ $t("nav.dashboard") }}
+                    </a-menu-item>
+                    <a-menu-item v-if="isAdminOrMod" key="admin" @click="router.push('/admin')">
+                      <SettingOutlined /> 后台管理
                     </a-menu-item>
                     <a-menu-item key="logout" @click="handleLogout">
-                      {{ $t("nav.logout") }}
+                      <LogoutOutlined /> {{ $t("nav.logout") }}
                     </a-menu-item>
                   </a-menu>
                 </template>
@@ -124,13 +127,25 @@
 </template>
 
 <script setup lang="ts">
-import { BulbFilled, BulbOutlined, DesktopOutlined, GlobalOutlined, UserOutlined } from "@ant-design/icons-vue";
+import {
+  BulbFilled,
+  BulbOutlined,
+  DesktopOutlined,
+  GlobalOutlined,
+  UserOutlined,
+  DashboardOutlined,
+  SettingOutlined,
+  LogoutOutlined,
+} from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 import { useI18n } from "vue-i18n";
 import { i18n } from "@/plugins/i18n";
 
 const { isAuthenticated, logout, user } = useAuth();
 const userDisplayName = computed(() => user.value?.displayName || user.value?.name || user.value?.handle || "User");
+const isAdminOrMod = computed(() =>
+  user.value?.role === "admin" || user.value?.role === "moderator"
+);
 const { effectiveTheme, antdTheme, setTheme, initTheme } = useTheme();
 const { t } = useI18n();
 const router = useRouter();
