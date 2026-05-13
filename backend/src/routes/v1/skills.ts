@@ -687,7 +687,10 @@ const registerPublishSkillV1: FastifyPluginAsync = async (fastify) => {
             ),
           });
 
-          if (existing) {
+          // Support upsert: if skill exists and belongs to current user, create a new version
+          const isUpdate = existing && existing.ownerUserId === session.userId;
+
+          if (existing && !isUpdate) {
             reject({ statusCode: 409, message: "Slug already exists" });
             return;
           }
@@ -713,13 +716,30 @@ const registerPublishSkillV1: FastifyPluginAsync = async (fastify) => {
             }
           }
 
-          // Create skill
-          const skill = await createSkill(session.userId, {
+          // Use existing skill for updates, or create new skill
+          const skill = isUpdate ? existing : await createSkill(session.userId, {
             slug: payload.slug,
             displayName: payload.displayName,
             summary: summary ?? undefined,
             moderationStatus: session.user.role === "admin" ? "active" : "pending",
           });
+
+          // Update summary and displayName if provided (for existing skills)
+          if (isUpdate) {
+            const updateData: Record<string, any> = { updatedAt: new Date() };
+            if (payload.displayName && payload.displayName !== existing.displayName) {
+              updateData.displayName = payload.displayName;
+            }
+            if (summary !== null && summary !== existing.summary) {
+              updateData.summary = summary;
+            }
+
+            if (Object.keys(updateData).length > 1) {
+              await db.update(skills)
+                .set(updateData)
+                .where(eq(skills.id, existing.id));
+            }
+          }
 
           // Create version
           const version = await createSkillVersion(session.userId, skill.id, {
@@ -728,6 +748,11 @@ const registerPublishSkillV1: FastifyPluginAsync = async (fastify) => {
             changelog: payload.changelog || "",
             files,
           });
+
+          // Update latest version
+          await db.update(skills)
+            .set({ latestVersionId: version.id, updatedAt: new Date() })
+            .where(eq(skills.id, skill.id));
 
           resolve({
             ok: true as const,

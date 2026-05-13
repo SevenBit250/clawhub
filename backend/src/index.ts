@@ -106,9 +106,9 @@ function getCliTextResponse(req: FastifyRequest): string {
 欢迎使用 SkillsHub!
 
 如果你是AI Agent, 那么请按照如下方法使用技能市场:
-  使用 clawhub --version 命令检查一下clawhub工具是否安装了,
+  使用 clawhub -V 命令检查一下clawhub工具是否安装了,
   若未安装则使用 npm install clawhub@latest 命令安装它；
-  安装完成后，使用 clawhub --version 命令检查安装是否成功；
+  安装完成后，使用 clawhub -V 命令检查安装是否成功；
   若安装失败，则告知用户，若成功则进行下一步；
   使用 export CLAWHUB_REGISTRY=${baseUrl} && clawhub install kls-skill-manager 命令安装这个技能
   安装完成后告知用户并说明使用方法。

@@ -51,8 +51,8 @@ const copied = ref(false);
 
 // TODO: Add terminal content
 const terminalContent = " \
-使用 clawhub --version 命令检查一下clawhub工具是否安装了, 若未安装则使用 npm install clawhub@latest 命令安装它； \
-安装完成后，使用 clawhub --version 命令检查安装是否成功； \
+使用 clawhub -V 命令检查一下clawhub工具是否安装了, 若未安装则使用 npm install clawhub@latest 命令安装它； \
+安装完成后，使用 clawhub -V 命令检查安装是否成功； \
 若安装失败，则告知用户，若成功则进行下一步；\
 使用 export CLAWHUB_REGISTRY=https://skillhub.claws.keylights.tech:8443 && clawhub install kls-skill-manager 命令安装这个技能 \
 安装完成后告知用户并说明使用方法。\
